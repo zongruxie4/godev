@@ -1,0 +1,1 @@
+console.log("JS privado module {{.ModuleName}}");

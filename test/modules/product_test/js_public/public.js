@@ -1,0 +1,1 @@
+console.log("js publico module product..");

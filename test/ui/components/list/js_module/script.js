@@ -1,0 +1,1 @@
+console.log('componente list en modulo: {{.MainName}} cargado');
