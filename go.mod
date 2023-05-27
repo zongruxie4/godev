@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/cdvelop/input v0.0.3
-	github.com/cdvelop/model v0.0.19
+	github.com/cdvelop/model v0.0.21
 	github.com/chromedp/cdproto v0.0.0-20230524011726-8501c74e8228
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0

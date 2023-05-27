@@ -9,7 +9,5 @@ func RegisterApp(a app) *ui {
 
 	ui_store.registerComponents()
 
-	ui_store.buildAll()
-
 	return &ui_store
 }

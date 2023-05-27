@@ -1,7 +1,7 @@
 github.com/cdvelop/input v0.0.3 h1:W5dIZI/nfvd/+CuO1/Zb388eX/X9n+z1L/Ir4uyVWeQ=
 github.com/cdvelop/input v0.0.3/go.mod h1:PB3ZnLyU6oCu8ft14apMeBHNFfiwdrAQsoSB3NB/qPM=
-github.com/cdvelop/model v0.0.19 h1:1uGsemWWslctKtPlIxNL0ftGB2qoDiHq1n0ypUsdrrA=
-github.com/cdvelop/model v0.0.19/go.mod h1:Z68GbCq8aw1vGIGMfsXoIWd9IyXOg0NW5+f0gRvlc7o=
+github.com/cdvelop/model v0.0.21 h1:pk9+MmOnqMrv86w6CxiURnx6WH5SsqlZdWGMx3g8qzg=
+github.com/cdvelop/model v0.0.21/go.mod h1:Z68GbCq8aw1vGIGMfsXoIWd9IyXOg0NW5+f0gRvlc7o=
 github.com/chromedp/cdproto v0.0.0-20230220211738-2b1ec77315c9/go.mod h1:GKljq0VrfU4D5yc+2qA6OVr8pmO/MBbPEWqWQ/oqGEs=
 github.com/chromedp/cdproto v0.0.0-20230524011726-8501c74e8228 h1:t5YUtCgmUJJ4H5mwQhst70ZxpaCK4SGDtFRPKKw+cYU=
 github.com/chromedp/cdproto v0.0.0-20230524011726-8501c74e8228/go.mod h1:GKljq0VrfU4D5yc+2qA6OVr8pmO/MBbPEWqWQ/oqGEs=
