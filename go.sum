@@ -1,5 +1,5 @@
-github.com/cdvelop/input v0.0.4 h1:yncpwetT07g54OHEgPSEEXuK5J0vev06TfzDyMBohuI=
-github.com/cdvelop/input v0.0.4/go.mod h1:YrqHF+inuFsttybh1afHoJNy+H7nGJVRISTvXfyeEVM=
+github.com/cdvelop/input v0.0.5 h1:PdpP9neryaDoirPLOMGQHRy6/UwdTQkw0q4c5EJJXv4=
+github.com/cdvelop/input v0.0.5/go.mod h1:GxqnNoZg9YWyNjE4PVuNq/MxjpuhJHr0CyjVmacMfXQ=
 github.com/cdvelop/model v0.0.23 h1:l18HzELuuwZvViLP/KVl1/PhyyHBmHsijggxlEoPeJA=
 github.com/cdvelop/model v0.0.23/go.mod h1:3IL/1K4zYj+Yhvye1ucimMvN5AqIeTeJgnWdved44LU=
 github.com/chromedp/cdproto v0.0.0-20230220211738-2b1ec77315c9/go.mod h1:GKljq0VrfU4D5yc+2qA6OVr8pmO/MBbPEWqWQ/oqGEs=
