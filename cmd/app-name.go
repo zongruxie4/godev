@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,5 +16,8 @@ func getAppName() string {
 
 	// Obtiene el nombre de la carpeta actual como nombre de la aplicación
 	_, appName := filepath.Split(currentDir)
+
+	fmt.Println("Nombre aplicación: ", appName)
+
 	return strings.ToLower(appName)
 }
