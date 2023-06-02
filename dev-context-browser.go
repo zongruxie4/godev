@@ -6,7 +6,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func (u ui) CreateContext() (context.Context, context.CancelFunc) {
+func (a *Args) CreateContext() {
 
 	opts := append(
 
@@ -35,5 +35,6 @@ func (u ui) CreateContext() (context.Context, context.CancelFunc) {
 	)
 
 	parentCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
-	return chromedp.NewContext(parentCtx)
+
+	a.Context, a.CancelFunc = chromedp.NewContext(parentCtx)
 }

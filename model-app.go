@@ -5,6 +5,7 @@ import "github.com/cdvelop/model"
 type app interface {
 	AppName() string
 	AppVersion() string
+	AppPort() string
 	AppInProduction() bool
 	HotReload() bool
 	Areas() map[byte]string

@@ -4,27 +4,24 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 	"strconv"
 	"sync"
-	"syscall"
 
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
-func (u ui) devBrowserSTART(url string, wg *sync.WaitGroup) {
+func (a *Args) DevBrowserSTART(wg *sync.WaitGroup) {
 	fmt.Println("*** START DEV BROWSER ***")
 
-	ctx, _ := u.CreateContext()
+	a.CreateContext()
 	// defer cancel()
 
 	// crea un mapa para registrar los mensajes de log únicos
 	uniqueLogs := make(map[string]bool)
 
 	// captura los logs de JavaScript
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
+	chromedp.ListenTarget(a.Context, func(ev interface{}) {
 		switch ev := ev.(type) {
 		case *runtime.EventConsoleAPICalled:
 			for _, arg := range ev.Args {
@@ -43,14 +40,14 @@ func (u ui) devBrowserSTART(url string, wg *sync.WaitGroup) {
 	})
 
 	// Navega a una página web
-	err := chromedp.Run(ctx, chromedp.Navigate(url))
+	err := chromedp.Run(a.Context, chromedp.Navigate(a.Path))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error al navegar "+a.Path+" ", err)
 	}
 
 	// Espera hasta que la página esté completamente cargada
 	var loaded bool
-	err = chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+	err = chromedp.Run(a.Context, chromedp.ActionFunc(func(ctx context.Context) error {
 		for {
 			select {
 			case <-ctx.Done():
@@ -77,30 +74,16 @@ func (u ui) devBrowserSTART(url string, wg *sync.WaitGroup) {
 		log.Fatal("La página no se ha cargado correctamente")
 	}
 
-	go u.ReloadListener(ctx, wg)
+	go a.reloadListener(wg)
 
-	// Cree un canal para recibir señales de interrupción
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	// Espera hasta que se reciba una señal de interrupción o se establezca running en false
-	for {
-		<-interrupt
-		// fmt.Println("Aplicación finalizada")
-		// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
-		if err := chromedp.Cancel(ctx); err != nil {
-			log.Println("error al cerrar browser", err)
-		}
-		os.Exit(0)
-	}
 }
 
-func (u ui) ReloadListener(ctx context.Context, wg *sync.WaitGroup) {
+func (a *Args) reloadListener(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
-		<-u.reload
+		<-a.Reload
 		// fmt.Println("Recargando Navegador")
-		err := chromedp.Run(ctx, chromedp.Reload())
+		err := chromedp.Run(a.Context, chromedp.Reload())
 		if err != nil {
 			log.Println("Error al recargar Pagina ", err)
 		}

@@ -17,7 +17,7 @@ func Test_BuildingUI(t *testing.T) {
 	deleteFiles(static, []string{".js", ".css"})
 
 	// // registrar app
-	ui := godev.RegisterApp(setting.App())
+	ui := godev.RegisterApp(setting.App(), nil, false)
 
 	ui.BuildHTML()
 

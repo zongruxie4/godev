@@ -11,10 +11,10 @@ import (
 )
 
 func Test_HttpUI(t *testing.T) {
-	// // registrar app
-	ui := godev.RegisterApp(setting.App())
-
 	mux := http.NewServeMux()
+
+	// // registrar app
+	ui := godev.RegisterApp(setting.App(), nil, false)
 
 	mux.Handle("/", ui)
 

@@ -23,6 +23,10 @@ func (app) AppName() string {
 	return "myapp"
 }
 
+func (app) AppPort() string {
+	return "8080"
+}
+
 func (app) AppVersion() string {
 	return "0.0.0"
 }

@@ -1,43 +1,60 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"os"
+	"os/signal"
+	"path/filepath"
+	"sync"
+	"syscall"
+
+	"github.com/cdvelop/godev"
+	"github.com/chromedp/chromedp"
 )
 
-var appProcess *os.Process
+var a = godev.Args{
+	Reload:    make(chan bool, 1),
+	Interrupt: make(chan os.Signal, 1),
+}
 
 func main() {
-	port := "8080" // Puerto predeterminado
-	if len(os.Args) > 1 {
-		port = os.Args[1] // Lee el puerto de los argumentos de línea de comandos si se proporciona
+	a.CaptureArguments()
+
+	dir, _ := os.Getwd()
+	if filepath.Base(dir) == "godev" {
+		a.ShowErrorAndExit("error cambia al directorio de tu aplicación para ejecutar godev")
 	}
 
-	appName := getAppName() // Obtiene el nombre de la aplicación basado en el nombre de la carpeta actual
+	a.StartProgram()
 
-	http.HandleFunc("/restart", restartHandler)
+	go a.ProcessProgramOutput()
+	// Cree un canal para recibir señales de interrupción
+	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
 
-	go func() {
-		err := recompileApp()
-		if err != nil {
-			log.Println("Error al recompilar la aplicación:", err)
-			return
-		}
+	// Set up TCP server to listen for restart messages
+	ln, err := net.Listen("tcp", ":1234") // Change ":1234" to the desired port number
+	if err != nil {
+		fmt.Printf("Failed to start TCP server: %s\n", err)
+		return
+	}
+	defer ln.Close()
 
-		err = restartApp()
-		if err != nil {
-			log.Println("Error al reiniciar la aplicación:", err)
-			return
-		}
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-		log.Println("Servidor escuchando en http://localhost:" + port + " App: " + appName)
-		err = http.ListenAndServe(":"+port, nil)
-		if err != nil {
-			log.Fatal("Error al iniciar el servidor:", err)
-		}
-	}()
+	go a.DevBrowserSTART(&wg)
 
-	// Espera indefinidamente
-	select {}
+	a.TcpHandler(ln, &wg)
+
+	<-a.Interrupt
+	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
+	if err := chromedp.Cancel(a.Context); err != nil {
+		log.Println("error al cerrar browser", err)
+	}
+	a.StopProgram()
+
+	os.Exit(0)
+
 }
