@@ -3,17 +3,16 @@ package godev
 import (
 	"fmt"
 	"net"
-	"sync"
 )
 
-func (a *Args) TcpHandler(ln net.Listener, wg *sync.WaitGroup) {
+func (a *Args) TcpHandler(ln net.Listener) {
 
 	// Start a Goroutine to handle incoming TCP connections
-	go a.handlerTcpMessages(ln, wg)
+	go a.handlerTcpMessages(ln)
 }
 
-func (a *Args) handlerTcpMessages(ln net.Listener, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (a *Args) handlerTcpMessages(ln net.Listener) {
+	// defer wg.Done()
 
 	for {
 		conn, err := ln.Accept()
@@ -50,6 +49,9 @@ func (a *Args) handlerTcpMessages(ln net.Listener, wg *sync.WaitGroup) {
 				a.Reload <- true
 			case "reload":
 				a.Reload <- true
+
+			case "server_start":
+				a.RunBrowser <- true
 
 			default:
 

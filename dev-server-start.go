@@ -17,7 +17,7 @@ func (u ui) StartDevSERVER() {
 	}
 
 	go func() {
-		fmt.Println("Servidor: localhost:" + u.AppPort())
+		fmt.Println("Servidor localhost:" + u.AppPort())
 		err := srv.ListenAndServe()
 		if err != nil {
 			log.Fatal("fallo al iniciar servidor ", err)
@@ -26,4 +26,5 @@ func (u ui) StartDevSERVER() {
 
 	u.DevFileWatcherSTART()
 
+	sendTcpMessage("server_start")
 }

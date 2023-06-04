@@ -3,6 +3,7 @@ package godev
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -15,28 +16,33 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 var with_tinyGo bool
 
 func (u ui) addWasmJS(out_js *bytes.Buffer) {
-
+	var err error
 	if u.AppInProduction() { // si existen los archivos js wasm agregamos la llamada a estos
-		err := readFile("ui/theme/wasm/wasm_exec_tinygo.js", out_js)
+		err = readFile("ui/theme/wasm/wasm_exec_tinygo.js", out_js)
 		if err == nil {
-			// fmt.Println("wasm_exec_tinygo.js")
+			// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 			out_js.WriteString(js_wasm_format)
 			with_tinyGo = true
 
 		} else {
 
-			err := readFile("ui/theme/wasm/wasm_exec.js", out_js)
+			err = readFile("ui/theme/wasm/wasm_exec.js", out_js)
 			if err == nil {
-				// fmt.Println("WASM EN PRODUCCIÓN JS: wasm_exec.js")
+				// fmt.Println("*** COMPILACIÓN WASM GO ***")
 				out_js.WriteString(js_wasm_format)
 			}
 		}
 
 	} else {
-		err := readFile("ui/theme/wasm/wasm_exec.js", out_js)
+		err = readFile("ui/theme/wasm/wasm_exec.js", out_js)
 		if err == nil {
+			// fmt.Println("*** COMPILACIÓN WASM GO ***")
 			out_js.WriteString(js_wasm_format)
 		}
+	}
+
+	if err != nil {
+		log.Println("Error func addWasmJS: ", err)
 	}
 
 }
@@ -54,12 +60,15 @@ func (u ui) buildWASM(input_go_file string, out_wasm_file string) error {
 
 	var cmd *exec.Cmd
 
+	fmt.Println("WITH TINY GO?: ", with_tinyGo)
 	// Ajustamos los parámetros de compilación según la configuración
 	if u.AppInProduction() && with_tinyGo {
+		fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 		cmd = exec.Command("tinygo", "build", "-o", out_wasm_file, "-target", "wasm", input_go_file)
 
 	} else {
 		// compilación normal...
+		fmt.Println("*** COMPILACIÓN WASM GO ***")
 		cmd = exec.Command("go", "build", "-o", out_wasm_file, "-tags", "dev", "-ldflags", "-s -w", "-v", input_go_file)
 		cmd.Env = append(os.Environ(), "GOOS=js", "GOARCH=wasm")
 	}

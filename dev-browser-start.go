@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"sync"
 
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
-func (a *Args) DevBrowserSTART(wg *sync.WaitGroup) {
+func (a *Args) DevBrowserSTART() {
 	fmt.Println("*** START DEV BROWSER ***")
 
 	a.CreateContext()
@@ -33,7 +32,7 @@ func (a *Args) DevBrowserSTART(wg *sync.WaitGroup) {
 				// verifica si el mensaje de log ya se ha registrado
 				if !uniqueLogs[s] {
 					uniqueLogs[s] = true
-					fmt.Printf("LOG: %s\n", s)
+					// fmt.Printf("LOG: %s\n", s)
 				}
 			}
 		}
@@ -74,12 +73,12 @@ func (a *Args) DevBrowserSTART(wg *sync.WaitGroup) {
 		log.Fatal("La página no se ha cargado correctamente")
 	}
 
-	go a.reloadListener(wg)
+	go a.reloadListener()
 
 }
 
-func (a *Args) reloadListener(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (a *Args) reloadListener() {
+	// defer wg.Done()
 	for {
 		<-a.Reload
 		// fmt.Println("Recargando Navegador")

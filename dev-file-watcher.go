@@ -2,8 +2,6 @@ package godev
 
 import (
 	"fmt"
-	"log"
-	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,18 +66,18 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 						fmt.Println("Compilando CSS...", event.Name)
 						u.BuildCSS()
 						// RELOADED HERE
-						sendTcpMessageReloadRestart(false)
+						sendTcpMessage("reload")
 					case ".js":
 						fmt.Println("Compilando JS...", event.Name)
 						u.BuildJS()
 						// RELOADED HERE
-						sendTcpMessageReloadRestart(false)
+						sendTcpMessage("reload")
 					case ".html":
 						fmt.Println("Compilando HTML...", event.Name)
 						u.BuildHTML()
 						// RELOADED HERE
 
-						sendTcpMessageReloadRestart(false)
+						sendTcpMessage("reload")
 					case ".go":
 
 						if strings.Contains(event.Name, "wasm") {
@@ -87,9 +85,9 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 							u.BuildWASM()
 							// RELOADED HERE
 
-							sendTcpMessageReloadRestart(false)
+							sendTcpMessage("reload")
 						} else {
-							sendTcpMessageReloadRestart(true)
+							sendTcpMessage("restart")
 
 						}
 
@@ -104,28 +102,6 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 			}
 			fmt.Println("Error:", err)
 		}
-	}
-
-}
-
-func sendTcpMessageReloadRestart(restart bool) {
-	conn, err := net.Dial("tcp", "localhost:1234") // Dirección y puerto en los que el programa B está escuchando
-	if err != nil {
-		log.Println("Error Dial Tcp ", err)
-	}
-	defer conn.Close()
-
-	var message string
-
-	if restart {
-		message = "restart"
-	} else {
-		message = "reload"
-	}
-
-	_, err = conn.Write([]byte(message))
-	if err != nil {
-		log.Println("Error al escribir mensaje tcp ", message, err)
 	}
 
 }

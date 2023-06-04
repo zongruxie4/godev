@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"sync"
 	"syscall"
 
 	"github.com/cdvelop/godev"
@@ -15,8 +14,9 @@ import (
 )
 
 var a = godev.Args{
-	Reload:    make(chan bool, 1),
-	Interrupt: make(chan os.Signal, 1),
+	RunBrowser: make(chan bool, 1),
+	Reload:     make(chan bool, 1),
+	Interrupt:  make(chan os.Signal, 1),
 }
 
 func main() {
@@ -27,11 +27,7 @@ func main() {
 		a.ShowErrorAndExit("error cambia al directorio de tu aplicación para ejecutar godev")
 	}
 
-	a.StartProgram()
-
 	go a.ProcessProgramOutput()
-	// Cree un canal para recibir señales de interrupción
-	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
 
 	// Set up TCP server to listen for restart messages
 	ln, err := net.Listen("tcp", ":1234") // Change ":1234" to the desired port number
@@ -41,20 +37,29 @@ func main() {
 	}
 	defer ln.Close()
 
-	var wg sync.WaitGroup
-	wg.Add(2)
+	// var wg sync.WaitGroup
+	// wg.Add(2)
 
-	go a.DevBrowserSTART(&wg)
+	a.TcpHandler(ln)
 
-	a.TcpHandler(ln, &wg)
+	a.StartProgram()
 
-	<-a.Interrupt
-	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
-	if err := chromedp.Cancel(a.Context); err != nil {
-		log.Println("error al cerrar browser", err)
+	// Cree un canal para recibir señales de interrupción
+	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
+
+	for {
+		select {
+		case <-a.RunBrowser:
+			go a.DevBrowserSTART()
+
+		case <-a.Interrupt:
+			// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
+			if err := chromedp.Cancel(a.Context); err != nil {
+				log.Println("error al cerrar browser", err)
+			}
+			a.StopProgram()
+			os.Exit(0)
+		}
+
 	}
-	a.StopProgram()
-
-	os.Exit(0)
-
 }
