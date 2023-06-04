@@ -11,7 +11,7 @@ require (
 )
 
 require (
-	github.com/cdvelop/input v0.0.6
+	github.com/cdvelop/input v0.0.8
 	github.com/cdvelop/model v0.0.26
 	github.com/chromedp/cdproto v0.0.0-20230524011726-8501c74e8228
 	github.com/chromedp/sysutil v1.0.0 // indirect
