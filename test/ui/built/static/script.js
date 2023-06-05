@@ -1,5 +1,213 @@
+
+
+clickButtonMenuByModuleName("photo")
+// ShowMessageType("err","MENSAJE PRUEBA ERROR CORTO")
 'use strict';
-console.log("JS publico tema cargado");
+
+let MODULES = new Object();
+
+
+const __col_select = getComputedStyle(document.documentElement).getPropertyValue('--col-select');
+
+
+function clickButtonMenuByModuleName(module_name) {
+	let menuButton = document.querySelector('.menu-container a[name="' + module_name + '"]');
+	if (menuButton != undefined) {
+		setTimeout(function () {
+			menuButton.click();
+		}, 1000);
+	};
+};
+
+
+const URL_HTTP =   window.location.protocol+"//" + window.location.host;
+
+
+function NewRequest(props) {
+    const { method, contentType, endpoint, data, response } = props;
+    const content_type = contentType || 'application/json';
+    
+    fetch(URL_HTTP + endpoint, {
+      method,
+      headers: {
+        'Content-Type': content_type
+      },
+      body: content_type === 'application/json' ? JSON.stringify(data) : data
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return res.json();
+    })
+    .then(json => response(json))
+    .catch(error => {
+      ShowMessageType({"Type":"error","Message":error.toString()})
+    });
+  }
+function clickButtonMenuByModuleName(module_name) {
+	let menuButton = document.querySelector('.menu-container a[name="' + module_name + '"]');
+	if (menuButton != undefined) {
+		setTimeout(function () {
+			menuButton.click();
+		}, 1000);
+	};
+};
+const user_desktop_messages = document.getElementById('user-desktop-messages');
+let user_mobile_messages = document.getElementById('user-mobile-messages');
+
+
+function ShowMessageType(data) {
+	let seconds = "" + HowManyWords(data.Message);
+	if (data.Message != "") {
+
+		let tipo;
+		switch (data.Type) {
+			case "error":
+				tipo = "err"
+				seconds = "240";
+				break;
+
+			case "del":
+				tipo = "del";
+				break;
+
+			default:
+				tipo = "ok"
+				break;
+		}
+
+		// console.log("tamaño mensaje", data.Message.length, "PALABRAS: ", seconds)
+		document.documentElement.style.setProperty('--time-read-waiting', seconds + 's');
+
+		const message_out = '<H4 class="' + tipo + '">' + data.Message + '</H4>';
+
+		if (screen.width <= 600) {
+			user_mobile_messages.innerHTML = message_out;
+		} else {
+			user_desktop_messages.innerHTML = message_out;
+		}
+
+		if (tipo == "err") {
+			console.log(data);
+		}
+	};
+};
+
+function HowManyWords(text) {
+	let words = text.split(" ");
+	// if (words.length > 10) {
+	// 	return words.length - 5
+	// }
+	return words.length;
+}
+
+if (screen.width <= 600) {
+	user_mobile_messages.addEventListener('click', closeMobileMessage)
+}
+
+function closeMobileMessage() {
+	// console.log("CLICK EN MENSAJE",e.target);
+	document.documentElement.style.setProperty('--time-read-waiting', '0s');
+}
+// Obtener la ventana del mensaje de modo incompatible
+var incompatibleMessage = document.getElementById('incompatible-message');
+
+// Función que muestra u oculta el mensaje según el tipo de dispositivo
+function showIncompatibleMessage() {
+  // function isMobileDevice() {
+    //   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // }
+    
+    // Mostrar u ocultar el mensaje según el tipo de dispositivo
+    if (isMobileDevice() && window.innerWidth >= 600 && window.innerWidth <= 1024 && window.orientation === 90) {
+      console.log("ES MOVIL")
+      incompatibleMessage.style.display = 'flex'; // Mostrar en dispositivos móviles en modo horizontal
+    } else {
+      incompatibleMessage.style.display = 'none'; // Ocultar en dispositivos móviles en modo vertical y en dispositivos de escritorio
+    }
+  }
+  
+  // Llamar a la función cuando se carga la página y cuando se cambia el tamaño de la ventana
+  window.addEventListener('load', showIncompatibleMessage);
+  window.addEventListener('resize', showIncompatibleMessage);
+  
+  // detectar si es móvil o no
+function isMobileDevice() {
+  const isMobile = /Mobi/.test(navigator.userAgent) || /iPhone/.test(navigator.userAgent);
+  const isSafari = /Safari/.test(navigator.userAgent);
+  const isNarrow = (window.innerWidth / window.innerHeight) < 1.5; // ajusta el valor a lo que consideres una pantalla de proporción alargada
+  return isMobile && isSafari && !isNarrow;
+}
+let HASH_OLD;
+let HASH_NOW;
+
+// console.log("ROUTER")
+
+document.querySelector(".menu-container").addEventListener("click", function (e) {
+	let hash_target;
+	// console.log("REQUEST_ROUTER: ", e.target, " TAG: ", e.target.tagName);
+
+	switch (e.target.tagName) {
+		case "svg":
+			// console.log("SVG ",hash_target.parentNode)
+			hash_target = e.target.parentNode;
+			break;
+
+		case "path":
+			hash_target = e.target.parentNode.parentNode;
+			break;
+
+		case "SPAN":
+			hash_target = e.target.parentNode;
+			// console.log("SPAN ",hash_target)
+			break;
+
+		case "use":
+			hash_target = e.target.parentNode.parentNode;
+
+			break;
+		default:
+			hash_target = e.target
+			break;
+	}
+
+	// console.log("TARGET FINAL: ",hash_target);
+
+	OnOffHash(hash_target);
+});
+
+
+
+// prendo apago link botones rutas
+function OnOffHash(hash_now) {
+	if (HASH_OLD === undefined) {
+		HASH_OLD = hash_now;
+
+		HASH_OLD.classList.toggle("hash-selected");
+
+	} else {
+
+		// remover addEventListener module anterior
+		if (MODULES[HASH_OLD.name] != undefined && MODULES[HASH_OLD.name].hasOwnProperty('ListenerModuleOFF')) {
+			// apago listener module anterior
+			MODULES[HASH_OLD.name].ListenerModuleOFF();
+		}
+		HASH_OLD.classList.toggle("hash-selected");
+		hash_now.classList.toggle("hash-selected");
+		// changeClass(HASH_OLD, "svg", "btn-url");
+		// changeClass(hash_now, "svg", "btn-selected");
+		HASH_OLD = hash_now;
+	}
+
+	// console.log("RUTA ACTUAL: ", hash_now.name)
+
+	if (MODULES[hash_now.name] != undefined && MODULES[hash_now.name].hasOwnProperty('ListenerModuleON')) {
+		// iniciar addEventListener module actual
+		MODULES[hash_now.name].ListenerModuleON();
+	}
+
+};
 console.log('componente list global cargado');
 console.log('función componente search global')(() => {
 	const enosys = () => {

@@ -14,7 +14,7 @@ func Test_HttpUI(t *testing.T) {
 	mux := http.NewServeMux()
 
 	// // registrar app
-	ui := godev.RegisterApp(setting.App(), nil, false)
+	ui := godev.RegisterApp(setting.App(), false)
 
 	mux.Handle("/", ui)
 

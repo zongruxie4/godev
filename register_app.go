@@ -1,8 +1,6 @@
 package godev
 
-import "net/http"
-
-func RegisterApp(a app, mux *http.ServeMux, run_server bool) *ui {
+func RegisterApp(a app, observe_file_change bool) *ui {
 
 	ui_store.app = a
 
@@ -11,15 +9,14 @@ func RegisterApp(a app, mux *http.ServeMux, run_server bool) *ui {
 
 	ui_store.registerComponents()
 
-	if mux != nil {
-		ui_store.http_server_mux = mux
+	ui_store.checkStaticFileFolders()
+	ui_store.copyStaticFilesFromUiTheme()
 
-		if run_server {
-			ui_store.StartDevSERVER()
-		}
+	ui_store.folders_watch = append(ui_store.folders_watch, "modules", ui_store.FolderPath())
 
+	if observe_file_change {
+		ui_store.DevFileWatcherSTART()
 	}
 
 	return &ui_store
-
 }

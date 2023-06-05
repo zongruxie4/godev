@@ -1,22 +1,23 @@
 package godev
 
 import (
-	"net/http"
-
 	"github.com/cdvelop/model"
 )
 
 type ui struct {
 	app
-	http_server_mux *http.ServeMux
 	//componentes registrados
-	registered map[string]struct{}
-	components []model.Component
+	registered    map[string]struct{}
+	components    []model.Component
+	build_folder  string   // ej: "ui/built"
+	folders_watch []string // ej: "modules", "ui\\theme"
+
 }
 
 var ui_store = ui{
-	app:             nil,
-	http_server_mux: nil,
-	registered:      map[string]struct{}{},
-	components:      []model.Component{},
+	app:           nil,
+	registered:    map[string]struct{}{},
+	components:    []model.Component{},
+	build_folder:  "ui/built",
+	folders_watch: []string{},
 }

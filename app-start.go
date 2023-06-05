@@ -3,36 +3,8 @@ package godev
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"os/exec"
 )
-
-func (a *Args) StartProgramOLD() *exec.Cmd {
-	cmd := exec.Command("go", "run", "main.go") // Replace "program_name" with the actual program name and provide any required arguments
-
-	// Set up the appropriate output and error streams
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Start()
-	if err != nil {
-		fmt.Printf("Failed to start the program: %s\n", err)
-		return nil
-	}
-
-	fmt.Println("Program started successfully.")
-
-	return cmd
-}
-
-// func (a *Args) FirstStartProgram(wg *sync.WaitGroup) {
-// 	defer wg.Done()
-
-// 	a.StartProgram()
-
-// 	// Esperar 1 segundo
-// 	time.Sleep(1 * time.Second)
-// }
 
 func (a *Args) StartProgram() {
 
@@ -50,5 +22,6 @@ func (a *Args) StartProgram() {
 		a.ShowErrorAndExit(fmt.Sprintf("Error al iniciar el programa: %s", err))
 	}
 
+	go a.ProcessProgramOutput()
 	// fmt.Println("Programa iniciado exitosamente.")
 }

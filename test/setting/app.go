@@ -3,12 +3,12 @@ package setting
 import (
 	"github.com/cdvelop/godev/test/modules/info_test"
 	"github.com/cdvelop/godev/test/modules/product_test"
-	"github.com/cdvelop/godev/test/ui/theme"
 	"github.com/cdvelop/model"
+	"github.com/cdvelop/theme_platform"
 )
 
 type app struct {
-	theme.Platform
+	theme_platform.Theme
 }
 
 func App() *app {

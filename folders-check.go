@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-func checkFolders() {
-	dirs := []string{"ui/theme/static", "ui/built/static", "modules"}
+func (u ui) checkStaticFileFolders() {
+	dirs := []string{u.FolderPath() + "/static", u.build_folder + "/static", "modules"}
 
 	for _, dir := range dirs {
 		_, err := os.Stat(dir)

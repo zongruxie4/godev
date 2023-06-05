@@ -7,24 +7,23 @@ import (
 )
 
 // endpoint ej: "http://localhost:8080/level_3.html"
-func (u ui) StartDevSERVER() {
+func (a Args) StartDevSERVER() {
 
-	u.http_server_mux.Handle("/", u)
+	mux := http.NewServeMux()
+
+	mux.Handle("/", ui_store)
 
 	srv := &http.Server{
-		Addr:    ":" + u.AppPort(),
-		Handler: u.http_server_mux,
+		Addr:    ":1234",
+		Handler: mux,
 	}
 
 	go func() {
-		fmt.Println("Servidor localhost:" + u.AppPort())
+		fmt.Println("Static Dev File Server localhost:1234")
 		err := srv.ListenAndServe()
 		if err != nil {
 			log.Fatal("fallo al iniciar servidor ", err)
 		}
 	}()
 
-	u.DevFileWatcherSTART()
-
-	sendTcpMessage("server_start")
 }

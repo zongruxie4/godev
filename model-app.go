@@ -14,6 +14,7 @@ type app interface {
 }
 
 type theme interface {
+	FolderPath() string
 	// PathTemplateIndexHTML with:
 	// {{.StyleSheet}} {{.AppName}} {{.AppVersion}} {{.Menu}}
 	// {{.Message}} {{.UserName}} {{.UserArea}} {{.Modules}} {{.Script}}

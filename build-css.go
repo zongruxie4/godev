@@ -18,7 +18,7 @@ func (u ui) BuildCSS() {
 
 	// fmt.Println(`1- comenzamos con el css del tema`)
 
-	err := readFiles("ui/theme/css", ".css", &private_css)
+	err := readFiles(u.FolderPath()+"/css", ".css", &private_css)
 	if err != nil {
 		fmt.Println(err) // si hay error es por que no hay css en el tema
 	}
@@ -56,8 +56,8 @@ func (u ui) BuildCSS() {
 		cssMinify(&public_css)
 	}
 
-	fileWrite("ui/built/static/app.css", &private_css)
-	fileWrite("ui/built/static/style.css", &public_css)
+	fileWrite(u.build_folder+"/static/app.css", &private_css)
+	fileWrite(u.build_folder+"/static/style.css", &public_css)
 
 }
 

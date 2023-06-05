@@ -42,7 +42,7 @@ func (u *ui) BuildHTML() {
 			htmlMinify(&template_html)
 		}
 		// crear archivo
-		file_name := fmt.Sprintf("ui/built/area_%c.html ", id_area)
+		file_name := fmt.Sprintf(u.build_folder+"/area_%c.html ", id_area)
 
 		fileWrite(file_name, &template_html)
 

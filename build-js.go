@@ -21,7 +21,7 @@ func (u *ui) BuildJS() {
 	private_js.WriteString("'use strict';\n")
 
 	// fmt.Println(`1- comenzamos con el js del tema`)
-	readFiles("ui/theme/js", ".js", &private_js)
+	readFiles(u.FolderPath()+"/js", ".js", &private_js)
 
 	// fmt.Println(`2- leer js publico de los componentes`)
 	components_dir := "ui/components"
@@ -53,7 +53,7 @@ func (u *ui) BuildJS() {
 
 	if !u.AppInProduction() {
 		// fmt.Println(`agregamos js test si existiesen`)
-		readFiles("ui/theme/js_test", ".js", &public_js)
+		readFiles(u.FolderPath()+"/js_test", ".js", &public_js)
 	}
 	// copiamos el js a publico hasta aquí
 	public_js.Write(private_js.Bytes())
@@ -92,7 +92,7 @@ func (u *ui) BuildJS() {
 	if u.HotReload() {
 		fmt.Println(">>> UI Hot Reload Activo <<<")
 		// fmt.Println(`agregamos js test si existiesen`)
-		readFiles("ui/theme/js_test", ".js", &private_js)
+		readFiles(u.FolderPath()+"/js_test", ".js", &private_js)
 	}
 
 	if u.AppInProduction() {
@@ -100,8 +100,8 @@ func (u *ui) BuildJS() {
 		jsMinify(&public_js)
 	}
 
-	fileWrite("ui/built/static/app.js", &private_js)
-	fileWrite("ui/built/static/script.js", &public_js)
+	fileWrite(u.build_folder+"/static/app.js", &private_js)
+	fileWrite(u.build_folder+"/static/script.js", &public_js)
 
 }
 

@@ -10,8 +10,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-var folders_watch = []string{"modules", "ui\\theme"}
-
 // La función principal es donde se crea el observador para monitorear los cambios en los archivos y directorios.
 // En esta función, también configuraremos los filtros para los tipos de archivo que queremos observar.
 func (u ui) DevFileWatcherSTART() {
@@ -25,7 +23,7 @@ func (u ui) DevFileWatcherSTART() {
 
 	go u.watchEvents(watcher)
 
-	for _, folder := range folders_watch {
+	for _, folder := range u.folders_watch {
 
 		filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 			if info.IsDir() {
@@ -66,18 +64,18 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 						fmt.Println("Compilando CSS...", event.Name)
 						u.BuildCSS()
 						// RELOADED HERE
-						sendTcpMessage("reload")
+						showMessage("reload_browser")
 					case ".js":
 						fmt.Println("Compilando JS...", event.Name)
 						u.BuildJS()
 						// RELOADED HERE
-						sendTcpMessage("reload")
+						showMessage("reload_browser")
 					case ".html":
 						fmt.Println("Compilando HTML...", event.Name)
 						u.BuildHTML()
 						// RELOADED HERE
 
-						sendTcpMessage("reload")
+						showMessage("reload_browser")
 					case ".go":
 
 						if strings.Contains(event.Name, "wasm") {
@@ -85,9 +83,10 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 							u.BuildWASM()
 							// RELOADED HERE
 
-							sendTcpMessage("reload")
+							showMessage("reload_browser")
 						} else {
-							sendTcpMessage("restart")
+							showMessage("restart_app")
+							os.Exit(0)
 
 						}
 
@@ -104,4 +103,8 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 		}
 	}
 
+}
+
+func showMessage(message string) {
+	fmt.Println(message)
 }

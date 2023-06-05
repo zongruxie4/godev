@@ -30,5 +30,7 @@ func (a *Args) StopProgram() {
 		return
 	}
 
+	a.AppStop <- true
+
 	fmt.Println("Program stopped successfully.")
 }

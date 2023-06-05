@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 )
 
-func copyStaticFiles() {
+func (u ui) copyStaticFilesFromUiTheme() {
 	// Definir las extensiones o tipos de archivo permitidos
 	validExtensions := map[string]bool{".js": true, ".css": true, ".wasm": true}
 
 	// Obtener la lista de archivos en la carpeta origen
-	srcDir := "ui/theme/static"
-	destDir := "ui/built/static"
+	srcDir := u.FolderPath() + "/static"
+	destDir := u.build_folder + "/static"
 	files, err := os.ReadDir(srcDir)
 	if err != nil {
 		panic(err)

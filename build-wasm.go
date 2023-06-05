@@ -18,7 +18,7 @@ var with_tinyGo bool
 func (u ui) addWasmJS(out_js *bytes.Buffer) {
 	var err error
 	if u.AppInProduction() { // si existen los archivos js wasm agregamos la llamada a estos
-		err = readFile("ui/theme/wasm/wasm_exec_tinygo.js", out_js)
+		err = readFile(u.FolderPath()+"/wasm/wasm_exec_tinygo.js", out_js)
 		if err == nil {
 			// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 			out_js.WriteString(js_wasm_format)
@@ -26,7 +26,7 @@ func (u ui) addWasmJS(out_js *bytes.Buffer) {
 
 		} else {
 
-			err = readFile("ui/theme/wasm/wasm_exec.js", out_js)
+			err = readFile(u.FolderPath()+"/wasm/wasm_exec.js", out_js)
 			if err == nil {
 				// fmt.Println("*** COMPILACIÓN WASM GO ***")
 				out_js.WriteString(js_wasm_format)
@@ -34,7 +34,7 @@ func (u ui) addWasmJS(out_js *bytes.Buffer) {
 		}
 
 	} else {
-		err = readFile("ui/theme/wasm/wasm_exec.js", out_js)
+		err = readFile(u.FolderPath()+"/wasm/wasm_exec.js", out_js)
 		if err == nil {
 			// fmt.Println("*** COMPILACIÓN WASM GO ***")
 			out_js.WriteString(js_wasm_format)
@@ -49,7 +49,7 @@ func (u ui) addWasmJS(out_js *bytes.Buffer) {
 
 func (u ui) BuildWASM() {
 
-	err := u.buildWASM("ui/theme/wasm/main.go", "ui/built/static/app.wasm")
+	err := u.buildWASM(u.FolderPath()+"/wasm/main.go", u.build_folder+"/static/app.wasm")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}

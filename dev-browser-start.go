@@ -39,7 +39,7 @@ func (a *Args) DevBrowserSTART() {
 	})
 
 	// Navega a una página web
-	err := chromedp.Run(a.Context, chromedp.Navigate(a.Path))
+	err := chromedp.Run(a.Context, chromedp.Navigate("http://localhost:1234"))
 	if err != nil {
 		log.Fatal("Error al navegar "+a.Path+" ", err)
 	}
@@ -80,7 +80,7 @@ func (a *Args) DevBrowserSTART() {
 func (a *Args) reloadListener() {
 	// defer wg.Done()
 	for {
-		<-a.Reload
+		<-a.ReloadBrowser
 		// fmt.Println("Recargando Navegador")
 		err := chromedp.Run(a.Context, chromedp.Reload())
 		if err != nil {
