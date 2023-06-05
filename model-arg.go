@@ -13,7 +13,6 @@ type Args struct {
 	*exec.Cmd
 
 	Scanner   *bufio.Scanner
-	AppStop   chan bool
 	Interrupt chan os.Signal
 
 	context.Context

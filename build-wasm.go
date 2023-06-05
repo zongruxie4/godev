@@ -16,7 +16,7 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 func (u *ui) tinyGoCheck() {
 
 	_, err := os.ReadFile(u.FolderPath() + "/wasm/wasm_exec_tinygo.js")
-	if err == nil {
+	if err == nil && u.AppInProduction() {
 		u.with_tinyGo = true
 	}
 

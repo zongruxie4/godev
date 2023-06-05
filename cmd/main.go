@@ -13,12 +13,14 @@ import (
 )
 
 var a = godev.Args{
-	AppStop:   make(chan bool, 1),
 	Interrupt: make(chan os.Signal, 1),
 }
 
 func main() {
 	a.CaptureArguments()
+
+	// Cree un canal para recibir señales de interrupción
+	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
 
 	dir, _ := os.Getwd()
 	if filepath.Base(dir) == "godev" {
@@ -35,9 +37,6 @@ func main() {
 	go a.StartDevSERVER(&wg)
 
 	go a.DevBrowserSTART(&wg)
-
-	// Cree un canal para recibir señales de interrupción
-	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
 
 	<-a.Interrupt
 	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
