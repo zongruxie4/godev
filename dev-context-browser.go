@@ -6,7 +6,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func (a *Args) CreateContext() {
+func (a *Args) CreateBrowserContext() {
 
 	opts := append(
 
@@ -21,8 +21,10 @@ func (a *Args) CreateContext() {
 		//quitar mensaje: Chrome is being controlled by automated test software
 
 		// chromedp.Flag("--webview-log-js-console-messages", true),
-		chromedp.WindowSize(1530, 870),
-		chromedp.Flag("window-position", "1540,0"),
+		chromedp.WindowSize(1150, 870),
+		chromedp.Flag("window-position", "1930,0"),
+		// chromedp.WindowSize(1530, 870),
+		// chromedp.Flag("window-position", "1540,0"),
 		chromedp.Flag("use-fake-ui-for-media-stream", true),
 		// chromedp.Flag("exclude-switches", "enable-automation"),
 		// chromedp.Flag("disable-blink-features", "AutomationControlled"),

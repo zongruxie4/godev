@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
-func (a *Args) DevBrowserSTART() {
+func (a *Args) DevBrowserSTART(wg *sync.WaitGroup) {
+	defer wg.Done()
 	fmt.Println("*** START DEV BROWSER ***")
 
-	a.CreateContext()
+	a.CreateBrowserContext()
 	// defer cancel()
 
 	// crea un mapa para registrar los mensajes de log únicos
@@ -39,7 +41,7 @@ func (a *Args) DevBrowserSTART() {
 	})
 
 	// Navega a una página web
-	err := chromedp.Run(a.Context, chromedp.Navigate("http://localhost:1234"))
+	err := chromedp.Run(a.Context, chromedp.Navigate("http://localhost:1234/level_3.html"))
 	if err != nil {
 		log.Fatal("Error al navegar "+a.Path+" ", err)
 	}
@@ -71,21 +73,6 @@ func (a *Args) DevBrowserSTART() {
 	// Verifica si la página se ha cargado correctamente
 	if !loaded {
 		log.Fatal("La página no se ha cargado correctamente")
-	}
-
-	go a.reloadListener()
-
-}
-
-func (a *Args) reloadListener() {
-	// defer wg.Done()
-	for {
-		<-a.ReloadBrowser
-		// fmt.Println("Recargando Navegador")
-		err := chromedp.Run(a.Context, chromedp.Reload())
-		if err != nil {
-			log.Println("Error al recargar Pagina ", err)
-		}
 	}
 
 }

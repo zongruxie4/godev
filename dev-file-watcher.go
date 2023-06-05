@@ -74,7 +74,6 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 						fmt.Println("Compilando HTML...", event.Name)
 						u.BuildHTML()
 						// RELOADED HERE
-
 						showMessage("reload_browser")
 					case ".go":
 
@@ -86,6 +85,7 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 							showMessage("reload_browser")
 						} else {
 							showMessage("restart_app")
+							time.Sleep(100 * time.Millisecond)
 							os.Exit(0)
 
 						}

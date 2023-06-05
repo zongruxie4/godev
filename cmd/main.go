@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 
 	"github.com/cdvelop/godev"
@@ -12,9 +13,8 @@ import (
 )
 
 var a = godev.Args{
-	ReloadBrowser: make(chan bool, 1),
-	AppStop:       make(chan bool, 1),
-	Interrupt:     make(chan os.Signal, 1),
+	AppStop:   make(chan bool, 1),
+	Interrupt: make(chan os.Signal, 1),
 }
 
 func main() {
@@ -27,9 +27,14 @@ func main() {
 
 	a.StartProgram()
 
-	a.StartDevSERVER()
+	var wg sync.WaitGroup
+	wg.Add(3)
 
-	go a.DevBrowserSTART()
+	go a.ProcessProgramOutput(&wg)
+
+	go a.StartDevSERVER(&wg)
+
+	go a.DevBrowserSTART(&wg)
 
 	// Cree un canal para recibir señales de interrupción
 	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)

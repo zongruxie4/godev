@@ -12,6 +12,7 @@ type ui struct {
 	build_folder  string   // ej: "ui/built"
 	folders_watch []string // ej: "modules", "ui\\theme"
 
+	with_tinyGo bool
 }
 
 var ui_store = ui{
@@ -20,4 +21,6 @@ var ui_store = ui{
 	components:    []model.Component{},
 	build_folder:  "ui/built",
 	folders_watch: []string{},
+
+	with_tinyGo: false,
 }

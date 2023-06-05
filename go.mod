@@ -25,5 +25,3 @@ require (
 	github.com/tdewolff/minify v2.3.6+incompatible
 	golang.org/x/sys v0.8.0 // indirect
 )
-
-replace github.com/cdvelop/theme_platform => ../theme_platform

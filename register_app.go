@@ -14,6 +14,8 @@ func RegisterApp(a app, observe_file_change bool) *ui {
 
 	ui_store.folders_watch = append(ui_store.folders_watch, "modules", ui_store.FolderPath())
 
+	ui_store.tinyGoCheck()
+
 	if observe_file_change {
 		ui_store.DevFileWatcherSTART()
 	}

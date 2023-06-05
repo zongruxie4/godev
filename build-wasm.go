@@ -13,16 +13,22 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 	go.run(result.instance);
 });`
 
-var with_tinyGo bool
+func (u *ui) tinyGoCheck() {
 
-func (u ui) addWasmJS(out_js *bytes.Buffer) {
+	_, err := os.ReadFile(u.FolderPath() + "/wasm/wasm_exec_tinygo.js")
+	if err == nil {
+		u.with_tinyGo = true
+	}
+
+}
+
+func (u *ui) addWasmJS(out_js *bytes.Buffer) {
 	var err error
 	if u.AppInProduction() { // si existen los archivos js wasm agregamos la llamada a estos
 		err = readFile(u.FolderPath()+"/wasm/wasm_exec_tinygo.js", out_js)
 		if err == nil {
 			// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 			out_js.WriteString(js_wasm_format)
-			with_tinyGo = true
 
 		} else {
 
@@ -60,9 +66,9 @@ func (u ui) buildWASM(input_go_file string, out_wasm_file string) error {
 
 	var cmd *exec.Cmd
 
-	fmt.Println("WITH TINY GO?: ", with_tinyGo)
+	fmt.Println("WITH TINY GO?: ", u.with_tinyGo)
 	// Ajustamos los parámetros de compilación según la configuración
-	if u.AppInProduction() && with_tinyGo {
+	if u.AppInProduction() && u.with_tinyGo {
 		fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 		cmd = exec.Command("tinygo", "build", "-o", out_wasm_file, "-target", "wasm", input_go_file)
 

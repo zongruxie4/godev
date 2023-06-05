@@ -12,10 +12,9 @@ type Args struct {
 	Port string //ej: 8080
 	*exec.Cmd
 
-	Scanner       *bufio.Scanner
-	ReloadBrowser chan bool
-	AppStop       chan bool
-	Interrupt     chan os.Signal
+	Scanner   *bufio.Scanner
+	AppStop   chan bool
+	Interrupt chan os.Signal
 
 	context.Context
 	context.CancelFunc

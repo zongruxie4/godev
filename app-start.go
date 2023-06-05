@@ -22,6 +22,5 @@ func (a *Args) StartProgram() {
 		a.ShowErrorAndExit(fmt.Sprintf("Error al iniciar el programa: %s", err))
 	}
 
-	go a.ProcessProgramOutput()
 	// fmt.Println("Programa iniciado exitosamente.")
 }
