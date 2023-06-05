@@ -90,18 +90,15 @@ picture[name="logo-module"] {
 			/* ESTO HACE QUE SE OCULTE LA BARRA DE DIRECCIONES */
 			min-height: 100vh;
 			
-			/* overflow: hidden; */
-			/* overflow-y: scroll; */
+
 			/* overflow: scroll; */
 			/* scroll-behavior: smooth; */
-
-			/* background-color:grey; */
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			height: 100vh;
-			
 		}
+		
 		body::before {
 			background-size:10em;
 			background-position:center center; 

@@ -4,11 +4,11 @@ import (
 	"github.com/cdvelop/godev/test/modules/info_test"
 	"github.com/cdvelop/godev/test/modules/product_test"
 	"github.com/cdvelop/model"
-	"github.com/cdvelop/theme_platform"
+	"github.com/cdvelop/platform"
 )
 
 type app struct {
-	theme_platform.Theme
+	platform.Theme
 }
 
 func App() *app {

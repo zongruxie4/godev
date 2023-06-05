@@ -4,12 +4,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cdvelop/theme_platform"
+	"github.com/cdvelop/platform"
 )
 
 func Test_Path(t *testing.T) {
 
-	themePath := theme_platform.Theme{}.FolderPath()
+	themePath := platform.Theme{}.FolderPath()
 
 	// fmt.Println("DIRECTORIO TEMA: ", themePath)
 	// Verificar si la ruta existe
