@@ -78,14 +78,17 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 					case ".go":
 
 						if strings.Contains(event.Name, "wasm") {
-							fmt.Println("Compilando WASM...", event.Name)
-							u.BuildWASM()
-							// RELOADED HERE
+							if u.wasm_build {
 
-							showMessage("reload_browser")
+								fmt.Println("Compilando WASM...", event.Name)
+								u.BuildWASM()
+								// RELOADED HERE
+
+								showMessage("reload_browser")
+							}
 						} else {
 							showMessage("restart_app")
-							time.Sleep(100 * time.Millisecond)
+							time.Sleep(10 * time.Millisecond)
 							os.Exit(0)
 
 						}

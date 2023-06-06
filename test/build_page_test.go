@@ -12,7 +12,7 @@ import (
 func Test_BuildingUI(t *testing.T) {
 
 	deleteFiles(godev.BuiltFolder, []string{".html"})
-	deleteFiles(godev.StaticFolder, []string{".js", ".css"})
+	deleteFiles(godev.StaticFolder, []string{".js", ".css", ".wasm"})
 
 	// // registrar app
 	ui := godev.RegisterApp(setting.App(), false)
@@ -23,7 +23,9 @@ func Test_BuildingUI(t *testing.T) {
 
 	ui.BuildCSS()
 
-	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"area_a.html", "area_t.html", "area_v.html", "app.js", "script.js", "app.css", "style.css"})
+	ui.BuildWASM()
+
+	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"app.wasm", "area_a.html", "area_t.html", "area_v.html", "app.js", "script.js", "app.css", "style.css"})
 	if err != nil {
 		log.Fatal("Error:", err)
 	}

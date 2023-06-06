@@ -11,6 +11,7 @@ type ui struct {
 	components    []model.Component
 	folders_watch []string // ej: "modules", "ui\\theme"
 
+	wasm_build  bool
 	with_tinyGo bool
 }
 

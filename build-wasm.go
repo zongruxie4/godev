@@ -13,11 +13,24 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 	go.run(result.instance);
 });`
 
-func (u *ui) tinyGoCheck() {
+func (u *ui) webAssemblyCheck() {
+	// chequear si existe main.go en la ruta de trabajo ej: frontend/main.go
+	_, err := os.Open(WorkFolder + "/main.go")
+	if err == nil {
+		var compiler string
 
-	_, err := os.ReadFile(u.FolderPath() + "/wasm/wasm_exec_tinygo.js")
-	if err == nil && u.AppInProduction() {
-		u.with_tinyGo = true
+		u.wasm_build = true
+
+		// tiny Go Check
+		_, err := os.ReadFile(u.FolderPath() + "/wasm/wasm_exec_tinygo.js")
+		if err == nil && u.AppInProduction() {
+			u.with_tinyGo = true
+			compiler = "TinyGo"
+		} else {
+			compiler = "Go"
+		}
+
+		fmt.Printf("*** Compilador: [%v] WebAssembly Activado ***\n", compiler)
 	}
 
 }
@@ -54,27 +67,25 @@ func (u *ui) addWasmJS(out_js *bytes.Buffer) {
 }
 
 func (u ui) BuildWASM() {
-
 	err := u.buildWASM(WorkFolder+"/main.go", StaticFolder+"/app.wasm")
 	if err != nil {
 		log.Println("BuildWASM error: ", err)
 	}
-
 }
 
 func (u ui) buildWASM(input_go_file string, out_wasm_file string) error {
 
 	var cmd *exec.Cmd
 
-	fmt.Println("WITH TINY GO?: ", u.with_tinyGo)
+	// fmt.Println("WITH TINY GO?: ", u.with_tinyGo)
 	// Ajustamos los parámetros de compilación según la configuración
 	if u.AppInProduction() && u.with_tinyGo {
-		fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
+		// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 		cmd = exec.Command("tinygo", "build", "-o", out_wasm_file, "-target", "wasm", input_go_file)
 
 	} else {
 		// compilación normal...
-		fmt.Println("*** COMPILACIÓN WASM GO ***")
+		// fmt.Println("*** COMPILACIÓN WASM GO ***")
 		cmd = exec.Command("go", "build", "-o", out_wasm_file, "-tags", "dev", "-ldflags", "-s -w", "-v", input_go_file)
 		cmd.Env = append(os.Environ(), "GOOS=js", "GOARCH=wasm")
 	}
