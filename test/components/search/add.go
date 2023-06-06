@@ -33,6 +33,7 @@ func (search) JsListeners() string {
 	return "btn.addEventListener('click', MySearchFunction);"
 }
 
+// esta función es solo para comparar en el test ya que se crea de forma dinámica
 func (search) RemoveEventListener() string {
 	return "btn.removeEventListener('click', MySearchFunction);"
 }

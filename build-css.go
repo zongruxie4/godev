@@ -56,8 +56,8 @@ func (u ui) BuildCSS() {
 		cssMinify(&public_css)
 	}
 
-	fileWrite(u.build_folder+"/static/app.css", &private_css)
-	fileWrite(u.build_folder+"/static/style.css", &public_css)
+	fileWrite(StaticFolder+"/app.css", &private_css)
+	fileWrite(StaticFolder+"/style.css", &public_css)
 
 }
 

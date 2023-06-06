@@ -89,19 +89,19 @@ func (u *ui) BuildJS() {
 		))
 	}
 
-	if u.HotReload() {
-		fmt.Println(">>> UI Hot Reload Activo <<<")
-		// fmt.Println(`agregamos js test si existiesen`)
-		readFiles(u.FolderPath()+"/js_test", ".js", &private_js)
-	}
+	// if !u.AppInProduction() {
+	// fmt.Println(">>> UI Hot Reload Activo <<<")
+	// fmt.Println(`agregamos js test si existiesen`)
+	// readFiles(u.FolderPath()+"/js_test", ".js", &private_js)
+	// }
 
 	if u.AppInProduction() {
 		jsMinify(&private_js)
 		jsMinify(&public_js)
 	}
 
-	fileWrite(u.build_folder+"/static/app.js", &private_js)
-	fileWrite(u.build_folder+"/static/script.js", &public_js)
+	fileWrite(StaticFolder+"/app.js", &private_js)
+	fileWrite(StaticFolder+"/script.js", &public_js)
 
 }
 

@@ -8,12 +8,17 @@ import (
 )
 
 type Args struct {
-	Path string // ej http://localhost:8080/index.html
-	Port string //ej: 8080
+	browser_path string // ej /index.html
+	app_port     bool
+	args         []string
 	*exec.Cmd
 
 	Scanner   *bufio.Scanner
 	Interrupt chan os.Signal
+
+	with     string //browser option
+	height   string //browser option
+	position string //browser option
 
 	context.Context
 	context.CancelFunc

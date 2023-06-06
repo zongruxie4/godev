@@ -1,7 +1,7 @@
 package product_test
 
 import (
-	"github.com/cdvelop/godev/test/ui/components/search"
+	"github.com/cdvelop/godev/test/components/search"
 	"github.com/cdvelop/model"
 )
 

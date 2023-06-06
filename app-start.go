@@ -8,7 +8,8 @@ import (
 
 func (a *Args) StartProgram() {
 
-	a.Cmd = exec.Command("go", "run", "main.go", "port="+a.Port)
+	a.Cmd = exec.Command("go", "run", "main.go")
+	a.Cmd.Args = append(a.Cmd.Args, a.args...)
 
 	stdoutPipe, err := a.Cmd.StdoutPipe()
 	if err != nil {

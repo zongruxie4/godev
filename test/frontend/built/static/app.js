@@ -1,7 +1,3 @@
-
-
-clickButtonMenuByModuleName("photo")
-// ShowMessageType("err","MENSAJE PRUEBA ERROR CORTO")
 'use strict';
 
 let MODULES = new Object();
@@ -208,7 +204,6 @@ function OnOffHash(hash_now) {
 	}
 
 };
-console.log('componente list global cargado');
 console.log('función componente search global')(() => {
 	const enosys = () => {
 		const err = new Error("not implemented");
@@ -762,3 +757,43 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 	go.run(result.instance);
 });console.log("js publico module product..");
 console.log("JS publico modulo info..");
+MODULES['product_test'] = (function () {
+		let crud = new Object();
+		const module = document.getElementById('product_test');
+		console.log('función componente search privado modulo: product_test')
+function Hello() {
+    console.log("función Modulo: product_test")
+}
+
+		crud.ListenerModuleON = function () {
+		 btn.addEventListener('click', MySearchFunction);
+console.log('add listener modulo: product_test');
+
+		};
+
+		crud.ListenerModuleOFF = function () {
+		 btn.removeEventListener('click', MySearchFunction);
+console.log('add listener modulo: product_test');
+
+		};
+
+		return crud;
+	})();MODULES['info_test'] = (function () {
+		let crud = new Object();
+		const module = document.getElementById('info_test');
+		console.log("JS privado module info_test");
+
+		crud.ListenerModuleON = function () {
+		 console.log("addEventListener module: info_test")
+
+
+		};
+
+		crud.ListenerModuleOFF = function () {
+		 console.log("removeEventListener module: info_test")
+
+
+		};
+
+		return crud;
+	})();

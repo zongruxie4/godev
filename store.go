@@ -9,18 +9,19 @@ type ui struct {
 	//componentes registrados
 	registered    map[string]struct{}
 	components    []model.Component
-	build_folder  string   // ej: "ui/built"
 	folders_watch []string // ej: "modules", "ui\\theme"
 
 	with_tinyGo bool
 }
 
+const WorkFolder = "frontend"
+const BuiltFolder = "frontend/built"
+const StaticFolder = "frontend/built/static"
+
 var ui_store = ui{
 	app:           nil,
 	registered:    map[string]struct{}{},
 	components:    []model.Component{},
-	build_folder:  "ui/built",
 	folders_watch: []string{},
-
-	with_tinyGo: false,
+	with_tinyGo:   false,
 }

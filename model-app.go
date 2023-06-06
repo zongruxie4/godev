@@ -7,7 +7,6 @@ type app interface {
 	AppVersion() string
 	AppPort() string
 	AppInProduction() bool
-	HotReload() bool
 	Areas() map[byte]string
 	Modules() []model.Module
 	theme

@@ -48,16 +48,16 @@ func (u *ui) addWasmJS(out_js *bytes.Buffer) {
 	}
 
 	if err != nil {
-		log.Println("Error func addWasmJS: ", err)
+		log.Println("addWasmJS error: ", err)
 	}
 
 }
 
 func (u ui) BuildWASM() {
 
-	err := u.buildWASM(u.FolderPath()+"/wasm/main.go", u.build_folder+"/static/app.wasm")
+	err := u.buildWASM(WorkFolder+"/main.go", StaticFolder+"/app.wasm")
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Println("BuildWASM error: ", err)
 	}
 
 }
