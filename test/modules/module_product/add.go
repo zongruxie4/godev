@@ -7,16 +7,15 @@ import (
 	"github.com/cdvelop/godev/test/components/search"
 	"github.com/cdvelop/input"
 	"github.com/cdvelop/model"
-	"github.com/cdvelop/platform"
 )
 
 type module struct{}
 
-func Add() *model.Module {
+func Add(theme model.Theme) *model.Module {
 
 	m := model.Module{
-		Theme: platform.Theme{},
-		Name:  "product_test",
+		Theme: theme,
+		Name:  "module_product",
 		Title: "Productos TEST",
 		Icon: model.Icon{
 			Id:      "icon-products",

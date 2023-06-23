@@ -9,10 +9,11 @@ import (
 
 type module struct{}
 
-func Add() *model.Module {
+func Add(theme model.Theme) *model.Module {
 
 	m := model.Module{
-		Name:  "info_test",
+		Theme: theme,
+		Name:  "module_info",
 		Title: "Información Plataforma TEST",
 		Icon: model.Icon{
 			Id:      "icon-info",

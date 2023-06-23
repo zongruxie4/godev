@@ -53,4 +53,20 @@ func Test_BuildingUI(t *testing.T) {
 		log.Fatalln("EN app.js NO EXISTE: ", search.Check().RemoveEventListener())
 	}
 
+	//comprobar símbolos svg en html
+	if textExists(godev.BuiltFolder+"/index.html", info_module.Icon.Id) == 0 {
+		log.Fatalln("EN index.html NO SE CREO EL SÍMBOLO SVG ID : ", info_module.Icon.Id)
+	}
+
+	if textExists(godev.BuiltFolder+"/index.html", info_module.Icon.Id) > 1 {
+		log.Fatalln("EN index.html icono repetido SÍMBOLO SVG ID : ", info_module.Icon.Id)
+	}
+
+	if textExists(godev.BuiltFolder+"/app.html", product_module.Icon.Id) == 0 {
+		log.Fatalln("EN index.html NO SE CREO EL SÍMBOLO SVG ID : ", product_module.Icon.Id)
+	}
+
+	if textExists(godev.BuiltFolder+"/app.html", product_module.Icon.Id) > 1 {
+		log.Fatalln("EN index.html icono repetido SÍMBOLO SVG ID : ", product_module.Icon.Id)
+	}
 }
