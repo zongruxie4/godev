@@ -17,8 +17,7 @@ func (u ui) BuildCSS() {
 	public_css := bytes.Buffer{}
 
 	// fmt.Println(`1- comenzamos con el css del tema`)
-
-	err := readFiles(u.FolderPath()+"/css", ".css", &private_css)
+	err := readFiles(u.theme_folder+"/css", ".css", &private_css)
 	if err != nil {
 		fmt.Println(err) // si hay error es por que no hay css en el tema
 	}
@@ -34,7 +33,6 @@ func (u ui) BuildCSS() {
 	public_css.Write(private_css.Bytes())
 
 	// código css privado app desde aca
-
 	for _, c := range u.components {
 		if c.CssPrivate != nil {
 			private_css.Write([]byte(c.CssPrivate.CssPrivate()))
@@ -42,19 +40,15 @@ func (u ui) BuildCSS() {
 	}
 
 	// fmt.Println(`3- construir css privado`)
-	for _, m := range u.Modules() {
-
-		dir := "modules/" + m.Name + "/css"
-		readFiles(dir, ".css", &private_css)
-
+	for _, m := range u.modules {
+		if m.Path != nil {
+			readFiles(m.Path.FolderPath()+"/css", ".css", &private_css)
+		}
 	}
 
 	// fmt.Println("4- >>> escribiendo archivos app.css y style.css")
-
-	if u.AppInProduction() {
-		cssMinify(&private_css)
-		cssMinify(&public_css)
-	}
+	cssMinify(&private_css)
+	cssMinify(&public_css)
 
 	fileWrite(StaticFolder+"/app.css", &private_css)
 	fileWrite(StaticFolder+"/style.css", &public_css)

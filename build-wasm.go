@@ -13,6 +13,8 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 	go.run(result.instance);
 });`
 
+const wasm_js_file = "/wasm/wasm_exec.js"
+
 func (u *ui) webAssemblyCheck() {
 	// chequear si existe main.go en la ruta de trabajo ej: frontend/main.go
 	_, err := os.Open(WorkFolder + "/main.go")
@@ -22,8 +24,8 @@ func (u *ui) webAssemblyCheck() {
 		u.wasm_build = true
 
 		// tiny Go Check
-		_, err := os.ReadFile(u.FolderPath() + "/wasm/wasm_exec_tinygo.js")
-		if err == nil && u.AppInProduction() {
+		_, err := os.ReadFile(u.theme_folder + "/wasm/wasm_exec_tinygo.js")
+		if err == nil {
 			u.with_tinyGo = true
 			compiler = "TinyGo"
 		} else {
@@ -37,23 +39,15 @@ func (u *ui) webAssemblyCheck() {
 
 func (u *ui) addWasmJS(out_js *bytes.Buffer) {
 	var err error
-	if u.AppInProduction() { // si existen los archivos js wasm agregamos la llamada a estos
-		err = readFile(u.FolderPath()+"/wasm/wasm_exec_tinygo.js", out_js)
-		if err == nil {
-			// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
-			out_js.WriteString(js_wasm_format)
-
-		} else {
-
-			err = readFile(u.FolderPath()+"/wasm/wasm_exec.js", out_js)
-			if err == nil {
-				// fmt.Println("*** COMPILACIÓN WASM GO ***")
-				out_js.WriteString(js_wasm_format)
-			}
-		}
+	// si existen los archivos js wasm agregamos la llamada a estos
+	err = readFile(u.theme_folder+"/wasm/wasm_exec_tinygo.js", out_js)
+	if err == nil {
+		// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
+		out_js.WriteString(js_wasm_format)
 
 	} else {
-		err = readFile(u.FolderPath()+"/wasm/wasm_exec.js", out_js)
+
+		err = readFile(u.theme_folder+wasm_js_file, out_js)
 		if err == nil {
 			// fmt.Println("*** COMPILACIÓN WASM GO ***")
 			out_js.WriteString(js_wasm_format)
@@ -79,7 +73,7 @@ func (u ui) buildWASM(input_go_file string, out_wasm_file string) error {
 
 	// fmt.Println("WITH TINY GO?: ", u.with_tinyGo)
 	// Ajustamos los parámetros de compilación según la configuración
-	if u.AppInProduction() && u.with_tinyGo {
+	if u.with_tinyGo {
 		// fmt.Println("*** COMPILACIÓN WASM TINYGO ***")
 		cmd = exec.Command("tinygo", "build", "-o", out_wasm_file, "-target", "wasm", input_go_file)
 

@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-func (Args) ShowErrorAndExit(errorMessage string) {
-	fmt.Println(errorMessage)
+func showErrorAndExit(errorMessage string) {
+	fmt.Println("Error: " + errorMessage)
 	fmt.Println("")
 	fmt.Println("Presione cualquier tecla para salir...")
 	fmt.Scanln()

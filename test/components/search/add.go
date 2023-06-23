@@ -18,7 +18,7 @@ func Check() search {
 }
 
 func (search) CssGlobal() string {
-	return ".search-style{background:yellow};"
+	return ".search-test-style{background:#ff0}"
 }
 
 func (search) JsGlobal() string {
@@ -30,10 +30,10 @@ func (search) JsPrivate() string {
 }
 
 func (search) JsListeners() string {
-	return "btn.addEventListener('click', MySearchFunction);"
+	return "btn.addEventListener('click',MySearchFunction);"
 }
 
 // esta función es solo para comparar en el test ya que se crea de forma dinámica
 func (search) RemoveEventListener() string {
-	return "btn.removeEventListener('click', MySearchFunction);"
+	return "btn.removeEventListener('click',MySearchFunction);"
 }

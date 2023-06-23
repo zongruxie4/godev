@@ -6,7 +6,6 @@ import (
 
 	"github.com/cdvelop/godev"
 	"github.com/cdvelop/godev/test/components/search"
-	"github.com/cdvelop/godev/test/setting"
 )
 
 func Test_BuildingUI(t *testing.T) {
@@ -14,8 +13,8 @@ func Test_BuildingUI(t *testing.T) {
 	deleteFiles(godev.BuiltFolder, []string{".html"})
 	deleteFiles(godev.StaticFolder, []string{".js", ".css", ".wasm"})
 
-	// // registrar app
-	ui := godev.RegisterApp(setting.App(), false)
+	// registrar app
+	ui := godev.RegisterApp(App(), false, modules...)
 
 	ui.BuildHTML()
 
@@ -25,7 +24,7 @@ func Test_BuildingUI(t *testing.T) {
 
 	ui.BuildWASM()
 
-	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"app.wasm", "area_a.html", "area_t.html", "area_v.html", "app.js", "script.js", "app.css", "style.css"})
+	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"index.html", "app.html", "app.css", "style.css", "script.js", "app.js", "app.wasm"})
 	if err != nil {
 		log.Fatal("Error:", err)
 	}

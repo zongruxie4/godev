@@ -11,7 +11,7 @@ func (u ui) copyStaticFilesFromUiTheme() {
 	validExtensions := map[string]bool{".js": true, ".css": true, ".wasm": true}
 
 	// Obtener la lista de archivos en la carpeta origen
-	srcDir := u.FolderPath() + "/static"
+	srcDir := u.theme_folder + "/static"
 	destDir := BuiltFolder + "/static"
 	files, err := os.ReadDir(srcDir)
 	if err != nil {

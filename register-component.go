@@ -2,7 +2,7 @@ package godev
 
 func (u *ui) registerComponents() {
 
-	for _, module := range u.Modules() {
+	for _, module := range u.modules {
 
 		for _, comp := range module.Components {
 

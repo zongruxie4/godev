@@ -7,7 +7,7 @@ import (
 	"github.com/cdvelop/model"
 )
 
-func attachJsFromComponentInToModule(m model.Module, funtions, listener_add, listener_rem *bytes.Buffer) {
+func attachJsFromGoComponentCodeToModule(m *model.Module, funtions, listener_add, listener_rem *bytes.Buffer) {
 
 	for _, comp := range m.Components {
 

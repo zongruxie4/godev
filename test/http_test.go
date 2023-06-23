@@ -7,14 +7,13 @@ import (
 	"testing"
 
 	"github.com/cdvelop/godev"
-	"github.com/cdvelop/godev/test/setting"
 )
 
 func Test_HttpUI(t *testing.T) {
 	mux := http.NewServeMux()
 
 	// // registrar app
-	ui := godev.RegisterApp(setting.App(), false)
+	ui := godev.RegisterApp(App(), false, modules...)
 
 	mux.Handle("/", ui)
 

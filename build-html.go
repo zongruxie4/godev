@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
+	"text/template"
 	"time"
 
 	"github.com/tdewolff/minify"
@@ -13,41 +15,82 @@ import (
 func (u *ui) BuildHTML() {
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
-	for id_area, name_area := range u.Areas() {
+	var public_area_found bool
+	var private_area_found bool
 
-		if id_area == 0 {
+	for _, m := range u.modules {
 
-			page_store.StyleSheet = "static/style.css"
-			page_store.Script = "static/script.js"
+		public_found, private_found := m.ContainsTypeAreas()
 
-			page_store.UserName = ""
-			page_store.UserArea = ""
-			page_store.Message = ""
-		} else {
-			page_store.StyleSheet = "static/app.css"
-			page_store.Script = "static/app.js"
-
-			// preparamos las variables para usarlas posteriormente en el template
-			page_store.UserName = `{{.UserName}}`
-			page_store.UserArea = name_area
-			page_store.Message = `{{.Message}}`
+		if public_found {
+			public_area_found = true
 		}
 
-		page_store.Menu = u.buildMenu(id_area)
-		page_store.Modules = u.buildHtmlModule(id_area)
-
-		template_html := u.makeHtmlTemplate()
-
-		if u.AppInProduction() {
-			htmlMinify(&template_html)
+		if private_found {
+			private_area_found = true
 		}
-		// crear archivo
-		file_name := fmt.Sprintf(BuiltFolder+"/area_%c.html ", id_area)
 
-		fileWrite(file_name, &template_html)
+		if public_area_found && private_area_found {
+			break
+		}
+	}
+
+	public_icons, private_icons := u.buildSpriteIcons()
+
+	public_menu, private_menu := u.buildMenu()
+
+	public_modules, private_modules := u.buildModules()
+
+	// construir una pagina de nombre app.html privada y otra index.html publica
+
+	if public_area_found {
+
+		page_store.SpriteIcons = public_icons
+
+		page_store.UserName = ""
+		page_store.UserArea = ""
+		page_store.Message = ""
+
+		page_store.StyleSheet = "static/style.css"
+		page_store.Script = "static/script.js"
+
+		u.writeHtml(true, public_menu, public_modules)
+	}
+
+	if private_area_found {
+
+		page_store.SpriteIcons = private_icons
+
+		// preparamos las variables para usarlas posteriormente en el template
+		page_store.UserName = `{{.UserName}}`
+		page_store.UserArea = `{{.UserArea}}`
+		page_store.Message = `{{.Message}}`
+
+		page_store.StyleSheet = "static/app.css"
+		page_store.Script = "static/app.js"
+
+		u.writeHtml(false, private_menu, private_modules)
 
 	}
 
+}
+
+func (u *ui) writeHtml(public bool, menu, modules string) {
+	file_name := "/app.html"
+	if public {
+		file_name = "/index.html"
+	}
+
+	// si el proyecto no usa webAssembly creamos los menu y módulos
+	if !u.wasm_build {
+		page_store.Menu = menu
+		page_store.Modules = modules
+	}
+
+	template_html := u.makeHtmlTemplate()
+	htmlMinify(&template_html)
+	// crear archivo app html
+	fileWrite(BuiltFolder+file_name, &template_html)
 }
 
 func htmlMinify(data_in *bytes.Buffer) {
@@ -66,4 +109,26 @@ func htmlMinify(data_in *bytes.Buffer) {
 	data_in.Reset()
 	*data_in = temp_result
 
+}
+
+func (u ui) makeHtmlTemplate() (html bytes.Buffer) {
+
+	data, err := os.ReadFile(u.theme_folder + "/index.html")
+	if err != nil {
+		fmt.Println("THEME FOLDER: ", u.theme_folder)
+		fmt.Println("Error al leer el archivo:", err)
+	}
+	t, err := template.New("").Parse(string(data))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	err = t.Execute(&html, page_store)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	return
 }

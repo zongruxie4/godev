@@ -2,7 +2,6 @@ package godev
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -21,7 +20,7 @@ func (u *ui) BuildJS() {
 	private_js.WriteString("'use strict';\n")
 
 	// fmt.Println(`1- comenzamos con el js del tema`)
-	readFiles(u.FolderPath()+"/js", ".js", &private_js)
+	readFiles(u.theme_folder+"/js", ".js", &private_js)
 
 	// fmt.Println(`2- leer js publico de los componentes`)
 	components_dir := "ui/components"
@@ -44,61 +43,56 @@ func (u *ui) BuildJS() {
 
 	// fmt.Println(`2- leer js publico de los módulos`)
 
-	for _, module := range u.Modules() {
+	for _, module := range u.modules {
 		// fmt.Println(`2.1 leer directorio "js_public" del module si existe`)
 		dir_js := "modules/" + module.Name + "/js_public"
 
 		readFiles(dir_js, ".js", &private_js)
+
+		if module.Path != nil && module.Path.FolderPath() != "" {
+			// fmt.Println(`agregamos js test si existiesen`)
+			readFiles(module.Path.FolderPath()+"/js_test", ".js", &public_js)
+		}
 	}
 
-	if !u.AppInProduction() {
-		// fmt.Println(`agregamos js test si existiesen`)
-		readFiles(u.FolderPath()+"/js_test", ".js", &public_js)
-	}
 	// copiamos el js a publico hasta aquí
 	public_js.Write(private_js.Bytes())
 
-	// código js privado desde aca
+	// **** código js privado desde aca
 
 	// fmt.Println(`3- construir módulos js`)
-	for _, module := range u.Modules() {
+	for _, module := range u.modules {
 		funtions := bytes.Buffer{}
 		listener_add := bytes.Buffer{}
 		listener_rem := bytes.Buffer{}
 
-		attachJsFromComponentInToModule(module, &funtions, &listener_add, &listener_rem)
+		attachJsFromGoComponentCodeToModule(module, &funtions, &listener_add, &listener_rem)
 
 		u.attachFromJsObjectsToModule(module, &funtions, &listener_add, &listener_rem)
 		// adjuntar js componentes registrados en el modulo
 		for _, comp := range module.Components {
-			// read files an parse dir ej: ui/components/form/js_module
-			path_component := "components/" + comp.Name + "/js_module"
-			// fmt.Println("PATH COMPONENT: ", path_component)
-			attachFromJsFolderToModule(module, path_component, &funtions, &listener_add, &listener_rem)
 
+			if comp.Path != nil && comp.Path.FolderPath() != "" {
+
+				path_component := comp.Path.FolderPath() + "/js_module"
+
+				attachFromJsFolderToModule(module, path_component, &funtions, &listener_add, &listener_rem)
+
+			}
 		}
 
-		dir_mod_js := `modules/` + module.Name + `/js_module`
-		attachFromJsFolderToModule(module, dir_mod_js, &funtions, &listener_add, &listener_rem)
+		if module.Path != nil && module.Path.FolderPath() != "" {
+			dir_mod_js := module.Path.FolderPath() + `/js_module`
+			attachFromJsFolderToModule(module, dir_mod_js, &funtions, &listener_add, &listener_rem)
+		}
 
 		// fmt.Println(`4- >>> escribiendo module JS: `, module.MainName)
-		private_js.WriteString(fmt.Sprintf(u.ModuleJsTemplate(), module.Name, module.Name,
-			funtions.String(),
-			listener_add.String(),
-			listener_rem.String(),
-		))
+		private_js.WriteString(module.BuildModuleJS(funtions.String(), listener_add.String(), listener_rem.String()))
+
 	}
 
-	// if !u.AppInProduction() {
-	// fmt.Println(">>> UI Hot Reload Activo <<<")
-	// fmt.Println(`agregamos js test si existiesen`)
-	// readFiles(u.FolderPath()+"/js_test", ".js", &private_js)
-	// }
-
-	if u.AppInProduction() {
-		jsMinify(&private_js)
-		jsMinify(&public_js)
-	}
+	jsMinify(&private_js)
+	jsMinify(&public_js)
 
 	fileWrite(StaticFolder+"/app.js", &private_js)
 	fileWrite(StaticFolder+"/script.js", &public_js)

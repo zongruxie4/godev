@@ -15,22 +15,22 @@ func (a *Args) CaptureArguments() {
 
 		switch {
 		case strings.Contains(opt, "path:"):
-			a.extractArgumentValue(opt, &a.browser_path)
+			extractArgumentValue(opt, &a.browser_path)
 			a.removeItem(i)
 
 		case strings.Contains(opt, "port:"):
 			a.app_port = true
 
 		case strings.Contains(opt, "with:"):
-			a.extractArgumentValue(opt, &a.with)
+			extractArgumentValue(opt, &a.with)
 			a.removeItem(i)
 
 		case strings.Contains(opt, "height:"):
-			a.extractArgumentValue(opt, &a.height)
+			extractArgumentValue(opt, &a.height)
 			a.removeItem(i)
 
 		case strings.Contains(opt, "position:"):
-			a.extractArgumentValue(opt, &a.position)
+			extractArgumentValue(opt, &a.position)
 			a.removeItem(i)
 
 		case opt == "help" || opt == "?" || opt == "ayuda":
@@ -45,7 +45,7 @@ func (a *Args) CaptureArguments() {
 			fmt.Println("height:600")
 			fmt.Println("position:1930,0")
 			fmt.Println("*-position es en caso de que tengas segundo monitor")
-			a.ShowErrorAndExit("")
+			showErrorAndExit("")
 		}
 
 	}
@@ -60,12 +60,12 @@ func (a *Args) CaptureArguments() {
 
 }
 
-func (a *Args) extractArgumentValue(option string, field *string) {
+func extractArgumentValue(option string, field *string) {
 	parts := strings.Split(option, ":")
 	if len(parts) == 2 {
 		*field = parts[1]
 	} else {
-		a.ShowErrorAndExit("Error: Delimitador ':' no encontrado en la cadena " + option)
+		showErrorAndExit("Error: Delimitador ':' no encontrado en la cadena " + option)
 	}
 }
 

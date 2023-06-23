@@ -7,7 +7,7 @@ import (
 	"github.com/cdvelop/model"
 )
 
-func (u ui) attachFromJsObjectsToModule(module model.Module, funtions, listener_add, listener_rem *bytes.Buffer) {
+func (u ui) attachFromJsObjectsToModule(module *model.Module, funtions, listener_add, listener_rem *bytes.Buffer) {
 
 	var input_registered = make(map[string]struct{}, 0)
 

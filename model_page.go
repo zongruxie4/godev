@@ -6,7 +6,9 @@ type page struct {
 	AppName    string
 	AppVersion string
 
-	Menu *string // según nivel
+	SpriteIcons string
+
+	Menu string // según nivel
 
 	UserName string
 	UserArea string
@@ -18,13 +20,14 @@ type page struct {
 }
 
 var page_store = page{
-	StyleSheet: "",
-	AppName:    "",
-	AppVersion: "",
-	Menu:       new(string),
-	UserName:   "",
-	UserArea:   "",
-	Message:    "",
-	Modules:    "",
-	Script:     "",
+	StyleSheet:  "",
+	AppName:     "",
+	AppVersion:  "",
+	SpriteIcons: "",
+	Menu:        "",
+	UserName:    "",
+	UserArea:    "",
+	Message:     "",
+	Modules:     "",
+	Script:      "",
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // path ej: "modules/users/js_module","ui/components/form/js_module"
-func attachFromJsFolderToModule(module model.Module, path string, funtions, listener_add, listener_rem *bytes.Buffer) {
+func attachFromJsFolderToModule(module *model.Module, path string, funtions, listener_add, listener_rem *bytes.Buffer) {
 	files, err := os.ReadDir(path)
 	if err == nil {
 		// fmt.Printf("directorio %v de %v no encontrado\n", path, module.MainName)
