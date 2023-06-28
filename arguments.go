@@ -6,32 +6,34 @@ import (
 	"strings"
 )
 
-// path ej: http://localhost:8080/index.html"
+// path ej: /index.html, / ,/home
 // port ej: 8080
 func (a *Args) CaptureArguments() {
 	a.args = os.Args
 
-	for i, opt := range a.args {
+	var new_args []string
+
+	for _, opt := range a.args {
 
 		switch {
 		case strings.Contains(opt, "path:"):
 			extractArgumentValue(opt, &a.browser_path)
-			a.removeItem(i)
+			continue
 
 		case strings.Contains(opt, "port:"):
 			a.app_port = true
 
 		case strings.Contains(opt, "with:"):
 			extractArgumentValue(opt, &a.with)
-			a.removeItem(i)
+			continue
 
 		case strings.Contains(opt, "height:"):
 			extractArgumentValue(opt, &a.height)
-			a.removeItem(i)
+			continue
 
 		case strings.Contains(opt, "position:"):
 			extractArgumentValue(opt, &a.position)
-			a.removeItem(i)
+			continue
 
 		case opt == "help" || opt == "?" || opt == "ayuda":
 
@@ -45,9 +47,10 @@ func (a *Args) CaptureArguments() {
 			fmt.Println("height:600")
 			fmt.Println("position:1930,0")
 			fmt.Println("*-position es en caso de que tengas segundo monitor")
-			showErrorAndExit("")
+			ShowErrorAndExit("")
 		}
 
+		new_args = append(new_args, opt)
 	}
 
 	if !a.app_port {
@@ -58,17 +61,15 @@ func (a *Args) CaptureArguments() {
 		a.browser_path = "/"
 	}
 
+	a.args = new_args
+
 }
 
 func extractArgumentValue(option string, field *string) {
 	parts := strings.Split(option, ":")
-	if len(parts) == 2 {
+	if len(parts) >= 2 {
 		*field = parts[1]
 	} else {
-		showErrorAndExit("Error: Delimitador ':' no encontrado en la cadena " + option)
+		ShowErrorAndExit("Delimitador ':' no encontrado en la cadena " + option)
 	}
-}
-
-func (a *Args) removeItem(index int) {
-	a.args = append(a.args[:index], a.args[index+1:]...)
 }

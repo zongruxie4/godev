@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/cdvelop/input v0.0.12
-	github.com/cdvelop/model v0.0.30
+	github.com/cdvelop/model v0.0.31
 	github.com/cdvelop/platform v0.0.1
 	github.com/chromedp/cdproto v0.0.0-20230620000757-8605e5981815
 	github.com/chromedp/sysutil v1.0.0 // indirect
@@ -29,5 +29,7 @@ require (
 )
 
 replace github.com/cdvelop/model => ../model
+
+replace github.com/cdvelop/input => ../input
 
 replace github.com/cdvelop/platform => ../platform

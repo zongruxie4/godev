@@ -7,35 +7,31 @@ import (
 	"github.com/cdvelop/model"
 )
 
-func attachJsFromGoComponentCodeToModule(m *model.Module, funtions, listener_add, listener_rem *bytes.Buffer) {
+func (u ui) attachJsToModuleFromGoCode(m *model.Module, comp *model.Object, funtions, listener_add, listener_rem *bytes.Buffer) {
 
-	for _, comp := range m.Components {
+	if comp.JsFunctions != nil {
 
-		if comp.JsPrivate != nil {
+		parsed_js := parseModuleJS(parseJS{
+			ModuleName: m.MainName,
+			FieldName:  "",
+		}, []byte(comp.JsFunctions.JsFunctions()))
 
-			parsed_js := parseModuleJS(parseJS{
-				ModuleName: m.Name,
-				FieldName:  "",
-			}, []byte(comp.JsPrivate.JsPrivate()))
+		funtions.WriteString(parsed_js.String() + "\n")
 
-			funtions.WriteString(parsed_js.String() + "\n")
+	}
 
-		}
+	if comp.JsListeners != nil {
+		parsed_js := parseModuleJS(parseJS{
+			ModuleName: m.MainName,
+			FieldName:  "",
+		}, []byte(comp.JsListeners.JsListeners()))
 
-		if comp.JsListeners != nil {
-			parsed_js := parseModuleJS(parseJS{
-				ModuleName: m.Name,
-				FieldName:  "",
-			}, []byte(comp.JsListeners.JsListeners()))
+		listener_add.WriteString(parsed_js.String() + "\n")
 
-			listener_add.WriteString(parsed_js.String() + "\n")
+		// reemplazar todas las ocurrencias de "addEventListener" por "removeEventListener"
+		rem_listeners := strings.ReplaceAll(parsed_js.String(), "addEventListener", "removeEventListener")
 
-			// reemplazar todas las ocurrencias de "addEventListener" por "removeEventListener"
-			rem_listeners := strings.ReplaceAll(parsed_js.String(), "addEventListener", "removeEventListener")
-
-			listener_rem.WriteString(rem_listeners + "\n")
-
-		}
+		listener_rem.WriteString(rem_listeners + "\n")
 
 	}
 

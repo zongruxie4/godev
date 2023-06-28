@@ -7,18 +7,17 @@ import (
 	"github.com/cdvelop/model"
 )
 
-func RegisterApp(a app, file_watcher_start bool, modules ...*model.Module) *ui {
+func RegisterApp(app_name, app_version string, file_watcher_start bool, modules ...*model.Module) *ui {
 
-	ui_store.app = a
 	ui_store.modules = modules
 
 	// registrar carpetas a observar
 	if len(modules) == 0 {
-		showErrorAndExit("módulos no Ingresados")
+		ShowErrorAndExit("módulos no Ingresados")
 	}
 	for n, m := range modules {
 		if m == nil {
-			showErrorAndExit("módulo No: " + strconv.Itoa(n) + " es nulo")
+			ShowErrorAndExit("módulo No: " + strconv.Itoa(n) + " es nulo")
 		}
 
 		if m.Theme != nil && m.Theme.FolderPath() != "" && ui_store.theme_folder == "" {
@@ -38,10 +37,10 @@ func RegisterApp(a app, file_watcher_start bool, modules ...*model.Module) *ui {
 		ui_store.folders_watch = append(ui_store.folders_watch, "modules")
 	}
 
-	page_store.AppName = a.AppName()
-	page_store.AppVersion = a.AppVersion()
+	page_store.AppName = app_name
+	page_store.AppVersion = app_version
 
-	ui_store.registerComponents()
+	ui_store.registerComponentsAndObjects()
 
 	ui_store.checkStaticFileFolders()
 	ui_store.copyStaticFilesFromUiTheme()

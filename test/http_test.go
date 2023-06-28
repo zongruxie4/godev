@@ -13,7 +13,7 @@ func Test_HttpUI(t *testing.T) {
 	mux := http.NewServeMux()
 
 	// // registrar app
-	ui := godev.RegisterApp(App(), false, modules...)
+	ui := godev.RegisterApp("app", "0.0.0", false, modules...)
 
 	mux.Handle("/", ui)
 

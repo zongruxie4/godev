@@ -5,13 +5,18 @@ import (
 )
 
 type ui struct {
-	app
 	theme_folder string
 	//módulos registrados
 	modules []*model.Module
-	//componentes registrados
-	registered    map[string]struct{}
-	components    []model.Component
+
+	//componentes registrados externos al modulo
+	comp_registered map[string]struct{}
+	components      []*model.Object
+
+	// objetos registrados propios del modulo
+	obj_registered map[string]struct{}
+	objects        []*model.Object
+
 	folders_watch []string // ej: "modules", "ui\\theme"
 
 	wasm_build  bool
@@ -23,11 +28,12 @@ const BuiltFolder = "frontend/built"
 const StaticFolder = "frontend/built/static"
 
 var ui_store = ui{
-	app:           nil,
-	theme_folder:  "",
-	modules:       []*model.Module{},
-	registered:    map[string]struct{}{},
-	components:    []model.Component{},
-	folders_watch: []string{},
-	with_tinyGo:   false,
+	theme_folder:    "",
+	modules:         []*model.Module{},
+	comp_registered: map[string]struct{}{},
+	components:      []*model.Object{},
+	obj_registered:  map[string]struct{}{},
+	objects:         []*model.Object{},
+	folders_watch:   []string{},
+	with_tinyGo:     false,
 }

@@ -13,44 +13,38 @@ import (
 func (u ui) BuildCSS() {
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
-	private_css := bytes.Buffer{}
 	public_css := bytes.Buffer{}
 
 	// fmt.Println(`1- comenzamos con el css del tema`)
-	err := readFiles(u.theme_folder+"/css", ".css", &private_css)
+	err := readFiles(u.theme_folder+"/css", ".css", &public_css)
 	if err != nil {
 		fmt.Println(err) // si hay error es por que no hay css en el tema
 	}
 
-	// fmt.Println(`2- leer CSS publico de los componentes registrados`)
 	for _, c := range u.components {
-		if c.CssGlobal != nil {
-			private_css.Write([]byte(c.CssGlobal.CssGlobal()))
+		if c.Css != nil {
+			public_css.Write([]byte(c.Css.Css()))
 		}
+
+		if c.Path != nil {
+			readFiles(c.Path.FolderPath()+"/css", ".css", &public_css)
+		}
+
 	}
 
-	// copiamos el css a publico hasta aquí
-	public_css.Write(private_css.Bytes())
-
-	// código css privado app desde aca
-	for _, c := range u.components {
-		if c.CssPrivate != nil {
-			private_css.Write([]byte(c.CssPrivate.CssPrivate()))
+	for _, c := range u.objects {
+		if c.Css != nil {
+			public_css.Write([]byte(c.Css.Css()))
 		}
-	}
 
-	// fmt.Println(`3- construir css privado`)
-	for _, m := range u.modules {
-		if m.Path != nil {
-			readFiles(m.Path.FolderPath()+"/css", ".css", &private_css)
+		if c.Path != nil {
+			readFiles(c.Path.FolderPath()+"/css", ".css", &public_css)
 		}
 	}
 
 	// fmt.Println("4- >>> escribiendo archivos app.css y style.css")
-	cssMinify(&private_css)
 	cssMinify(&public_css)
 
-	fileWrite(StaticFolder+"/app.css", &private_css)
 	fileWrite(StaticFolder+"/style.css", &public_css)
 
 }

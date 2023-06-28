@@ -14,7 +14,7 @@ func Test_BuildingUI(t *testing.T) {
 	deleteFiles(godev.StaticFolder, []string{".js", ".css", ".wasm"})
 
 	// registrar app
-	ui := godev.RegisterApp(App(), false, modules...)
+	ui := godev.RegisterApp("app", "0.0.0", false, modules...)
 
 	ui.BuildHTML()
 
@@ -24,33 +24,29 @@ func Test_BuildingUI(t *testing.T) {
 
 	ui.BuildWASM()
 
-	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"index.html", "app.html", "app.css", "style.css", "script.js", "app.js", "app.wasm"})
+	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"index.html", "style.css", "main.js", "app.wasm"})
 	if err != nil {
 		log.Fatal("Error:", err)
 	}
 
-	if textExists(godev.StaticFolder+"/app.css", search.Check().CssGlobal()) == 0 {
-		log.Fatalln("EN app.css NO EXISTE: ", search.Check().CssGlobal())
+	if textExists(godev.StaticFolder+"/style.css", search.Check().Css()) == 0 {
+		log.Fatalln("EN style.css NO EXISTE: ", search.Check().Css())
 	}
 
-	if textExists(godev.StaticFolder+"/style.css", search.Check().CssGlobal()) == 0 {
-		log.Fatalln("EN style.css NO EXISTE: ", search.Check().CssGlobal())
+	if textExists(godev.StaticFolder+"/main.js", search.Check().JsGlobal()) == 0 {
+		log.Fatalln("EN main.js NO EXISTE: ", search.Check().JsGlobal())
 	}
 
-	if textExists(godev.StaticFolder+"/app.js", search.Check().JsGlobal()) == 0 {
-		log.Fatalln("EN app.js NO EXISTE: ", search.Check().JsGlobal())
+	if textExists(godev.StaticFolder+"/main.js", search.Check().JsFunctionsExpected()) == 0 {
+		log.Fatalln("EN main.js NO EXISTE: ", search.Check().JsFunctionsExpected())
 	}
 
-	if textExists(godev.StaticFolder+"/script.js", search.Check().JsGlobal()) == 0 {
-		log.Fatalln("EN script.js NO EXISTE: ", search.Check().JsGlobal())
-	}
-
-	if textExists(godev.StaticFolder+"/app.js", search.Check().JsListeners()) == 0 {
-		log.Fatalln("EN app.js NO EXISTE: ", search.Check().JsListeners())
+	if textExists(godev.StaticFolder+"/main.js", search.Check().JsListeners()) == 0 {
+		log.Fatalln("EN main.js NO EXISTE: ", search.Check().JsListeners())
 	}
 	// removeEventListener se crea de forma dinámica
-	if textExists(godev.StaticFolder+"/app.js", search.Check().RemoveEventListener()) == 0 {
-		log.Fatalln("EN app.js NO EXISTE: ", search.Check().RemoveEventListener())
+	if textExists(godev.StaticFolder+"/main.js", search.Check().RemoveEventListener()) == 0 {
+		log.Fatalln("EN main.js NO EXISTE: ", search.Check().RemoveEventListener())
 	}
 
 	//comprobar símbolos svg en html
@@ -63,10 +59,11 @@ func Test_BuildingUI(t *testing.T) {
 	}
 
 	if textExists(godev.BuiltFolder+"/app.html", product_module.Icon.Id) == 0 {
-		log.Fatalln("EN index.html NO SE CREO EL SÍMBOLO SVG ID : ", product_module.Icon.Id)
+		log.Fatalln("EN app.html NO SE CREO EL SÍMBOLO SVG ID : ", product_module.Icon.Id)
 	}
 
 	if textExists(godev.BuiltFolder+"/app.html", product_module.Icon.Id) > 1 {
-		log.Fatalln("EN index.html icono repetido SÍMBOLO SVG ID : ", product_module.Icon.Id)
+		log.Fatalln("EN app.html icono repetido SÍMBOLO SVG ID : ", product_module.Icon.Id)
 	}
+
 }

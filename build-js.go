@@ -3,7 +3,6 @@ package godev
 import (
 	"bytes"
 	"log"
-	"os"
 	"time"
 
 	"github.com/tdewolff/minify"
@@ -13,52 +12,29 @@ import (
 func (u *ui) BuildJS() {
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
-	private_js := bytes.Buffer{}
 	public_js := bytes.Buffer{}
 
 	// fmt.Println(`0- agregamos js por defecto`)
-	private_js.WriteString("'use strict';\n")
+	public_js.WriteString("'use strict';\n")
 
 	// fmt.Println(`1- comenzamos con el js del tema`)
-	readFiles(u.theme_folder+"/js", ".js", &private_js)
+	readFiles(u.theme_folder+"/js", ".js", &public_js)
 
 	// fmt.Println(`2- leer js publico de los componentes`)
-	components_dir := "ui/components"
-	files, err := os.ReadDir(components_dir)
-	if err == nil {
-		for _, file := range files {
-			if file.IsDir() {
-				readFiles(components_dir+"/"+file.Name()+"/js_public", ".js", &private_js)
-			}
+
+	for _, comp := range u.components {
+
+		if comp.JsGlobal != nil {
+			public_js.Write([]byte(comp.JsGlobal.JsGlobal()))
 		}
+
+		readFiles(comp.Path.FolderPath()+"/js_global", ".js", &public_js)
+
 	}
 
-	for _, c := range u.components {
-		if c.JsGlobal != nil {
-			private_js.Write([]byte(c.JsGlobal.JsGlobal()))
-		}
-	}
+	u.addWasmJS(&public_js)
 
-	u.addWasmJS(&private_js)
-
-	// fmt.Println(`2- leer js publico de los módulos`)
-
-	for _, module := range u.modules {
-		// fmt.Println(`2.1 leer directorio "js_public" del module si existe`)
-		dir_js := "modules/" + module.Name + "/js_public"
-
-		readFiles(dir_js, ".js", &private_js)
-
-		if module.Path != nil && module.Path.FolderPath() != "" {
-			// fmt.Println(`agregamos js test si existiesen`)
-			readFiles(module.Path.FolderPath()+"/js_test", ".js", &public_js)
-		}
-	}
-
-	// copiamos el js a publico hasta aquí
-	public_js.Write(private_js.Bytes())
-
-	// **** código js privado desde aca
+	// **** código js módulos desde aca
 
 	// fmt.Println(`3- construir módulos js`)
 	for _, module := range u.modules {
@@ -66,36 +42,42 @@ func (u *ui) BuildJS() {
 		listener_add := bytes.Buffer{}
 		listener_rem := bytes.Buffer{}
 
-		attachJsFromGoComponentCodeToModule(module, &funtions, &listener_add, &listener_rem)
+		for _, comp := range u.components {
+			if comp.ContainsModule(module.MainName) {
+				// 1 adjuntar funciones de componentes
+				u.attachJsToModuleFromGoCode(module, comp, &funtions, &listener_add, &listener_rem)
 
-		u.attachFromJsObjectsToModule(module, &funtions, &listener_add, &listener_rem)
-		// adjuntar js componentes registrados en el modulo
-		for _, comp := range module.Components {
+				attachJsToModuleFromFolder(comp, module.MainName, &funtions, &listener_add, &listener_rem)
 
-			if comp.Path != nil && comp.Path.FolderPath() != "" {
+			}
+		}
 
-				path_component := comp.Path.FolderPath() + "/js_module"
+		for _, obj := range u.objects {
+			if obj.ContainsModule(module.MainName) {
 
-				attachFromJsFolderToModule(module, path_component, &funtions, &listener_add, &listener_rem)
+				u.attachJsToModuleFromFieldsObject(module.MainName, obj, &funtions, &listener_add, &listener_rem)
+
+				attachJsToModuleFromFolder(obj, module.MainName, &funtions, &listener_add, &listener_rem)
 
 			}
 		}
 
 		if module.Path != nil && module.Path.FolderPath() != "" {
-			dir_mod_js := module.Path.FolderPath() + `/js_module`
-			attachFromJsFolderToModule(module, dir_mod_js, &funtions, &listener_add, &listener_rem)
+
+			readFiles(module.Path.FolderPath()+"/js_module", ".js", &public_js)
+
+			// fmt.Println(`agregamos js test si existiesen`)
+			readFiles(module.Path.FolderPath()+"/js_test", ".js", &public_js)
 		}
 
 		// fmt.Println(`4- >>> escribiendo module JS: `, module.MainName)
-		private_js.WriteString(module.BuildModuleJS(funtions.String(), listener_add.String(), listener_rem.String()))
+		public_js.WriteString(module.BuildModuleJS(funtions.String(), listener_add.String(), listener_rem.String()))
 
 	}
 
-	jsMinify(&private_js)
 	jsMinify(&public_js)
 
-	fileWrite(StaticFolder+"/app.js", &private_js)
-	fileWrite(StaticFolder+"/script.js", &public_js)
+	fileWrite(StaticFolder+"/main.js", &public_js)
 
 }
 

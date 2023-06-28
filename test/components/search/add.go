@@ -1,23 +1,41 @@
 package search
 
-import "github.com/cdvelop/model"
+import (
+	"path/filepath"
+	"runtime"
 
-var Add = model.Component{
-	Name:        "search",
-	CssGlobal:   search{},
-	CssPrivate:  nil,
-	JsGlobal:    search{},
-	JsPrivate:   search{},
-	JsListeners: search{},
-}
+	"github.com/cdvelop/model"
+)
 
 type search struct{}
+
+func Add() *model.Object {
+
+	s := search{}
+
+	return &model.Object{
+		ApiHandler: model.ApiHandler{
+			Name: "search",
+		},
+		Css:         s,
+		JsGlobal:    s,
+		JsFunctions: s,
+		JsListeners: s,
+		Path:        s,
+	}
+}
+
+func (search) FolderPath() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filename)
+	return filepath.ToSlash(dir)
+}
 
 func Check() search {
 	return search{}
 }
 
-func (search) CssGlobal() string {
+func (search) Css() string {
 	return ".search-test-style{background:#ff0}"
 }
 
@@ -25,8 +43,12 @@ func (search) JsGlobal() string {
 	return "console.log('función componente search global')"
 }
 
-func (search) JsPrivate() string {
-	return "console.log('función componente search privado modulo: {{.ModuleName}}')"
+func (s search) JsFunctions() string {
+	return "console.log('función componente search modulo: {{.ModuleName}}')"
+}
+
+func (s search) JsFunctionsExpected() string {
+	return "console.log('función componente search modulo: module_product')"
 }
 
 func (search) JsListeners() string {

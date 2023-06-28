@@ -12,20 +12,20 @@ func (a *Args) CreateBrowserContext() {
 
 	width, height, err := GetScreenSize()
 	if err != nil {
-		showErrorAndExit(err.Error())
+		ShowErrorAndExit(err.Error())
 	}
 
 	if a.with != "" {
 		width, err = strconv.Atoi(a.with)
 		if err != nil {
-			showErrorAndExit(err.Error())
+			ShowErrorAndExit(err.Error())
 		}
 	}
 
 	if a.height != "" {
 		height, err = strconv.Atoi(a.height)
 		if err != nil {
-			showErrorAndExit(err.Error())
+			ShowErrorAndExit(err.Error())
 		}
 	}
 

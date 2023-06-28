@@ -24,7 +24,7 @@ func main() {
 
 	dir, _ := os.Getwd()
 	if filepath.Base(dir) == "godev" {
-		a.ShowErrorAndExit("error cambia al directorio de tu aplicación para ejecutar godev")
+		godev.ShowErrorAndExit("error cambia al directorio de tu aplicación para ejecutar godev")
 	}
 
 	a.StartProgram()
