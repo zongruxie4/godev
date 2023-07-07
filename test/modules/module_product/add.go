@@ -13,7 +13,9 @@ type module struct{}
 
 func Add(theme model.Theme) *model.Module {
 
-	m := model.Module{
+	m := module{}
+
+	new_module := model.Module{
 		Theme:    theme,
 		MainName: "module_product",
 		Title:    "Productos TEST",
@@ -28,27 +30,30 @@ func Add(theme model.Theme) *model.Module {
 		Path: module{},
 	}
 
-	m.AddObjects(search.Add(), module{}.Object())
+	product_object := m.Object()
+	product_object.AddModule(&new_module)
 
-	return &m
+	search.Add().AddModule(&new_module)
+
+	return &new_module
 }
 
 func (m module) Object() *model.Object {
 	return &model.Object{
-		ApiHandler: model.ApiHandler{
-			Name: "product",
-		},
+		Name:           "product",
 		TextFieldNames: []string{},
 		Fields: []model.Field{
 			{Name: "name", Legend: "Nombre", Input: input.Text()},
 			{Name: "mail", Legend: "Nombre", Input: input.Text()},
 		},
-		Modules:     []*model.Module{},
-		Css:         nil,
-		JsGlobal:    nil,
-		JsFunctions: nil,
-		JsListeners: nil,
-		Path:        nil,
+
+		FrontendStaticCode: model.FrontendStaticCode{
+			Css:         nil,
+			JsGlobal:    nil,
+			JsFunctions: nil,
+			JsListeners: nil,
+		},
+		Path: m,
 	}
 }
 

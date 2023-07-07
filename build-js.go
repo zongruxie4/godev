@@ -43,7 +43,7 @@ func (u *ui) BuildJS() {
 		listener_rem := bytes.Buffer{}
 
 		for _, comp := range u.components {
-			if comp.ContainsModule(module.MainName) {
+			if comp.Module != nil && comp.Module.MainName == module.MainName {
 				// 1 adjuntar funciones de componentes
 				u.attachJsToModuleFromGoCode(module, comp, &funtions, &listener_add, &listener_rem)
 
@@ -53,7 +53,8 @@ func (u *ui) BuildJS() {
 		}
 
 		for _, obj := range u.objects {
-			if obj.ContainsModule(module.MainName) {
+
+			if obj.Module != nil && obj.Module.MainName == module.MainName {
 
 				u.attachJsToModuleFromFieldsObject(module.MainName, obj, &funtions, &listener_add, &listener_rem)
 

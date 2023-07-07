@@ -8,9 +8,12 @@ import (
 )
 
 type Args struct {
-	browser_path string // ej /index.html
-	app_port     bool
-	args         []string
+	path     string // ej /index.html, /
+	port     string //8080
+	domain   string // localhost
+	protocol string // ej https,
+
+	args []string
 	*exec.Cmd
 
 	Scanner   *bufio.Scanner

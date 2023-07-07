@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-// path ej: /index.html, / ,/home
-// port ej: 8080
+// path: ej: /index.html, / ,/home
+// port: ej: 9090
+// domain ej: 192.0.0.5,app.com default localhost
 func (a *Args) CaptureArguments() {
 	a.args = os.Args
 
@@ -17,11 +18,14 @@ func (a *Args) CaptureArguments() {
 
 		switch {
 		case strings.Contains(opt, "path:"):
-			extractArgumentValue(opt, &a.browser_path)
+			extractArgumentValue(opt, &a.path)
 			continue
 
 		case strings.Contains(opt, "port:"):
-			a.app_port = true
+			extractArgumentValue(opt, &a.port)
+
+		case strings.Contains(opt, "domain:"):
+			extractArgumentValue(opt, &a.domain)
 
 		case strings.Contains(opt, "with:"):
 			extractArgumentValue(opt, &a.with)
@@ -39,8 +43,10 @@ func (a *Args) CaptureArguments() {
 
 			fmt.Println("default: port:8080 path:/")
 			fmt.Println("*** ej valores admitidos***")
-			fmt.Println("port:9090")
-			fmt.Println("path:/login")
+			fmt.Println("protocol:https default http")
+			fmt.Println("domain:/192.168.0.2 default localhost")
+			fmt.Println("port:9090 default 8080")
+			fmt.Println("path:/login,/home default /")
 			fmt.Println("-----------------------")
 			fmt.Println("--- Browser Options ---")
 			fmt.Println("with:800")
@@ -53,12 +59,21 @@ func (a *Args) CaptureArguments() {
 		new_args = append(new_args, opt)
 	}
 
-	if !a.app_port {
+	if a.port == "" {
+		a.port = "8080"
 		a.args = append(a.args, "port:8080")
 	}
 
-	if a.browser_path == "" {
-		a.browser_path = "/"
+	if a.path == "" {
+		a.path = "/"
+	}
+
+	if a.domain == "" {
+		a.domain = "localhost"
+	}
+
+	if a.protocol == "" {
+		a.protocol = "http"
 	}
 
 	a.args = new_args

@@ -41,7 +41,10 @@ func (a *Args) DevBrowserSTART(wg *sync.WaitGroup) {
 	})
 
 	// Navega a una página web
-	err := chromedp.Run(a.Context, chromedp.Navigate("http://localhost:1234"+a.browser_path))
+
+	url := fmt.Sprintf("%v://%v:%v%v", a.protocol, a.domain, a.port, a.path)
+
+	err := chromedp.Run(a.Context, chromedp.Navigate(url))
 	if err != nil {
 		log.Fatal("Error al navegar "+a.Path+" ", err)
 	}

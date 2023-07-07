@@ -14,14 +14,14 @@ func Add() *model.Object {
 	s := search{}
 
 	return &model.Object{
-		ApiHandler: model.ApiHandler{
-			Name: "search",
+		Name: "search",
+		FrontendStaticCode: model.FrontendStaticCode{
+			Css:         s,
+			JsGlobal:    s,
+			JsFunctions: s,
+			JsListeners: s,
 		},
-		Css:         s,
-		JsGlobal:    s,
-		JsFunctions: s,
-		JsListeners: s,
-		Path:        s,
+		Path: s,
 	}
 }
 

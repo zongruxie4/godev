@@ -47,6 +47,8 @@ func RegisterApp(app_name, app_version string, file_watcher_start bool, modules 
 
 	ui_store.webAssemblyCheck()
 
+	ui_store.compilerCheck()
+
 	if file_watcher_start {
 		ui_store.DevFileWatcherSTART()
 	}

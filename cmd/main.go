@@ -24,17 +24,17 @@ func main() {
 
 	dir, _ := os.Getwd()
 	if filepath.Base(dir) == "godev" {
-		godev.ShowErrorAndExit("error cambia al directorio de tu aplicación para ejecutar godev")
+		godev.ShowErrorAndExit("cambia al directorio de tu aplicación para ejecutar godev")
 	}
 
 	a.StartProgram()
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(2)
 
 	go a.ProcessProgramOutput(&wg)
 
-	go a.StartDevSERVER(&wg)
+	// go a.StartDevSERVER(&wg)
 
 	go a.DevBrowserSTART(&wg)
 

@@ -8,7 +8,7 @@ func (u *ui) registerComponentsAndObjects() {
 
 			//los objetos (componentes) externos tienes ruta establecida los objetos internos no
 
-			if obj.Path != nil && obj.Path.FolderPath() != "" { //objeto externo (componente)
+			if obj.IsExternalComponent() { //objeto externo (componente)
 
 				if _, no_exist := ui_store.comp_registered[obj.Name]; !no_exist {
 					// fmt.Println("COMPONENTE: ", obj.Name, obj.Path)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/cdvelop/godev"
 	"github.com/cdvelop/godev/test/components/search"
+	"github.com/cdvelop/gotools"
 )
 
 func Test_BuildingUI(t *testing.T) {
@@ -24,7 +25,7 @@ func Test_BuildingUI(t *testing.T) {
 
 	ui.BuildWASM()
 
-	err := findFilesWithNonZeroSize(godev.BuiltFolder, []string{"index.html", "style.css", "main.js", "app.wasm"})
+	err := gotools.FindFilesWithNonZeroSize(godev.BuiltFolder, []string{"index.html", "style.css", "main.js", "app.wasm"})
 	if err != nil {
 		log.Fatal("Error:", err)
 	}
