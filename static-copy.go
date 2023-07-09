@@ -12,7 +12,7 @@ func (u ui) copyStaticFilesFromUiTheme() {
 
 	// Obtener la lista de archivos en la carpeta origen
 	srcDir := u.theme_folder + "/static"
-	destDir := BuiltFolder + "/static"
+	destDir := BUILT_FOLDER + "/static"
 	files, err := os.ReadDir(srcDir)
 	if err != nil {
 		panic(err)

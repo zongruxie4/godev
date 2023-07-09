@@ -8,7 +8,7 @@ import (
 
 func (a *Args) StartProgram() {
 
-	a.Cmd = exec.Command("go", "run", "cmd/main.go")
+	a.Cmd = exec.Command("go", "run", "main.go")
 	a.Cmd.Args = append(a.Cmd.Args, a.args...)
 
 	stdoutPipe, err := a.Cmd.StdoutPipe()

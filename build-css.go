@@ -45,7 +45,7 @@ func (u ui) BuildCSS() {
 	// fmt.Println("4- >>> escribiendo archivos app.css y style.css")
 	cssMinify(&public_css)
 
-	fileWrite(StaticFolder+"/style.css", &public_css)
+	fileWrite(STATIC_FOLDER+"/style.css", &public_css)
 
 }
 

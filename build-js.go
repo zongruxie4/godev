@@ -78,7 +78,7 @@ func (u *ui) BuildJS() {
 
 	jsMinify(&public_js)
 
-	fileWrite(StaticFolder+"/main.js", &public_js)
+	fileWrite(STATIC_FOLDER+"/main.js", &public_js)
 
 }
 

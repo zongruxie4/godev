@@ -15,9 +15,11 @@ WebAssembly.instantiateStreaming(fetch("static/app.wasm"), go.importObject).then
 
 const wasm_js_file = "/wasm/wasm_exec.js"
 
+const WASM_FILE_NAME = "/wasm_main.go"
+
 func (u *ui) webAssemblyCheck() {
 	// chequear si existe main.go en la ruta de trabajo ej: frontend/main.go
-	_, err := os.Open(WorkFolder + "/main.go")
+	_, err := os.Open(WORK_FOLDER + WASM_FILE_NAME)
 	if err == nil {
 		var compiler string
 
@@ -61,7 +63,7 @@ func (u *ui) addWasmJS(out_js *bytes.Buffer) {
 }
 
 func (u ui) BuildWASM() {
-	err := u.buildWASM(WorkFolder+"/main.go", StaticFolder+"/app.wasm")
+	err := u.buildWASM(WORK_FOLDER+WASM_FILE_NAME, STATIC_FOLDER+"/app.wasm")
 	if err != nil {
 		log.Println("BuildWASM error: ", err)
 	}

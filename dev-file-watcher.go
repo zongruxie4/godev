@@ -26,7 +26,7 @@ func (u ui) DevFileWatcherSTART() {
 	for _, folder := range u.folders_watch {
 
 		filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() {
+			if info.IsDir() && !contain(path) {
 				// fmt.Println(path)
 				watcher.Add(path)
 			}
@@ -36,6 +36,18 @@ func (u ui) DevFileWatcherSTART() {
 
 	fmt.Println("Escuchando Eventos UI ...")
 	select {}
+}
+
+func contain(path string) bool {
+	var no_add = []string{".git", ".vscode", "built"}
+
+	for _, value := range no_add {
+		if strings.Contains(path, value) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (u ui) watchEvents(watcher *fsnotify.Watcher) {
@@ -48,7 +60,7 @@ func (u ui) watchEvents(watcher *fsnotify.Watcher) {
 				return
 			}
 
-			if last_time, ok := last_actions[event.Name]; !ok || time.Since(last_time) >= time.Second {
+			if last_time, ok := last_actions[event.Name]; !ok || time.Since(last_time) > 2*time.Second {
 				// Registrar la última acción y procesar el evento.
 				last_actions[event.Name] = time.Now()
 

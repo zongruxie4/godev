@@ -84,7 +84,7 @@ func (u *ui) writeHtml(public bool, menu, modules string) {
 	template_html := u.makeHtmlTemplate()
 	htmlMinify(&template_html)
 	// crear archivo app html
-	fileWrite(BuiltFolder+file_name, &template_html)
+	fileWrite(BUILT_FOLDER+file_name, &template_html)
 }
 
 func htmlMinify(data_in *bytes.Buffer) {

@@ -23,9 +23,9 @@ type ui struct {
 	with_tinyGo bool
 }
 
-const WorkFolder = "frontend"
-const BuiltFolder = "frontend/built"
-const StaticFolder = "frontend/built/static"
+const WORK_FOLDER = "frontend"
+const BUILT_FOLDER = "frontend/built"
+const STATIC_FOLDER = "frontend/built/static"
 
 var ui_store = ui{
 	theme_folder:    "",
