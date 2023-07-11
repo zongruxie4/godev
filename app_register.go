@@ -37,8 +37,8 @@ func RegisterApp(app_name, app_version string, file_watcher_start bool, modules 
 		ui_store.folders_watch = append(ui_store.folders_watch, "modules")
 	}
 
-	page_store.AppName = app_name
-	page_store.AppVersion = app_version
+	page.AppName = app_name
+	page.AppVersion = app_version
 
 	ui_store.registerComponentsAndObjects()
 

@@ -51,12 +51,12 @@ func Test_BuildingUI(t *testing.T) {
 		log.Fatalln("EN index.html icono repetido SÍMBOLO SVG ID : ", info_module.Icon.Id)
 	}
 
-	if textExists(godev.BUILT_FOLDER+"/app.html", product_module.Icon.Id) == 0 {
-		log.Fatalln("EN app.html NO SE CREO EL SÍMBOLO SVG ID : ", product_module.Icon.Id)
+	if textExists(godev.BUILT_FOLDER+"/index.html", product_module.Icon.Id) == 0 {
+		log.Fatalln("EN index.html NO SE CREO EL SÍMBOLO SVG ID : ", product_module.Icon.Id)
 	}
 
-	if textExists(godev.BUILT_FOLDER+"/app.html", product_module.Icon.Id) > 1 {
-		log.Fatalln("EN app.html icono repetido SÍMBOLO SVG ID : ", product_module.Icon.Id)
+	if textExists(godev.BUILT_FOLDER+"/index.html", product_module.Icon.Id) > 1 {
+		log.Fatalln("EN index.html icono repetido SÍMBOLO SVG ID : ", product_module.Icon.Id)
 	}
 
 }

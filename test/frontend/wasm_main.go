@@ -1,9 +1,9 @@
 package main
 
-import "syscall/js"
+import "github.com/cdvelop/js"
 
 func main() {
-	js.Global().Get("console").Call("log", "¡Hi 3 Go y WebAssembly!")
+	js.Console("¡Hi 3 Go y WebAssembly!")
 
 	select {}
 

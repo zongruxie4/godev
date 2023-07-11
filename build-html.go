@@ -8,83 +8,47 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/cdvelop/model"
 	"github.com/tdewolff/minify"
 	minh "github.com/tdewolff/minify/html"
 )
 
+var page = model.Page{
+	StyleSheet:  "",
+	AppName:     "",
+	AppVersion:  "",
+	SpriteIcons: "",
+	Menu:        "",
+	UserName:    "",
+	UserArea:    "",
+	Message:     "",
+	Modules:     "",
+	Script:      "",
+}
+
 func (u *ui) BuildHTML() {
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
-	var public_icons, private_icons string
+	for index, m := range u.modules {
 
-	for _, m := range u.modules {
-		public_found, private_found := m.ContainsTypeAreas()
-		// fmt.Println("Modulo: ", m.Name, "tiene areas publica: ", public_found, " privada: ", private_found)
-
-		if public_found {
-			public_icons += m.BuildSpriteIcon()
-
+		// si el proyecto usa webAssembly seteamos menu y módulos
+		if !u.wasm_build {
+			page.Menu += m.BuildMenuButton(index) + "\n"
+			page.Modules += m.BuildHtmlModule() + "\n"
 		}
-		if private_found {
-			private_icons += m.BuildSpriteIcon()
 
-		}
-		// fmt.Println("icono publico: ", public_icons)
-		// fmt.Println("icono privado: ", private_icons)
+		page.SpriteIcons += m.BuildSpriteIcon() + "\n"
 
 	}
 
-	public_menu, private_menu := u.buildMenu()
-
-	public_modules, private_modules := u.buildModules()
-
-	// construir una pagina de nombre app.html privada y otra index.html publica
-
-	// PUBLIC
-
-	page_store.SpriteIcons = public_icons
-
-	page_store.UserName = ""
-	page_store.UserArea = ""
-	page_store.Message = ""
-
-	page_store.StyleSheet = "static/style.css"
-	page_store.Script = "static/script.js"
-
-	u.writeHtml(true, public_menu, public_modules)
-
-	// PRIVATE
-
-	page_store.SpriteIcons = private_icons
-
-	// preparamos las variables para usarlas posteriormente en el template
-	page_store.UserName = `{{.UserName}}`
-	page_store.UserArea = `{{.UserArea}}`
-	page_store.Message = `{{.Message}}`
-
-	page_store.StyleSheet = "static/app.css"
-	page_store.Script = "static/app.js"
-
-	u.writeHtml(false, private_menu, private_modules)
-
-}
-
-func (u *ui) writeHtml(public bool, menu, modules string) {
-	file_name := "/app.html"
-	if public {
-		file_name = "/index.html"
-	}
-
-	// si el proyecto no usa webAssembly creamos los menu y módulos
-	if !u.wasm_build {
-		page_store.Menu = menu
-		page_store.Modules = modules
-	}
+	page.StyleSheet = "static/style.css"
+	page.Script = "static/main.js"
 
 	template_html := u.makeHtmlTemplate()
+
 	htmlMinify(&template_html)
 	// crear archivo app html
-	fileWrite(BUILT_FOLDER+file_name, &template_html)
+	fileWrite(BUILT_FOLDER+"/index.html", &template_html)
 }
 
 func htmlMinify(data_in *bytes.Buffer) {
@@ -118,7 +82,7 @@ func (u ui) makeHtmlTemplate() (html bytes.Buffer) {
 		return
 	}
 
-	err = t.Execute(&html, page_store)
+	err = t.Execute(&html, page)
 	if err != nil {
 		log.Fatal(err)
 		return

@@ -8,11 +8,11 @@ import (
 
 func (u ui) compilerCheck() {
 
-	err := gotools.FindFilesWithNonZeroSize(BUILT_FOLDER, []string{"index.html", "style.css", "main.js"})
+	u.BuildHTML()
+
+	err := gotools.FindFilesWithNonZeroSize(BUILT_FOLDER, []string{"style.css", "main.js"})
 	if err != nil {
 		fmt.Println(err, "... recompilando proyecto archivos: html,css,js,wasm ...")
-
-		u.BuildHTML()
 
 		u.BuildJS()
 

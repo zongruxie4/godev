@@ -14,6 +14,7 @@ require (
 require (
 	github.com/cdvelop/gotools v0.0.1
 	github.com/cdvelop/input v0.0.12
+	github.com/cdvelop/js v0.0.0-20230710200247-0d9f5c8314da
 	github.com/cdvelop/model v0.0.32
 	github.com/cdvelop/platform v0.0.1
 	github.com/chromedp/cdproto v0.0.0-20230620000757-8605e5981815
@@ -36,3 +37,5 @@ replace github.com/cdvelop/gotools => ../gotools
 replace github.com/cdvelop/input => ../input
 
 replace github.com/cdvelop/platform => ../platform
+
+replace github.com/cdvelop/js => ../js
