@@ -22,21 +22,27 @@ func main() {
 	// Cree un canal para recibir señales de interrupción
 	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
 
-	dir, _ := os.Getwd()
-	if filepath.Base(dir) == "godev" {
+	current_dir, err := os.Getwd()
+	if err != nil {
+		godev.ShowErrorAndExit(err.Error())
+	}
+
+	if filepath.Base(current_dir) == "godev" {
 		godev.ShowErrorAndExit("cambia al directorio de tu aplicación para ejecutar godev")
 	}
+
+	a.RegisterFoldersPackages(current_dir)
 
 	a.StartProgram()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 
 	go a.ProcessProgramOutput(&wg)
 
 	// go a.StartDevSERVER(&wg)
 
-	go a.DevBrowserSTART(&wg)
+	// go a.DevBrowserSTART(&wg)
 
 	<-a.Interrupt
 	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción

@@ -15,7 +15,7 @@ func (u *ui) registerComponentsAndObjects() {
 					ui_store.components = append(ui_store.components, obj)
 
 					// registrar su ubicación de la carpeta
-					u.folders_watch = append(u.folders_watch, obj.FolderPath())
+					u.packages_watch = append(u.packages_watch, obj.FolderPath())
 
 					ui_store.comp_registered[obj.Name] = struct{}{}
 

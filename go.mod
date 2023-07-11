@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/cdvelop/gomod v0.0.2
 	github.com/cdvelop/gotools v0.0.1
 	github.com/cdvelop/input v0.0.12
 	github.com/cdvelop/js v0.0.0-20230710200247-0d9f5c8314da

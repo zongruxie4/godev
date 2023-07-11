@@ -17,7 +17,7 @@ type ui struct {
 	obj_registered map[string]struct{}
 	objects        []*model.Object
 
-	folders_watch []string // ej: "modules", "ui\\theme"
+	packages_watch []string // ej: "modules", "ui\\theme"
 
 	wasm_build  bool
 	with_tinyGo bool
@@ -34,6 +34,6 @@ var ui_store = ui{
 	components:      []*model.Object{},
 	obj_registered:  map[string]struct{}{},
 	objects:         []*model.Object{},
-	folders_watch:   []string{},
+	packages_watch:  []string{},
 	with_tinyGo:     false,
 }

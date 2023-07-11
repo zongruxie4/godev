@@ -23,7 +23,7 @@ func (u ui) DevFileWatcherSTART() {
 
 	go u.watchEvents(watcher)
 
-	for _, folder := range u.folders_watch {
+	for _, folder := range u.packages_watch {
 
 		filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 			if info.IsDir() && !contain(path) {
