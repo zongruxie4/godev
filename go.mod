@@ -3,7 +3,7 @@ module github.com/cdvelop/godev
 go 1.20
 
 require (
-	github.com/cdvelop/gotools v0.0.18
+	github.com/cdvelop/gotools v0.0.21
 	github.com/chromedp/chromedp v0.9.1
 )
 
