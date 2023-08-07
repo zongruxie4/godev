@@ -6,32 +6,34 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/cdvelop/gotools"
 )
 
-func (a *Args) StartProgram() {
+func (c *Dev) StartProgram() {
 
 	// Cambiar al directorio "cmd" si existe
 	cmdDir := "cmd"
 	if _, err := os.Stat(cmdDir); err == nil {
 		err := os.Chdir(cmdDir)
 		if err != nil {
-			ShowErrorAndExit(fmt.Sprintf("Error al cambiar al directorio '%s': %s", cmdDir, err))
+			gotools.ShowErrorAndExit(fmt.Sprintf("Error al cambiar al directorio '%s': %s", cmdDir, err))
 		}
 	}
 
-	a.Cmd = exec.Command("go", "run", "main.go")
-	a.Cmd.Args = append(a.Cmd.Args, a.args...)
+	c.Cmd = exec.Command("go", "run", "main.go")
+	c.Cmd.Args = append(c.Cmd.Args, c.args...)
 
-	stdoutPipe, err := a.Cmd.StdoutPipe()
+	stdoutPipe, err := c.Cmd.StdoutPipe()
 	if err != nil {
-		ShowErrorAndExit(fmt.Sprintf("Error al crear el pipe para la salida del programa: %s", err))
+		gotools.ShowErrorAndExit(fmt.Sprintf("Error al crear el pipe para la salida del programa: %s", err))
 	}
 
-	a.Scanner = bufio.NewScanner(stdoutPipe)
+	c.Scanner = bufio.NewScanner(stdoutPipe)
 
-	err = a.Cmd.Start()
+	err = c.Cmd.Start()
 	if err != nil {
-		ShowErrorAndExit(fmt.Sprintf("Error al iniciar el programa: %s", err))
+		gotools.ShowErrorAndExit(fmt.Sprintf("Error al iniciar el programa: %s", err))
 	}
 
 	time.Sleep(100 * time.Millisecond) // Esperar

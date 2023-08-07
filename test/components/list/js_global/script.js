@@ -1,1 +1,0 @@
-console.log('componente list global cargado');

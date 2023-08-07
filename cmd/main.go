@@ -9,47 +9,44 @@ import (
 	"syscall"
 
 	"github.com/cdvelop/godev"
+	"github.com/cdvelop/gotools"
 	"github.com/chromedp/chromedp"
 )
 
-var a = godev.Args{
-	Interrupt: make(chan os.Signal, 1),
-}
-
 func main() {
-	a.CaptureArguments()
+	c := godev.Add()
+
+	c.CompileAllProject()
 
 	// Cree un canal para recibir señales de interrupción
-	signal.Notify(a.Interrupt, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(c.Interrupt, os.Interrupt, syscall.SIGTERM)
 
 	current_dir, err := os.Getwd()
 	if err != nil {
-		godev.ShowErrorAndExit(err.Error())
+		gotools.ShowErrorAndExit(err.Error())
 	}
 
 	if filepath.Base(current_dir) == "godev" {
-		godev.ShowErrorAndExit("cambia al directorio de tu aplicación para ejecutar godev")
+		gotools.ShowErrorAndExit("cambia al directorio de tu aplicación para ejecutar godev")
 	}
 
-	a.RegisterFoldersPackages(current_dir)
-
-	a.StartProgram()
+	c.StartProgram()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(3)
 
-	go a.ProcessProgramOutput(&wg)
+	go c.ProcessProgramOutput(&wg)
 
-	// go a.StartDevSERVER(&wg)
+	go c.DevBrowserSTART(&wg)
 
-	// go a.DevBrowserSTART(&wg)
+	go c.DevFileWatcherSTART(&wg)
 
-	<-a.Interrupt
+	<-c.Interrupt
 	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
-	if err := chromedp.Cancel(a.Context); err != nil {
+	if err := chromedp.Cancel(c.Context); err != nil {
 		log.Println("error al cerrar browser", err)
 	}
-	a.StopProgram()
+	c.StopProgram()
 	os.Exit(0)
 
 }
