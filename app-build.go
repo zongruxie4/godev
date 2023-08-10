@@ -1,15 +1,17 @@
 package godev
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+
+	. "github.com/cdvelop/gotools"
 )
 
 func (d *Dev) buildAndRun() error {
-	fmt.Printf("Building and Running %s...\n", d.app_path)
+
+	PrintWarning(fmt.Sprintf("Building and Running %s...\n", d.app_path))
 
 	os.Remove(d.app_path)
 
@@ -76,7 +78,8 @@ func (d Dev) Write(p []byte) (n int, err error) {
 func (d *Dev) stop() error {
 
 	pid := d.Cmd.Process.Pid
-	fmt.Printf("stop app Killing PID %d\n", pid)
+
+	PrintWarning(fmt.Sprintf("stop app PID %d\n", pid))
 
 	err := d.Cmd.Process.Kill()
 	if err != nil {
@@ -84,36 +87,4 @@ func (d *Dev) stop() error {
 	}
 
 	return nil
-}
-
-func (c *Dev) ProcessProgramOutputOLD(ctx context.Context) {
-
-	// for c.Scanner.Scan() {
-	// line := c.Scanner.Text()
-
-	// switch {
-	// case strings.Contains(line, "restart_app"):
-	// 	c.StopProgram()
-	// 	c.StartProgram()
-	// 	c.Browser.Reload()
-
-	// case strings.Contains(line, "reload_browser"):
-	// 	c.Browser.Reload()
-
-	// case strings.Contains(line, "module:"):
-
-	// var module string
-	// ExtractTwoPointArgument(line, &module)
-
-	// for _, m := range modules {
-	// fmt.Println("MODULO RECIBIDO:", module)
-	// }
-
-	// default:
-
-	// fmt.Println(line)
-
-	// }
-	// }
-
 }
