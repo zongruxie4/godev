@@ -6,9 +6,9 @@ import (
 	"syscall"
 )
 
-func (c *Dev) StopProgram() {
+func (c *Dev) StopProgram() error {
 	if c.Cmd == nil || c.Cmd.Process == nil {
-		return
+		return nil
 	}
 
 	// Send a kill signal to the program
@@ -20,8 +20,7 @@ func (c *Dev) StopProgram() {
 			// Si tampoco se admite SIGTERM, utiliza Kill() para finalizar el proceso
 			err = c.Cmd.Process.Kill()
 			if err != nil {
-				fmt.Printf("Failed to kill the program: %s\n", err)
-				return
+				return fmt.Errorf("Failed to kill the program: %s\n", err)
 			}
 		}
 	}
@@ -31,10 +30,9 @@ func (c *Dev) StopProgram() {
 	if err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok && exitErr.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-			fmt.Printf("Program finished with error: %v\n", err)
+			return fmt.Errorf("Program finished with error: %v\n", err)
 		}
-		return
 	}
 
-	fmt.Println("Program stopped successfully.")
+	return nil
 }

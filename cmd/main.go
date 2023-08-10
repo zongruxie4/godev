@@ -30,12 +30,10 @@ func main() {
 		gotools.ShowErrorAndExit("cambia al directorio de tu aplicación para ejecutar godev")
 	}
 
-	c.StartProgram()
+	go c.StartProgram()
 
 	var wg sync.WaitGroup
-	wg.Add(3)
-
-	go c.ProcessProgramOutput(&wg)
+	wg.Add(2)
 
 	go c.DevBrowserSTART(&wg)
 

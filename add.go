@@ -1,7 +1,6 @@
 package godev
 
 import (
-	"bufio"
 	"os"
 	"os/exec"
 
@@ -19,16 +18,17 @@ import (
 func Add() *Dev {
 
 	d := Dev{
+		app_path:   "app.exe",
 		Browser:    dev_browser.Add(),
 		WatchFiles: &watch_files.WatchFiles{},
 		Compiler:   compiler.Config("compile_dir:cmd"),
 		args:       []string{},
 		Cmd:        &exec.Cmd{},
-		Scanner:    &bufio.Scanner{},
-		Interrupt:  make(chan os.Signal, 1),
+		// Scanner:    &bufio.Scanner{},
+		Interrupt: make(chan os.Signal, 1),
 	}
 
-	d.WatchFiles = watch_files.Add(d, d, d, d.DirectoriesRegistered)
+	d.WatchFiles = watch_files.Add(d, d, &d, d.DirectoriesRegistered)
 
 	return &d
 }

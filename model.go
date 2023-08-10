@@ -1,7 +1,6 @@
 package godev
 
 import (
-	"bufio"
 	"os"
 	"os/exec"
 
@@ -11,6 +10,8 @@ import (
 )
 
 type Dev struct {
+	app_path string //ej: app.exe
+
 	*dev_browser.Browser
 	*watch_files.WatchFiles
 	*compiler.Compiler
@@ -18,6 +19,6 @@ type Dev struct {
 	args []string
 	*exec.Cmd
 
-	Scanner   *bufio.Scanner
+	// Scanner   *bufio.Scanner
 	Interrupt chan os.Signal
 }
