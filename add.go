@@ -16,7 +16,6 @@ func Add() *Dev {
 		Browser:    dev_browser.Add(),
 		WatchFiles: &watch_files.WatchFiles{},
 		Compiler:   compiler.Config("compile_dir:cmd"),
-		args:       []string{},
 		Cmd:        &exec.Cmd{},
 		Interrupt:  make(chan os.Signal, 1),
 	}

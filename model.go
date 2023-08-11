@@ -16,7 +16,6 @@ type Dev struct {
 	*watch_files.WatchFiles
 	*compiler.Compiler
 
-	args []string
 	*exec.Cmd
 
 	// Scanner   *bufio.Scanner

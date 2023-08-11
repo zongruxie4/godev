@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	. "github.com/cdvelop/gotools"
+	. "github.com/cdvelop/output"
 )
 
 func (d *Dev) buildAndRun() error {
@@ -38,7 +38,7 @@ func (d *Dev) buildAndRun() error {
 	// Esperar
 	err = d.Cmd.Wait()
 	if err != nil {
-		return fmt.Errorf("%v %v\n", string(errBuf), err)
+		return fmt.Errorf("%v %v", string(errBuf), err)
 	}
 
 	return d.run()
@@ -46,7 +46,7 @@ func (d *Dev) buildAndRun() error {
 
 func (d *Dev) run() error {
 
-	d.Cmd = exec.Command("./" + d.app_path)
+	d.Cmd = exec.Command("./"+d.app_path, "dev")
 
 	stderr, err := d.Cmd.StderrPipe()
 	if err != nil {
@@ -75,7 +75,7 @@ func (d Dev) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func (d *Dev) stop() error {
+func (d *Dev) StopProgram() error {
 
 	pid := d.Cmd.Process.Pid
 

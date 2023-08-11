@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cdvelop/gotools"
+	. "github.com/cdvelop/output"
 )
 
 func (d *Dev) StartProgram() {
@@ -14,14 +14,14 @@ func (d *Dev) StartProgram() {
 	if _, err := os.Stat(cmdDir); err == nil {
 		err = os.Chdir(cmdDir)
 		if err != nil {
-			gotools.ShowErrorAndExit(fmt.Sprintf("Error al cambiar al directorio '%s': %s", cmdDir, err))
+			ShowErrorAndExit(fmt.Sprintf("al cambiar al directorio '%s': %s", cmdDir, err))
 		}
 	}
 
 	// BUILD AND RUN
 	err := d.buildAndRun()
 	if err != nil {
-		gotools.ShowErrorAndExit(fmt.Sprintf("error al compilar e iniciar app: %s", err))
+		ShowErrorAndExit(fmt.Sprintf("al compilar e iniciar app: %s", err))
 	}
 
 }
@@ -29,18 +29,16 @@ func (d *Dev) StartProgram() {
 func (d *Dev) Restart() error {
 
 	// STOP
-	err := d.stop()
+	err := d.StopProgram()
 	if err != nil {
-		gotools.ShowErrorAndExit(fmt.Sprintf("error al cerrar app: %s", err))
+		PrintError(fmt.Sprintf("al cerrar app: %s", err))
 	}
 
 	// BUILD AND RUN
 	err = d.buildAndRun()
 	if err != nil {
-		gotools.ShowErrorAndExit(fmt.Sprintf("error al compilar e iniciar app: %s", err))
+		ShowErrorAndExit(fmt.Sprintf("al compilar e iniciar app: %s", err))
 	}
-
-	d.Browser.Reload()
 
 	return nil
 }

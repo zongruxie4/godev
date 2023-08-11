@@ -1,14 +1,10 @@
 # godev
 
-compilador de código: html, css, js y go para WebAssembly
+entorno de desarrollo web con go
 
-ruta de trabajo: frontend/built 
+tiene incluido:
 
-tiene incluido un observador de cambios por defecto:
-> modules
+dev_browser
+watch_files
+compiler (código: html, css, js y WebAssembly)
 
-observa cambios en archivos tipo js,css, html y ficheros go que contengan en el nombre wasm los compilara a WebAssembly si el proyecto en su ruta raíz contiene el fichero frontend/main.go
-
-ejemplo de uso en la carpeta test/
-
-saludos.
