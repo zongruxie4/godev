@@ -20,7 +20,7 @@ func Add() *Dev {
 		Interrupt:  make(chan os.Signal, 1),
 	}
 
-	d.WatchFiles = watch_files.Add(d, d, &d, d.DirectoriesRegistered)
+	d.WatchFiles = watch_files.Add(d, d, &d, d.DirectoriesRegistered, d.Compiler.ThemeDir())
 
 	return &d
 }

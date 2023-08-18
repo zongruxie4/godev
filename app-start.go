@@ -14,19 +14,20 @@ func (d *Dev) StartProgram() {
 	if _, err := os.Stat(cmdDir); err == nil {
 		err = os.Chdir(cmdDir)
 		if err != nil {
-			ShowErrorAndExit(fmt.Sprintf("al cambiar al directorio '%s': %s", cmdDir, err))
+			PrintError(fmt.Sprintf("al cambiar al directorio '%s': %s", cmdDir, err))
 		}
 	}
 
 	// BUILD AND RUN
 	err := d.buildAndRun()
 	if err != nil {
-		ShowErrorAndExit(fmt.Sprintf("al compilar e iniciar app: %s", err))
+		PrintError(fmt.Sprintf("al compilar e iniciar app: %s", err))
 	}
 
 }
 
-func (d *Dev) Restart() error {
+func (d *Dev) Restart(event_name string) error {
+	fmt.Println("Reiniciando APP..." + event_name)
 
 	// STOP
 	err := d.StopProgram()
@@ -37,7 +38,7 @@ func (d *Dev) Restart() error {
 	// BUILD AND RUN
 	err = d.buildAndRun()
 	if err != nil {
-		ShowErrorAndExit(fmt.Sprintf("al compilar e iniciar app: %s", err))
+		PrintError(fmt.Sprintf("al compilar e iniciar app: %s", err))
 	}
 
 	return nil
