@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/cdvelop/compiler v0.0.22
+	github.com/cdvelop/compiler v0.0.23
 	github.com/cdvelop/dev_browser v0.0.11
 	github.com/cdvelop/watch_files v0.0.12
 	github.com/chromedp/cdproto v0.0.0-20230808232040-5d0fb3432de3 // indirect
