@@ -19,7 +19,7 @@ require (
 require (
 	github.com/cdvelop/compiler v0.0.23
 	github.com/cdvelop/dev_browser v0.0.15
-	github.com/cdvelop/watch_files v0.0.14
+	github.com/cdvelop/watch_files v0.0.15
 	github.com/chromedp/cdproto v0.0.0-20230808232040-5d0fb3432de3 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
