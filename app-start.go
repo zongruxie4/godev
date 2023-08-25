@@ -32,13 +32,14 @@ func (d *Dev) Restart(event_name string) error {
 	// STOP
 	err := d.StopProgram()
 	if err != nil {
-		PrintError(fmt.Sprintf("al cerrar app: %s", err))
+		return fmt.Errorf("al cerrar app: %s", err)
+
 	}
 
 	// BUILD AND RUN
 	err = d.buildAndRun()
 	if err != nil {
-		PrintError(fmt.Sprintf("al compilar e iniciar app: %s", err))
+		return fmt.Errorf("al compilar e iniciar app: %s", err)
 	}
 
 	return nil
