@@ -10,10 +10,12 @@ require (
 require (
 	github.com/cdvelop/gomod v0.0.21 // indirect
 	github.com/cdvelop/gotools v0.0.30 // indirect
-	github.com/cdvelop/model v0.0.41 // indirect
+	github.com/cdvelop/input v0.0.24 // indirect
+	github.com/cdvelop/model v0.0.42 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
+	golang.org/x/text v0.12.0 // indirect
 )
 
 require (
