@@ -70,8 +70,8 @@ func (d *Dev) run() error {
 }
 
 func (d Dev) Write(p []byte) (n int, err error) {
-	fmt.Println(string(p))
-
+	d.ProgramStartedMessages <- string(p)
+	// fmt.Println(string(p))
 	return len(p), nil
 }
 

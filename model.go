@@ -20,4 +20,6 @@ type Dev struct {
 
 	// Scanner   *bufio.Scanner
 	Interrupt chan os.Signal
+
+	ProgramStartedMessages chan string
 }

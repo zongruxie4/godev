@@ -11,7 +11,7 @@ require (
 	github.com/cdvelop/gomod v0.0.21 // indirect
 	github.com/cdvelop/gotools v0.0.30 // indirect
 	github.com/cdvelop/input v0.0.26 // indirect
-	github.com/cdvelop/model v0.0.44 // indirect
+	github.com/cdvelop/model v0.0.45 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
@@ -39,8 +39,6 @@ replace github.com/cdvelop/model => ../model
 replace github.com/cdvelop/gotools => ../gotools
 
 replace github.com/cdvelop/input => ../input
-
-replace github.com/cdvelop/platform => ../platform
 
 replace github.com/cdvelop/dev_browser => ../dev_browser
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -32,23 +33,49 @@ func main() {
 
 	go d.StartProgram()
 
-	var wg sync.WaitGroup
-	wg.Add(2)
+	var app_started bool
 
-	go d.DevBrowserSTART(&wg)
+	for {
 
-	go d.DevFileWatcherSTART(&wg)
+		select {
 
-	<-d.Interrupt
-	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
-	if err := chromedp.Cancel(d.Context); err != nil {
-		PrintError(fmt.Sprintf("al cerrar browser %v", err))
+		case message := <-d.ProgramStartedMessages:
+
+			if strings.Contains(strings.ToLower(message), "err") {
+				PrintError(message)
+			} else {
+				PrintOK(message)
+
+				// go d.DevBrowserSTART(&wg)
+
+				// go d.DevFileWatcherSTART(&wg)
+
+				if !app_started {
+
+					var wg sync.WaitGroup
+					wg.Add(2)
+
+					go d.DevBrowserSTART(&wg)
+
+					go d.DevFileWatcherSTART(&wg)
+
+					app_started = true
+				}
+			}
+
+		case <-d.Interrupt:
+			// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
+			if err := chromedp.Cancel(d.Context); err != nil {
+				PrintError(fmt.Sprintf("al cerrar browser %v", err))
+			}
+			err = d.StopProgram()
+			if err != nil {
+				PrintError(fmt.Sprintf("al detener app: %v", err))
+			}
+
+			os.Exit(0)
+		}
+
 	}
-	err = d.StopProgram()
-	if err != nil {
-		PrintError(fmt.Sprintf("al detener app: %v", err))
-	}
-
-	os.Exit(0)
 
 }
