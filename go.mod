@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/cdvelop/gomod v0.0.23 // indirect
-	github.com/cdvelop/gotools v0.0.42 // indirect
+	github.com/cdvelop/gotools v0.0.43 // indirect
 	github.com/cdvelop/input v0.0.38 // indirect
 	github.com/cdvelop/model v0.0.54 // indirect
 	github.com/cdvelop/timetools v0.0.5 // indirect
