@@ -1,6 +1,6 @@
 github.com/cdvelop/gomod v0.0.23 h1:NH7nSiUVgsXYeeJpubh+81FIQ6EONvJXz2QOI06p/b8=
 github.com/cdvelop/gomod v0.0.23/go.mod h1:Voxj1l5EroN49tdLjPaB4vKw6dz79yc5r7S+gEimU14=
-github.com/cdvelop/platform v0.0.28 h1:gsZzU1JNSpieZHLGjPoALUzVpZ2OJKHzDnAGTW8uDT4=
+github.com/cdvelop/platform v0.0.30 h1:QtTZEIIdDEhIhkCKQJZUrT6IfNZCxnmXyS7ygDKgLno=
 github.com/cdvelop/timetools v0.0.5 h1:jgT21UfirUQZnO5CUNtx2ry0FowaXnxyM2dmd04R7Q4=
 github.com/cdvelop/timetools v0.0.5/go.mod h1:nh0erEA1fB1jKJhTP8UWq78yeA1gN0P56hgRaTeOtAc=
 github.com/chromedp/cdproto v0.0.0-20231011050154-1d073bb38998 h1:2zipcnjfFdqAjOQa8otCCh0Lk1M7RBzciy3s80YAKHk=
