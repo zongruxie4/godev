@@ -11,7 +11,7 @@ require (
 	github.com/cdvelop/gomod v0.0.38 // indirect
 	github.com/cdvelop/gotools v0.0.58 // indirect
 	github.com/cdvelop/input v0.0.53 // indirect
-	github.com/cdvelop/model v0.0.69 // indirect
+	github.com/cdvelop/model v0.0.70 // indirect
 	github.com/cdvelop/strings v0.0.7 // indirect
 	github.com/cdvelop/timetools v0.0.19 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
