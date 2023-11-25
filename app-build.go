@@ -45,8 +45,11 @@ func (d *Dev) buildAndRun() error {
 }
 
 func (d *Dev) run() error {
+	// Construir el comando con argumentos dinámicos
+	// cmdArgs := append([]string{"go", "build", "-o", d.app_path, "main.go"}, os.Args...)
+	// d.Cmd = exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
-	d.Cmd = exec.Command("./"+d.app_path, "dev")
+	d.Cmd = exec.Command("./"+d.app_path, d.dev_argument, d.test_argument)
 
 	stderr, err := d.Cmd.StderrPipe()
 	if err != nil {

@@ -8,21 +8,26 @@ require (
 )
 
 require (
-	github.com/cdvelop/gomod v0.0.38 // indirect
-	github.com/cdvelop/gotools v0.0.58 // indirect
-	github.com/cdvelop/input v0.0.53 // indirect
-	github.com/cdvelop/model v0.0.70 // indirect
+	github.com/cdvelop/filehandler v0.0.8 // indirect
+	github.com/cdvelop/fileserver v0.0.27 // indirect
+	github.com/cdvelop/gomod v0.0.39 // indirect
+	github.com/cdvelop/input v0.0.55 // indirect
+	github.com/cdvelop/maps v0.0.7 // indirect
+	github.com/cdvelop/model v0.0.72 // indirect
+	github.com/cdvelop/object v0.0.35 // indirect
 	github.com/cdvelop/strings v0.0.7 // indirect
-	github.com/cdvelop/timetools v0.0.19 // indirect
+	github.com/cdvelop/timetools v0.0.21 // indirect
+	github.com/cdvelop/unixid v0.0.21 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.18.0 // indirect
 )
 
 require (
-	github.com/cdvelop/compiler v0.0.66
-	github.com/cdvelop/dev_browser v0.0.31
+	github.com/cdvelop/compiler v0.0.68
+	github.com/cdvelop/dev_browser v0.0.33
 	github.com/cdvelop/watch_files v0.0.16
 	github.com/chromedp/cdproto v0.0.0-20231114014204-3e458d5176f9 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
@@ -37,6 +42,14 @@ require (
 )
 
 replace github.com/cdvelop/model => ../model
+
+replace github.com/cdvelop/fileserver => ../fileserver
+
+replace github.com/cdvelop/filehandler => ../filehandler
+
+replace github.com/cdvelop/gomod => ../gomod
+
+replace github.com/cdvelop/object => ../object
 
 replace github.com/cdvelop/gotools => ../gotools
 
@@ -53,3 +66,5 @@ replace github.com/cdvelop/js => ../js
 replace github.com/cdvelop/output => ../output
 
 replace github.com/cdvelop/timetools => ../timetools
+
+replace github.com/cdvelop/strings => ../strings

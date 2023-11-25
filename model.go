@@ -22,4 +22,7 @@ type Dev struct {
 	Interrupt chan os.Signal
 
 	ProgramStartedMessages chan string
+
+	test_argument string
+	dev_argument  string
 }

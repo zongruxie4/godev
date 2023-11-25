@@ -21,6 +21,15 @@ func Add() *Dev {
 		ProgramStartedMessages: make(chan string),
 	}
 
+	for _, v := range os.Args {
+		if v == "test" {
+			d.test_argument = "test"
+		}
+		if v == "dev" {
+			d.dev_argument = "dev"
+		}
+	}
+
 	d.WatchFiles = watch_files.Add(d, d, &d, d.DirectoriesRegistered, d.Compiler.ThemeDir())
 
 	return &d
