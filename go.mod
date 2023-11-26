@@ -8,16 +8,16 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.8 // indirect
-	github.com/cdvelop/fileserver v0.0.27 // indirect
-	github.com/cdvelop/gomod v0.0.39 // indirect
-	github.com/cdvelop/input v0.0.55 // indirect
+	github.com/cdvelop/filehandler v0.0.10 // indirect
+	github.com/cdvelop/fileserver v0.0.29 // indirect
+	github.com/cdvelop/gomod v0.0.41 // indirect
+	github.com/cdvelop/input v0.0.57 // indirect
 	github.com/cdvelop/maps v0.0.7 // indirect
 	github.com/cdvelop/model v0.0.73 // indirect
-	github.com/cdvelop/object v0.0.35 // indirect
+	github.com/cdvelop/object v0.0.37 // indirect
 	github.com/cdvelop/strings v0.0.7 // indirect
-	github.com/cdvelop/timetools v0.0.21 // indirect
-	github.com/cdvelop/unixid v0.0.21 // indirect
+	github.com/cdvelop/timetools v0.0.23 // indirect
+	github.com/cdvelop/unixid v0.0.23 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
@@ -26,8 +26,8 @@ require (
 )
 
 require (
-	github.com/cdvelop/compiler v0.0.68
-	github.com/cdvelop/dev_browser v0.0.33
+	github.com/cdvelop/compiler v0.0.70
+	github.com/cdvelop/dev_browser v0.0.34
 	github.com/cdvelop/watch_files v0.0.16
 	github.com/chromedp/cdproto v0.0.0-20231114014204-3e458d5176f9 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
