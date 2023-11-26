@@ -28,6 +28,9 @@ func Add() *Dev {
 		if v == "dev" {
 			d.dev_argument = "dev"
 		}
+		if v == "no-cache" {
+			d.cache_browser_argument = "no-cache"
+		}
 	}
 
 	d.WatchFiles = watch_files.Add(d, d, &d, d.DirectoriesRegistered, d.Compiler.ThemeDir())

@@ -13,7 +13,7 @@ require (
 	github.com/cdvelop/gomod v0.0.39 // indirect
 	github.com/cdvelop/input v0.0.55 // indirect
 	github.com/cdvelop/maps v0.0.7 // indirect
-	github.com/cdvelop/model v0.0.72 // indirect
+	github.com/cdvelop/model v0.0.73 // indirect
 	github.com/cdvelop/object v0.0.35 // indirect
 	github.com/cdvelop/strings v0.0.7 // indirect
 	github.com/cdvelop/timetools v0.0.21 // indirect
