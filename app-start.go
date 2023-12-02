@@ -11,36 +11,37 @@ func (d *Dev) StartProgram() {
 
 	// Cambiar al directorio "cmd" si existe
 	cmdDir := "cmd"
-	if _, err := os.Stat(cmdDir); err == nil {
-		err = os.Chdir(cmdDir)
-		if err != nil {
-			PrintError(fmt.Sprintf("al cambiar al directorio '%s': %s", cmdDir, err))
+	if _, er := os.Stat(cmdDir); er == nil {
+		e := os.Chdir(cmdDir)
+		if e != nil {
+			PrintError("StartProgram error " + er.Error() + " al cambiar al directorio '" + cmdDir + "': " + e.Error())
 		}
 	}
 
 	// BUILD AND RUN
 	err := d.buildAndRun()
-	if err != nil {
-		PrintError(fmt.Sprintf("al compilar e iniciar app: %s", err))
+	if err != "" {
+		PrintError("StartProgram " + err)
 	}
 
 }
 
-func (d *Dev) Restart(event_name string) error {
+func (d *Dev) Restart(event_name string) (err string) {
+	const this = "Restart error "
 	fmt.Println("Reiniciando APP..." + event_name)
 
 	// STOP
-	err := d.StopProgram()
-	if err != nil {
-		return fmt.Errorf("al cerrar app: %s", err)
+	err = d.StopProgram()
+	if err != "" {
+		return this + "al cerrar app: " + err
 
 	}
 
 	// BUILD AND RUN
 	err = d.buildAndRun()
-	if err != nil {
-		return fmt.Errorf("al compilar e iniciar app: %s", err)
+	if err != "" {
+		return this + "al compilar e iniciar app: " + err
 	}
 
-	return nil
+	return
 }

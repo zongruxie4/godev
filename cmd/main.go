@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -65,12 +64,12 @@ func main() {
 
 		case <-d.Interrupt:
 			// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
-			if err := chromedp.Cancel(d.Context); err != nil {
-				PrintError(fmt.Sprintf("al cerrar browser %v", err))
+			if er := chromedp.Cancel(d.Context); er != nil {
+				PrintError("al cerrar browser " + er.Error())
 			}
-			err = d.StopProgram()
-			if err != nil {
-				PrintError(fmt.Sprintf("al detener app: %v", err))
+			err := d.StopProgram()
+			if err != "" {
+				PrintError("al detener app: " + err)
 			}
 
 			os.Exit(0)

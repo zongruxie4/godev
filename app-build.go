@@ -9,67 +9,69 @@ import (
 	. "github.com/cdvelop/output"
 )
 
-func (d *Dev) buildAndRun() error {
-
+func (d *Dev) buildAndRun() (err string) {
+	const this = "buildAndRun error "
 	PrintWarning(fmt.Sprintf("Building and Running %s...\n", d.app_path))
 
 	os.Remove(d.app_path)
 
 	d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go")
 
-	stderr, err := d.Cmd.StderrPipe()
-	if err != nil {
-		return err
+	stderr, er := d.Cmd.StderrPipe()
+	if er != nil {
+		return this + er.Error()
 	}
 
-	stdout, err := d.Cmd.StdoutPipe()
-	if err != nil {
-		return err
+	stdout, er := d.Cmd.StdoutPipe()
+	if er != nil {
+		return this + er.Error()
 	}
 
-	err = d.Cmd.Start()
-	if err != nil {
-		return err
+	er = d.Cmd.Start()
+	if er != nil {
+		return this + er.Error()
 	}
 
 	io.Copy(os.Stdout, stdout)
 	errBuf, _ := io.ReadAll(stderr)
 
 	// Esperar
-	err = d.Cmd.Wait()
-	if err != nil {
-		return fmt.Errorf("%v %v", string(errBuf), err)
+	er = d.Cmd.Wait()
+	if er != nil {
+		return this + string(errBuf) + " " + er.Error()
 	}
 
 	return d.run()
 }
 
-func (d *Dev) run() error {
-	// Construir el comando con argumentos dinámicos
-	// cmdArgs := append([]string{"go", "build", "-o", d.app_path, "main.go"}, os.Args...)
-	// d.Cmd = exec.Command(cmdArgs[0], cmdArgs[1:]...)
+// Construir el comando con argumentos dinámicos
+// cmdArgs := append([]string{"go", "build", "-o", d.app_path, "main.go"}, os.Args...)
+// d.Cmd = exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
-	d.Cmd = exec.Command("./"+d.app_path, d.dev_argument, d.test_argument, d.cache_browser_argument)
+func (d *Dev) run() (err string) {
+	const this = "run error "
 
-	stderr, err := d.Cmd.StderrPipe()
-	if err != nil {
-		return err
+	d.Cmd = exec.Command("./"+d.app_path, d.run_arguments...)
+
+	stderr, er := d.Cmd.StderrPipe()
+	if er != nil {
+		return this + er.Error()
 	}
 
-	stdout, err := d.Cmd.StdoutPipe()
-	if err != nil {
-		return err
+	stdout, er := d.Cmd.StdoutPipe()
+	if er != nil {
+		return this + er.Error()
 	}
 
-	err = d.Cmd.Start()
-	if err != nil {
-		return err
+	er = d.Cmd.Start()
+	if er != nil {
+		return this + er.Error()
 	}
 
 	go io.Copy(d, stderr)
 	go io.Copy(d, stdout)
 
-	return nil
+	return ""
 }
 
 func (d Dev) Write(p []byte) (n int, err error) {
@@ -78,16 +80,16 @@ func (d Dev) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func (d *Dev) StopProgram() error {
+func (d *Dev) StopProgram() (err string) {
 
 	pid := d.Cmd.Process.Pid
 
 	PrintWarning(fmt.Sprintf("stop app PID %d\n", pid))
 
-	err := d.Cmd.Process.Kill()
-	if err != nil {
-		return err
+	er := d.Cmd.Process.Kill()
+	if er != nil {
+		err = er.Error()
 	}
 
-	return nil
+	return
 }

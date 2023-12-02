@@ -23,7 +23,5 @@ type Dev struct {
 
 	ProgramStartedMessages chan string
 
-	test_argument          string
-	dev_argument           string
-	cache_browser_argument string
+	run_arguments []string
 }
