@@ -7,6 +7,7 @@ import (
 	"github.com/cdvelop/compiler"
 	"github.com/cdvelop/dev_browser"
 	"github.com/cdvelop/strings"
+	"github.com/cdvelop/token"
 	"github.com/cdvelop/watch_files"
 )
 
@@ -18,6 +19,7 @@ func Add() *Dev {
 		Cmd:                    &exec.Cmd{},
 		Interrupt:              make(chan os.Signal, 1),
 		ProgramStartedMessages: make(chan string),
+		TwoKeys:                &token.TwoKeys{},
 	}
 
 	var test_suffix string
@@ -37,7 +39,7 @@ func Add() *Dev {
 		}
 	}
 
-	d.Compiler = compiler.Config(test_suffix, "compile_dir:cmd")
+	d.Compiler = compiler.Config(&d, test_suffix, "compile_dir:cmd")
 
 	d.run_arguments = append(d.run_arguments, cache_browser_argument)
 

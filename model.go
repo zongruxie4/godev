@@ -6,6 +6,7 @@ import (
 
 	"github.com/cdvelop/compiler"
 	"github.com/cdvelop/dev_browser"
+	"github.com/cdvelop/token"
 	"github.com/cdvelop/watch_files"
 )
 
@@ -24,4 +25,6 @@ type Dev struct {
 	ProgramStartedMessages chan string
 
 	run_arguments []string
+
+	*token.TwoKeys
 }

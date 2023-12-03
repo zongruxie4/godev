@@ -9,16 +9,15 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.10 // indirect
+	github.com/cdvelop/filehandler v0.0.12 // indirect
 	github.com/cdvelop/fileserver v0.0.29 // indirect
-	github.com/cdvelop/gomod v0.0.42 // indirect
-	github.com/cdvelop/input v0.0.57 // indirect
+	github.com/cdvelop/gomod v0.0.43 // indirect
+	github.com/cdvelop/input v0.0.58 // indirect
 	github.com/cdvelop/maps v0.0.7 // indirect
-	github.com/cdvelop/model v0.0.74 // indirect
-	github.com/cdvelop/object v0.0.38 // indirect
-	github.com/cdvelop/timetools v0.0.23 // indirect
-	github.com/cdvelop/unixid v0.0.23 // indirect
-	github.com/cdvelop/wetest v0.0.4 // indirect
+	github.com/cdvelop/model v0.0.75 // indirect
+	github.com/cdvelop/object v0.0.39 // indirect
+	github.com/cdvelop/timetools v0.0.24 // indirect
+	github.com/cdvelop/unixid v0.0.24 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
@@ -29,6 +28,9 @@ require (
 require (
 	github.com/cdvelop/compiler v0.0.72
 	github.com/cdvelop/dev_browser v0.0.34
+	github.com/cdvelop/git v0.0.1 // indirect
+	github.com/cdvelop/ldflags v0.0.1
+	github.com/cdvelop/token v0.0.1
 	github.com/cdvelop/watch_files v0.0.16
 	github.com/chromedp/cdproto v0.0.0-20231126232103-8e31ff06e23b // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
@@ -43,6 +45,10 @@ require (
 )
 
 replace github.com/cdvelop/model => ../model
+
+replace github.com/cdvelop/token => ../token
+
+replace github.com/cdvelop/ldflags => ../ldflags
 
 replace github.com/cdvelop/fileserver => ../fileserver
 

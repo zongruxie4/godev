@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/cdvelop/ldflags"
 	. "github.com/cdvelop/output"
 )
 
@@ -15,7 +16,15 @@ func (d *Dev) buildAndRun() (err string) {
 
 	os.Remove(d.app_path)
 
-	d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go")
+	flags, err := ldflags.Add(d.EncryptionKey())
+	if err != "" {
+		return this + err
+	}
+
+	// var ldflags = `-X 'main.version=` + tag + `'`
+
+	d.Cmd = exec.Command("go", "build", "-o", d.app_path, "-ldflags", flags, "main.go")
+	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
 	stderr, er := d.Cmd.StderrPipe()
 	if er != nil {
