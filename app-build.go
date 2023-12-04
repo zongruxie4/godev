@@ -16,7 +16,7 @@ func (d *Dev) buildAndRun() (err string) {
 
 	os.Remove(d.app_path)
 
-	flags, err := ldflags.Add(d.EncryptionKey())
+	flags, err := ldflags.Add(d.LdFlagsEncryptionKey())
 	if err != "" {
 		return this + err
 	}
