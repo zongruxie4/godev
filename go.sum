@@ -1,4 +1,4 @@
-github.com/cdvelop/api v0.0.65 h1:l0kAeq26rnS3z+x62FPePldJefJ8lpwJ5Ur2f+gsIv8=
+github.com/cdvelop/api v0.0.67 h1:+IXJ+IHB1Q+UhNeclSfcye9ohzdN4rNgaRMhc73u3EU=
 github.com/cdvelop/cutkey v0.6.0 h1:lxspIwQTPYaXjSTcbhI2iqn1aDyCaItlbC3KuCLVSQA=
 github.com/cdvelop/dbtools v0.0.66 h1:/r1rnFMu6TE6GgXibJ1U6NXzHKDhJMeo4VDgTpq0VgY=
 github.com/cdvelop/fetchserver v0.0.9 h1:kOvSpzeOpXE2KaivKR4U9+qVFIpwJo9nU1aYTl8w+Nc=
@@ -12,7 +12,7 @@ github.com/cdvelop/maps v0.0.7/go.mod h1:pxXQhqgImVse91Wn/nntebcBspDc4JKQv8NC3ap
 github.com/cdvelop/objectdb v0.0.89 h1:cW7OjULY+ZExSXxtxF/Ko4E93EPm450dGyFvfT7X/Rs=
 github.com/cdvelop/platform v0.0.47 h1:2BN7Fo/alDjzZBSw+LCbTAuEKPfSpYXQ0U8wDCIx5v0=
 github.com/cdvelop/sqlite v0.0.81 h1:W99R6sERSvg6NHZTM4sgpC/wVwugKKNjBUgB5BD2HAI=
-github.com/cdvelop/testools v0.0.45 h1:2+87dB6s4oRE7YYp5wr0U/u84BXTkW3OR0QAcci7OO0=
+github.com/cdvelop/testools v0.0.46 h1:PKvrLfU5HhzXxfAxeEXeIyfKZc2YzKZKv07VYt4CJi0=
 github.com/cdvelop/timeserver v0.0.24 h1:0JrDWUsFbBaQEJH/YYZESZDIiq9hpu0PAMwJYdZHSco=
 github.com/cdvelop/unixid v0.0.25 h1:iAbwXXOckkeTFKwkvWu6ihkS1G4sAIb/OCs/6426Hjg=
 github.com/cdvelop/unixid v0.0.25/go.mod h1:RJ4WtQ8VRf7hV6j/f8p5cVPW3qaAeh49sHgaoZuVmbE=

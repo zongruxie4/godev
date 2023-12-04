@@ -14,7 +14,7 @@ require (
 	github.com/cdvelop/gomod v0.0.44 // indirect
 	github.com/cdvelop/input v0.0.59 // indirect
 	github.com/cdvelop/maps v0.0.7 // indirect
-	github.com/cdvelop/model v0.0.75 // indirect
+	github.com/cdvelop/model v0.0.76 // indirect
 	github.com/cdvelop/object v0.0.40 // indirect
 	github.com/cdvelop/timetools v0.0.25 // indirect
 	github.com/cdvelop/unixid v0.0.25 // indirect
@@ -26,7 +26,7 @@ require (
 )
 
 require (
-	github.com/cdvelop/compiler v0.0.73
+	github.com/cdvelop/compiler v0.0.74
 	github.com/cdvelop/dev_browser v0.0.34
 	github.com/cdvelop/git v0.0.1 // indirect
 	github.com/cdvelop/ldflags v0.0.2
