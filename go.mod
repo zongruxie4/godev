@@ -29,7 +29,7 @@ require (
 	github.com/cdvelop/compiler v0.0.73
 	github.com/cdvelop/dev_browser v0.0.34
 	github.com/cdvelop/git v0.0.1 // indirect
-	github.com/cdvelop/ldflags v0.0.1
+	github.com/cdvelop/ldflags v0.0.2
 	github.com/cdvelop/token v0.0.3
 	github.com/cdvelop/watch_files v0.0.16
 	github.com/chromedp/cdproto v0.0.0-20231126232103-8e31ff06e23b // indirect
