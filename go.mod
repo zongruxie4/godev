@@ -4,20 +4,20 @@ go 1.20
 
 require (
 	github.com/cdvelop/output v0.0.16
-	github.com/cdvelop/strings v0.0.7
+	github.com/cdvelop/strings v0.0.8
 	github.com/chromedp/chromedp v0.9.3
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.13 // indirect
-	github.com/cdvelop/fileserver v0.0.30 // indirect
-	github.com/cdvelop/gomod v0.0.45 // indirect
-	github.com/cdvelop/input v0.0.60 // indirect
+	github.com/cdvelop/filehandler v0.0.14 // indirect
+	github.com/cdvelop/fileserver v0.0.31 // indirect
+	github.com/cdvelop/gomod v0.0.46 // indirect
+	github.com/cdvelop/input v0.0.61 // indirect
 	github.com/cdvelop/maps v0.0.7 // indirect
 	github.com/cdvelop/model v0.0.77 // indirect
-	github.com/cdvelop/object v0.0.41 // indirect
-	github.com/cdvelop/timetools v0.0.26 // indirect
-	github.com/cdvelop/unixid v0.0.26 // indirect
+	github.com/cdvelop/object v0.0.42 // indirect
+	github.com/cdvelop/timetools v0.0.27 // indirect
+	github.com/cdvelop/unixid v0.0.27 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
@@ -26,10 +26,10 @@ require (
 )
 
 require (
-	github.com/cdvelop/compiler v0.0.75
+	github.com/cdvelop/compiler v0.0.76
 	github.com/cdvelop/dev_browser v0.0.34
 	github.com/cdvelop/git v0.0.1 // indirect
-	github.com/cdvelop/ldflags v0.0.2
+	github.com/cdvelop/ldflags v0.0.3
 	github.com/cdvelop/token v0.0.3
 	github.com/cdvelop/watch_files v0.0.16
 	github.com/chromedp/cdproto v0.0.0-20231205062650-00455a960d61 // indirect
