@@ -39,7 +39,7 @@ func Add() *Dev {
 		}
 	}
 
-	d.Compiler = compiler.Config(&d, test_suffix, "compile_dir:cmd")
+	d.Compiler = compiler.Config(d.TwoKeys, test_suffix, "compile_dir:cmd")
 
 	d.run_arguments = append(d.run_arguments, cache_browser_argument)
 
