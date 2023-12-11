@@ -17,7 +17,7 @@ func (d *Dev) buildAndRun() (err string) {
 	os.Remove(d.app_path)
 
 	flags, err := ldflags.Add(
-	// d.AddTokenFlagsPublicEncryptionKey(),
+		d.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
 	// sessionbackend.AddPrivateSecretKeySigning(),
 	)
 	if err != "" {
