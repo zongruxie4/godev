@@ -3,11 +3,11 @@ module github.com/cdvelop/godev
 go 1.20
 
 require (
-	github.com/cdvelop/compiler v0.0.81
+	github.com/cdvelop/compiler v0.0.82
 	github.com/cdvelop/dev_browser v0.0.35
 	github.com/cdvelop/ldflags v0.0.5
 	github.com/cdvelop/output v0.0.16
-	github.com/cdvelop/sessionbackend v0.0.7
+	github.com/cdvelop/sessionbackend v0.0.9
 	github.com/cdvelop/strings v0.0.8
 	github.com/cdvelop/token v0.0.4
 	github.com/cdvelop/watch_files v0.0.18
