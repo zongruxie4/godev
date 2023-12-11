@@ -8,6 +8,7 @@ import (
 
 	"github.com/cdvelop/ldflags"
 	. "github.com/cdvelop/output"
+	"github.com/cdvelop/sessionbackend"
 )
 
 func (d *Dev) buildAndRun() (err string) {
@@ -16,7 +17,10 @@ func (d *Dev) buildAndRun() (err string) {
 
 	os.Remove(d.app_path)
 
-	flags, err := ldflags.Add(d.LdFlagsEncryptionKey())
+	flags, err := ldflags.Add(
+		d.AddTokenFlagsPublicEncryptionKey(),
+		sessionbackend.AddPrivateSecretKeySigning(),
+	)
 	if err != "" {
 		return this + err
 	}
