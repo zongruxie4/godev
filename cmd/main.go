@@ -9,17 +9,12 @@ import (
 	"syscall"
 
 	"github.com/cdvelop/godev"
+	"github.com/cdvelop/gomod"
 	. "github.com/cdvelop/output"
 	"github.com/chromedp/chromedp"
 )
 
 func main() {
-	d := godev.Add()
-
-	d.CompileAllProject()
-
-	// Cree un canal para recibir señales de interrupción
-	signal.Notify(d.Interrupt, os.Interrupt, syscall.SIGTERM)
 
 	current_dir, err := os.Getwd()
 	if err != nil {
@@ -29,6 +24,17 @@ func main() {
 	if filepath.Base(current_dir) == "godev" {
 		ShowErrorAndExit("cambia al directorio de tu aplicación para ejecutar godev")
 	}
+
+	if gomod.CommandFound() {
+		return
+	}
+
+	d := godev.Add()
+
+	d.CompileAllProject()
+
+	// Cree un canal para recibir señales de interrupción
+	signal.Notify(d.Interrupt, os.Interrupt, syscall.SIGTERM)
 
 	go d.StartProgram()
 
