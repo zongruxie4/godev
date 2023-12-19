@@ -1,6 +1,6 @@
 github.com/cdvelop/api v0.0.95 h1:OmKskj7lbZvXJ8a2XfJe0MhsxZW9fLSkHXR4joGAw1s=
-github.com/cdvelop/compiler v0.0.112 h1:bldSBOEphao2StSiPVhtLzAzu6zumeYuCmspzUgyuXg=
-github.com/cdvelop/compiler v0.0.112/go.mod h1:BDgpTaxLzMgI2HN8oMQwPIgxRGZ+BQJZnnQKczeObKw=
+github.com/cdvelop/compiler v0.0.113 h1:7e1ewCz9S4kyy3HG9fwCdsmydFqssxf7z8XLzlEwuxE=
+github.com/cdvelop/compiler v0.0.113/go.mod h1:TUSdoFTLmzK6N2MU14LAbePGl/Sxb+3GHdA0T8BXuqE=
 github.com/cdvelop/cutkey v1.0.12 h1:d4t/4+FqAyhY4V6qCj8whh2/M2g6pWYmu9mMDCjyvZc=
 github.com/cdvelop/dbtools v0.0.79 h1:fDda6y1/ltIkeVzCeUxjXDe9WRG2e0RjFOkuWPvK2l0=
 github.com/cdvelop/dev_browser v0.0.36 h1:Vt2JWdeUdCLN9/EwGPFY4pgnr6qyY5SOa0zPUS+fEnI=
@@ -9,8 +9,8 @@ github.com/cdvelop/fetchserver v0.0.24 h1:W9DBbG9VnEts8yd6DmNwn1xhJUpfOIc414z4Pc
 github.com/cdvelop/filehandler v0.0.32 h1:WkCIhw3zxX9a6Zsot8SV6stIBI98vz+pcairQqdHj5k=
 github.com/cdvelop/filehandler v0.0.32/go.mod h1:eZf6nGPd74eZ+26AGapEFandcICH0pXy1p5dcVG8X5g=
 github.com/cdvelop/fileinput v0.0.58 h1:YW3XHSI7xbHJSFfYk/43kvhYy0u4if1QaowaQqqBCe0=
-github.com/cdvelop/fileserver v0.0.51 h1:DhmiildVityG4OvdX4rmI43Nmd/jusr00ECpnv0g6lg=
-github.com/cdvelop/fileserver v0.0.51/go.mod h1:+sGJXES4iVeT2kqDj1pd+WEApT03DLlPAo0MIFZYMpE=
+github.com/cdvelop/fileserver v0.0.52 h1:HojZD/BEmD74SRS9FyVLIdsXBVXeQ27pMHUK9s8X5rk=
+github.com/cdvelop/fileserver v0.0.52/go.mod h1:m+fr0wFOf+b843Th7QIggFoDmd4bgSjOOo1CBtTZRUA=
 github.com/cdvelop/git v0.0.2 h1:srcsK34PXXqUxl9bCyhZB8Lr+kKc9h3XzcpNPG+YK00=
 github.com/cdvelop/git v0.0.2/go.mod h1:vwsYUKRcvNVbqHsn/vrpCHKEsZKoY81g1i8t08zSMxQ=
 github.com/cdvelop/gotools v0.0.79 h1:uPV9+o9uKacVNoMG1tXTHfR6ODFAIiQFGoNrRDuAtgc=
@@ -21,8 +21,8 @@ github.com/cdvelop/ldflags v0.0.6/go.mod h1:/SiLxzIEltg89v6s5Uz89StuZqDLWD/grkIO
 github.com/cdvelop/logserver v0.0.31 h1:6PdaCJSTcok5BykDU3/wYw2TAZPHnCbJ5oNlH9I7omU=
 github.com/cdvelop/maps v0.0.8 h1:7pc/iRC5mhf91TB8TaGoXkyFloH1pH1TWbLBR4kZhZY=
 github.com/cdvelop/maps v0.0.8/go.mod h1:00f/VqX/M0iiiY/BG2KxfxfFuoU5jAaNLEDGw7Tlduk=
-github.com/cdvelop/model v0.0.105 h1:XH5vzCbfLbNNlc+3vjAaJC7RKiFF4qcR12lBn/p2nQc=
-github.com/cdvelop/model v0.0.105/go.mod h1:cYJNxbv1WV/aDgiVPV9VXs8LrbF8+0nU+X+KfSevyzw=
+github.com/cdvelop/model v0.0.106 h1:uMGIjAcXki6GK1PVREaSaPLsq9AZuKlE/R799Sh3KnU=
+github.com/cdvelop/model v0.0.106/go.mod h1:cYJNxbv1WV/aDgiVPV9VXs8LrbF8+0nU+X+KfSevyzw=
 github.com/cdvelop/object v0.0.65 h1:WZqXbJg1egjgHTNSf2cXDwKRPrnuIIPMIROrei+8NmA=
 github.com/cdvelop/object v0.0.65/go.mod h1:Bz056wZXRcmDzc2MaMibwS4fPn5EqdmmfTlzaUkMHvg=
 github.com/cdvelop/objectdb v0.0.109 h1:CQChsbn/+dU5OjLtyZk9ctpySmY2/uPwk5pNohYY/IU=
