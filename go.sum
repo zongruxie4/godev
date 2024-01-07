@@ -1,12 +1,12 @@
-github.com/cdvelop/api v0.0.104 h1:Ad3YDmugd2kNfe69RwFKqHb12PCy7FdBAZF9aHwmLr4=
+github.com/cdvelop/api v0.0.106 h1:wj3+YhhPZpM1+A512JniOkjhAAMSXpJWJ38S2bPrpIY=
 github.com/cdvelop/cutkey v1.0.15 h1:9shXpIJTbNHy/nEaI01V9uiwsJq75UiZN3DPtYtPVHM=
 github.com/cdvelop/dbtools v0.0.81 h1:1l6Dk3D5drReyaxacIzSF+mrDRNk/J1DKZU8bQbyGVg=
 github.com/cdvelop/fetchserver v0.0.26 h1:X/xPu+YkoUaxD5KNnkyZSSmXF4HF9xQ55/H8rRN/HXQ=
 github.com/cdvelop/filehandler v0.0.39 h1:rDVTwgGW/wDSGWJWM5Z1aDa3rUdCy0ciY0SvEd/jg5E=
 github.com/cdvelop/filehandler v0.0.39/go.mod h1:WNbqBzCxXA7wP1tKvlRY2fnj46D3R+5yNDiYM5iMuUo=
-github.com/cdvelop/fileinput v0.0.71 h1:EIjU/HyuwyBdk0ROecl3c60YL7pC/4k8lCXwEitwAP4=
-github.com/cdvelop/fileserver v0.0.59 h1:POCGRLhWrVOPlL9fMHAfqWqHExd8wtwM7O4KxVEN6wI=
-github.com/cdvelop/fileserver v0.0.59/go.mod h1:/cCuA/j7dEdn1EzvKYzCN/Qf1lgWEf5AaXV1ikE1ToU=
+github.com/cdvelop/fileinput v0.0.72 h1:BWnU9TAP+oU7DKtsqCua0fyhiGIlNuJlqXhv9dpzWMw=
+github.com/cdvelop/fileserver v0.0.60 h1:QzU0zPINkf4MS4vf9qDIPznlaKZtknBG+Q6edr8fSbg=
+github.com/cdvelop/fileserver v0.0.60/go.mod h1:k9v7CXuvuQPttuVBTuwabQ0uo3U7/pSK1tFlWMqZTYA=
 github.com/cdvelop/git v0.0.2 h1:srcsK34PXXqUxl9bCyhZB8Lr+kKc9h3XzcpNPG+YK00=
 github.com/cdvelop/git v0.0.2/go.mod h1:vwsYUKRcvNVbqHsn/vrpCHKEsZKoY81g1i8t08zSMxQ=
 github.com/cdvelop/gotools v0.0.83 h1:JJnalGTFVecwiS8NdyyEClbTiadvn4s4gaWp9nCYyjU=
@@ -25,7 +25,7 @@ github.com/cdvelop/objectdb v0.0.114 h1:rgaOdo5WdYZrcJbHMA2rE0P0EMIIotRR2fiiMtis
 github.com/cdvelop/output v0.0.16 h1:4hmAy0kF98dVEWj2qq6fMtiq3pz1ZTDmxf9AgHiBb7g=
 github.com/cdvelop/output v0.0.16/go.mod h1:J0NdlSxlURjPlX82VUmaq7o9Z4omOSH0yLUoioPdELc=
 github.com/cdvelop/platform v0.0.75 h1:YVBvY8MJjebxCjDi/Jl9EsYRx7JkhXSj1rt6na4Rpic=
-github.com/cdvelop/sqlite v0.0.104 h1:e+h7W7PfZT3cqYKycxV4U0uFlK6OXjTFGvcaonMDQLI=
+github.com/cdvelop/sqlite v0.0.105 h1:XnO5tOrlZO5i9lYz3bMGVOUiTXW8cJcwUdhr8frS0ss=
 github.com/cdvelop/strings v0.0.9 h1:yDh2msl3EQja0dHw+oOHfD9ymQMa50KakKTkjsXDnvw=
 github.com/cdvelop/strings v0.0.9/go.mod h1:zNexDeXHRETbMmlmNThQeM7ksRsvzrphsCfwuSxaURk=
 github.com/cdvelop/structs v0.0.1 h1:9H4JUJ/dK1zaUOpIgay4xZpP3O/Jh991nErccKknKZ8=
