@@ -3,9 +3,9 @@ module github.com/cdvelop/godev
 go 1.20
 
 require (
-	github.com/cdvelop/compiler v0.0.120
+	github.com/cdvelop/compiler v0.0.128
 	github.com/cdvelop/dev_browser v0.0.36
-	github.com/cdvelop/gomod v0.0.73
+	github.com/cdvelop/gomod v0.0.76
 	github.com/cdvelop/ldflags v0.0.6
 	github.com/cdvelop/output v0.0.16
 	github.com/cdvelop/strings v0.0.9
@@ -15,17 +15,17 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.38 // indirect
-	github.com/cdvelop/fileserver v0.0.54 // indirect
+	github.com/cdvelop/filehandler v0.0.39 // indirect
+	github.com/cdvelop/fileserver v0.0.59 // indirect
 	github.com/cdvelop/git v0.0.2 // indirect
-	github.com/cdvelop/input v0.0.82 // indirect
+	github.com/cdvelop/input v0.0.83 // indirect
 	github.com/cdvelop/maps v0.0.8 // indirect
-	github.com/cdvelop/model v0.0.108 // indirect
+	github.com/cdvelop/model v0.0.111 // indirect
 	github.com/cdvelop/object v0.0.70 // indirect
 	github.com/cdvelop/structs v0.0.1 // indirect
 	github.com/cdvelop/timetools v0.0.34 // indirect
 	github.com/cdvelop/unixid v0.0.49 // indirect
-	github.com/chromedp/cdproto v0.0.0-20231205062650-00455a960d61 // indirect
+	github.com/chromedp/cdproto v0.0.0-20240102194822-c006b26f21c7 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/tdewolff/minify v2.3.6+incompatible // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 )
 
 replace github.com/cdvelop/gomod => ../gomod
