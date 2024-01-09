@@ -17,10 +17,10 @@ github.com/cdvelop/ldflags v0.0.6/go.mod h1:/SiLxzIEltg89v6s5Uz89StuZqDLWD/grkIO
 github.com/cdvelop/logserver v0.0.35 h1:+6GwgZqOZEsrqqp9sAecp9KrviBFUZoYXyTMFxah4+A=
 github.com/cdvelop/maps v0.0.8 h1:7pc/iRC5mhf91TB8TaGoXkyFloH1pH1TWbLBR4kZhZY=
 github.com/cdvelop/maps v0.0.8/go.mod h1:00f/VqX/M0iiiY/BG2KxfxfFuoU5jAaNLEDGw7Tlduk=
-github.com/cdvelop/model v0.0.113 h1:ViVk7o+pOGi8Y6x9TADLoxsUoYZxcWiVZjpOg5EGg58=
-github.com/cdvelop/model v0.0.113/go.mod h1:cYJNxbv1WV/aDgiVPV9VXs8LrbF8+0nU+X+KfSevyzw=
-github.com/cdvelop/object v0.0.71 h1:SypnFZJ49ZKwEk5TdU0xx0qxQ9FxL7+I76FLeOk5CCQ=
-github.com/cdvelop/object v0.0.71/go.mod h1:Q9+ppIdisELzJwpY279AQ0Vn5rUceooRoM3lX8le0s4=
+github.com/cdvelop/model v0.0.115 h1:YuQYowFCEdSbLLIeB3uLZ7Lex6YAzGX7LRjeVgBLFac=
+github.com/cdvelop/model v0.0.115/go.mod h1:cYJNxbv1WV/aDgiVPV9VXs8LrbF8+0nU+X+KfSevyzw=
+github.com/cdvelop/object v0.0.72 h1:QbyXkny+EqFPMZoDUSjCT0wpUfiG//g5mPHK8C/w7Hw=
+github.com/cdvelop/object v0.0.72/go.mod h1:mDJNuU3pHAV+sr4hraRppd3OLlOnt5rlfUe5czp4Ihs=
 github.com/cdvelop/objectdb v0.0.114 h1:rgaOdo5WdYZrcJbHMA2rE0P0EMIIotRR2fiiMtisE2A=
 github.com/cdvelop/output v0.0.16 h1:4hmAy0kF98dVEWj2qq6fMtiq3pz1ZTDmxf9AgHiBb7g=
 github.com/cdvelop/output v0.0.16/go.mod h1:J0NdlSxlURjPlX82VUmaq7o9Z4omOSH0yLUoioPdELc=
@@ -56,8 +56,8 @@ github.com/gobwas/httphead v0.1.0/go.mod h1:O/RXo79gxV8G+RqlR/otEwx4Q36zl9rqC5u1
 github.com/gobwas/pool v0.2.1 h1:xfeeEhW7pwmX8nuLVlqbzVc7udMDrwetjEv+TZIz1og=
 github.com/gobwas/pool v0.2.1/go.mod h1:q8bcK0KcYlCgd9e7WYLm9LpyS+YeLd8JVDW6WezmKEw=
 github.com/gobwas/ws v1.3.0/go.mod h1:hRKAFb8wOxFROYNsT1bqfWnhX+b5MFeJM9r2ZSwg/KY=
-github.com/gobwas/ws v1.3.1 h1:Qi34dfLMWJbiKaNbDVzM9x27nZBjmkaW6i4+Ku+pGVU=
-github.com/gobwas/ws v1.3.1/go.mod h1:hRKAFb8wOxFROYNsT1bqfWnhX+b5MFeJM9r2ZSwg/KY=
+github.com/gobwas/ws v1.3.2 h1:zlnbNHxumkRvfPWgfXu8RBwyNR1x8wh9cf5PTOCqs9Q=
+github.com/gobwas/ws v1.3.2/go.mod h1:hRKAFb8wOxFROYNsT1bqfWnhX+b5MFeJM9r2ZSwg/KY=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80 h1:6Yzfa6GP0rIo/kULo2bwGEkFvCePZ3qHDDTC3/J9Swo=
@@ -74,8 +74,8 @@ github.com/tdewolff/minify v2.3.6+incompatible/go.mod h1:9Ov578KJUmAWpS6NeZwRZyT
 github.com/tdewolff/parse v2.3.4+incompatible h1:x05/cnGwIMf4ceLuDMBOdQ1qGniMoxpP46ghf0Qzh38=
 github.com/tdewolff/parse v2.3.4+incompatible/go.mod h1:8oBwCsVmUkgHO8M5iCzSIDtpzXOT0WXX9cWhz+bIzJQ=
 github.com/tdewolff/test v1.0.10 h1:uWiheaLgLcNFqHcdWveum7PQfMnIUTf9Kl3bFxrIoew=
-golang.org/x/net v0.19.0 h1:zTwKpTd2XuCqf8huc7Fo2iSy+4RHPd10s4KzeTnVr1c=
-golang.org/x/net v0.19.0/go.mod h1:CfAk/cbD4CthTvqiEl8NpboMuiuOYsAr/7NOjZJtv1U=
+golang.org/x/net v0.20.0 h1:aCL9BSgETF1k+blQaYUBx9hJ9LOGP3gAVemcZlf1Kpo=
+golang.org/x/net v0.20.0/go.mod h1:z8BVo6PvndSri0LbOE3hAn0apkU+1YvI6E70E9jsnvY=
 golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.16.0 h1:xWw16ngr6ZMtmxDyKyIgsE93KNKz5HKmMa3b8ALHidU=
