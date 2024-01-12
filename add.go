@@ -12,7 +12,7 @@ import (
 )
 
 func Add() *Dev {
-	d := Dev{
+	d := &Dev{
 		app_path:               "app.exe",
 		Browser:                dev_browser.Add(),
 		WatchFiles:             &watch_files.WatchFiles{},
@@ -21,6 +21,8 @@ func Add() *Dev {
 		ProgramStartedMessages: make(chan string),
 		TwoKeys:                &token.TwoKeys{},
 	}
+
+	d.app_path = d.AppFileName()
 
 	var test_suffix string
 
@@ -39,11 +41,14 @@ func Add() *Dev {
 		}
 	}
 
-	d.Compiler = compiler.Config(d.TwoKeys, test_suffix, "compile_dir:cmd")
+	d.Compiler = compiler.Add(&compiler.Config{
+		AppInfo:             d,
+		TwoPublicKeyAdapter: d.TwoKeys,
+	}, test_suffix, "compile_dir:cmd")
 
 	d.run_arguments = append(d.run_arguments, cache_browser_argument)
 
-	d.WatchFiles = watch_files.Add(d, d, &d, d.DirectoriesRegistered, d.Compiler.ThemeDir())
+	d.WatchFiles = watch_files.Add(d, d, d, d.DirectoriesRegistered, d.Compiler.ThemeDir())
 
-	return &d
+	return d
 }
