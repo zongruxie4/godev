@@ -3,9 +3,9 @@ module github.com/cdvelop/godev
 go 1.20
 
 require (
-	github.com/cdvelop/compiler v0.0.132
-	github.com/cdvelop/dev_browser v0.0.36
-	github.com/cdvelop/gomod v0.0.80
+	github.com/cdvelop/compiler v0.0.136
+	github.com/cdvelop/dev_browser v0.0.37
+	github.com/cdvelop/gomod v0.0.81
 	github.com/cdvelop/ldflags v0.0.6
 	github.com/cdvelop/output v0.0.16
 	github.com/cdvelop/strings v0.0.9
@@ -15,12 +15,12 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.41 // indirect
+	github.com/cdvelop/filehandler v0.0.42 // indirect
 	github.com/cdvelop/fileserver v0.0.60 // indirect
 	github.com/cdvelop/git v0.0.2 // indirect
 	github.com/cdvelop/input v0.0.83 // indirect
 	github.com/cdvelop/maps v0.0.8 // indirect
-	github.com/cdvelop/model v0.0.115 // indirect
+	github.com/cdvelop/model v0.0.119 // indirect
 	github.com/cdvelop/object v0.0.72 // indirect
 	github.com/cdvelop/structs v0.0.1 // indirect
 	github.com/cdvelop/timetools v0.0.34 // indirect
