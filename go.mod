@@ -16,15 +16,15 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.42 // indirect
+	github.com/cdvelop/filehandler v0.0.43 // indirect
 	github.com/cdvelop/fileserver v0.0.60 // indirect
 	github.com/cdvelop/input v0.0.83 // indirect
 	github.com/cdvelop/maps v0.0.8 // indirect
 	github.com/cdvelop/model v0.0.119 // indirect
-	github.com/cdvelop/object v0.0.72 // indirect
+	github.com/cdvelop/object v0.0.73 // indirect
 	github.com/cdvelop/structs v0.0.1 // indirect
-	github.com/cdvelop/timetools v0.0.38 // indirect
-	github.com/cdvelop/unixid v0.0.49 // indirect
+	github.com/cdvelop/timetools v0.0.39 // indirect
+	github.com/cdvelop/unixid v0.0.50 // indirect
 	github.com/chromedp/cdproto v0.0.0-20240116100315-4a0ec5e4c400 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
