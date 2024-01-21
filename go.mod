@@ -3,10 +3,10 @@ module github.com/cdvelop/godev
 go 1.20
 
 require (
-	github.com/cdvelop/compiler v0.0.137
+	github.com/cdvelop/compiler v0.0.139
 	github.com/cdvelop/dev_browser v0.0.37
 	github.com/cdvelop/git v0.0.2
-	github.com/cdvelop/gomod v0.0.81
+	github.com/cdvelop/gomod v0.0.83
 	github.com/cdvelop/ldflags v0.0.6
 	github.com/cdvelop/output v0.0.16
 	github.com/cdvelop/strings v0.0.9
@@ -16,14 +16,14 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.43 // indirect
+	github.com/cdvelop/filehandler v0.0.44 // indirect
 	github.com/cdvelop/fileserver v0.0.60 // indirect
-	github.com/cdvelop/input v0.0.83 // indirect
+	github.com/cdvelop/input v0.0.85 // indirect
 	github.com/cdvelop/maps v0.0.8 // indirect
 	github.com/cdvelop/model v0.0.119 // indirect
-	github.com/cdvelop/object v0.0.73 // indirect
+	github.com/cdvelop/object v0.0.74 // indirect
 	github.com/cdvelop/structs v0.0.1 // indirect
-	github.com/cdvelop/timetools v0.0.39 // indirect
+	github.com/cdvelop/timetools v0.0.40 // indirect
 	github.com/cdvelop/unixid v0.0.50 // indirect
 	github.com/chromedp/cdproto v0.0.0-20240116100315-4a0ec5e4c400 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
