@@ -23,9 +23,9 @@ require (
 	github.com/cdvelop/model v0.0.119 // indirect
 	github.com/cdvelop/object v0.0.72 // indirect
 	github.com/cdvelop/structs v0.0.1 // indirect
-	github.com/cdvelop/timetools v0.0.34 // indirect
+	github.com/cdvelop/timetools v0.0.38 // indirect
 	github.com/cdvelop/unixid v0.0.49 // indirect
-	github.com/chromedp/cdproto v0.0.0-20240102194822-c006b26f21c7 // indirect
+	github.com/chromedp/cdproto v0.0.0-20240116100315-4a0ec5e4c400 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333 // indirect
