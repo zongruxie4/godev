@@ -3,10 +3,10 @@ module github.com/cdvelop/godev
 go 1.20
 
 require (
-	github.com/cdvelop/compiler v0.0.140
+	github.com/cdvelop/compiler v0.0.142
 	github.com/cdvelop/dev_browser v0.0.37
 	github.com/cdvelop/git v0.0.2
-	github.com/cdvelop/gomod v0.0.84
+	github.com/cdvelop/gomod v0.0.86
 	github.com/cdvelop/ldflags v0.0.6
 	github.com/cdvelop/output v0.0.16
 	github.com/cdvelop/strings v0.0.9
@@ -16,15 +16,15 @@ require (
 )
 
 require (
-	github.com/cdvelop/filehandler v0.0.45 // indirect
+	github.com/cdvelop/filehandler v0.0.47 // indirect
 	github.com/cdvelop/fileserver v0.0.60 // indirect
-	github.com/cdvelop/input v0.0.86 // indirect
+	github.com/cdvelop/input v0.0.88 // indirect
 	github.com/cdvelop/maps v0.0.8 // indirect
-	github.com/cdvelop/model v0.0.119 // indirect
-	github.com/cdvelop/object v0.0.75 // indirect
+	github.com/cdvelop/model v0.0.120 // indirect
+	github.com/cdvelop/object v0.0.77 // indirect
 	github.com/cdvelop/structs v0.0.1 // indirect
-	github.com/cdvelop/timetools v0.0.41 // indirect
-	github.com/cdvelop/unixid v0.0.51 // indirect
+	github.com/cdvelop/timetools v0.0.42 // indirect
+	github.com/cdvelop/unixid v0.0.53 // indirect
 	github.com/chromedp/cdproto v0.0.0-20240116100315-4a0ec5e4c400 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
