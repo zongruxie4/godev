@@ -1,52 +1,60 @@
 #!/bin/bash
 
-# Colores
+# Colors
 YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
-NC='\033[0m' # Sin color
+NC='\033[0m' # No color
 
-# Nombre de la aplicación
-app_name=$(basename "$(pwd)")
+# Application name
+app_name="godev"
+# app_name=$(basename "$(pwd)")
 
-# Generar el ejecutable usando go build
-echo -e "${YELLOW}Generando el ejecutable...${NC}"
-if go build -o "$HOME/go/bin/$app_name.exe" ./cmd/...; then
-  echo -e "${GREEN}El ejecutable ha sido generado.${NC}"
+# Detect OS and set executable extension
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+    exe_ext=".exe"
 else
-  echo -e "${RED}Ocurrió un error al generar el ejecutable.${NC}"
+    exe_ext=""
+fi
+
+# Generate executable using go build
+echo -e "${YELLOW}Generating executable...${NC}"
+if go build -o "$HOME/go/bin/$app_name$exe_ext" ./cmd/...; then
+  echo -e "${GREEN}The executable has been generated.${NC}"
+else
+  echo -e "${RED}An error occurred while generating the executable.${NC}"
   exit 1
 fi
 
-# Verificar si el directorio bin ya está en la variable de entorno PATH
+# Check if bin directory is already in PATH environment variable
 if [[ ":$PATH:" == *":$HOME/go/bin:"* ]]; then
-  echo -e "${YELLOW}El directorio bin ya está en la variable de entorno PATH.${NC}"
+  echo -e "${YELLOW}The bin directory is already in the PATH environment variable.${NC}"
 else
-  echo -e "${YELLOW}Agregando el directorio bin a la variable de entorno PATH...${NC}"
+  echo -e "${YELLOW}Adding bin directory to PATH environment variable...${NC}"
   echo "export PATH=\"$HOME/go/bin:$PATH\"" >> ~/.bashrc
   source ~/.bashrc
 fi
 
-# Ruta completa del ejecutable
-executable_path="$HOME/go/bin/$app_name.exe"
+# Full path of the executable
+executable_path="$HOME/go/bin/$app_name$exe_ext"
 
-# Verificar si el ejecutable existe antes de reemplazarlo
+# Check if executable exists before replacing it
 if [ -f "$executable_path" ]; then
-  echo -e "${YELLOW}Reemplazando el ejecutable existente en el directorio bin...${NC}"
+  echo -e "${YELLOW}Replacing existing executable in bin directory...${NC}"
   if mv -f "$executable_path" "$HOME/go/bin"; then
-    echo -e "${GREEN}El ejecutable ha sido reemplazado en el directorio bin.${NC}"
+    echo -e "${GREEN}The executable has been replaced in bin directory.${NC}"
   else
-    echo -e "${RED}Ocurrió un error al reemplazar el ejecutable.${NC}"
+    echo -e "${RED}An error occurred while replacing the executable.${NC}"
     exit 1
   fi
 else
-  echo -e "${YELLOW}Moviendo el ejecutable al directorio bin...${NC}"
+  echo -e "${YELLOW}Moving executable to bin directory...${NC}"
   if mv "$executable_path" "$HOME/go/bin"; then
-    echo -e "${GREEN}El ejecutable ha sido movido al directorio bin.${NC}"
+    echo -e "${GREEN}The executable has been moved to bin directory.${NC}"
   else
-    echo -e "${RED}Ocurrió un error al mover el ejecutable.${NC}"
+    echo -e "${RED}An error occurred while moving the executable.${NC}"
     exit 1
   fi
 fi
 
-echo -e "${GREEN}¡Instalación completada!${NC}"
+echo -e "${GREEN}Installation completed!${NC}"
