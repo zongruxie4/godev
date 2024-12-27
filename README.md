@@ -1,6 +1,9 @@
 # GoDEV
 
-A live reload development environment for web applications with Go and WebAssembly. When detecting file changes, it automatically reloads the browser and recompiles the application.
+⚠️ **Warning: Development in Progress**
+This project is currently under active development and may contain unstable features. NOT USE.
+
+A live reload development environment for full stack web applications with Go and WebAssembly in frontend (PWA). When detecting file changes, it automatically reloads the browser and recompiles the application.
 
 ## Table of Contents
 - [Motivation](#motivation)

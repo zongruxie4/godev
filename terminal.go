@@ -6,6 +6,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // Terminal mantiene el estado de la aplicación
@@ -79,37 +80,33 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	})
 }
 
-// View renderiza la interfaz
-// func (t Terminal) View() string {
-// 	// Construye la vista principal
-// 	s := fmt.Sprintf("Terminal Simple - Tiempo Actual: %s\n\n", t.currentTime)
+// Define estilos para el borde del contenido header y footer
+var borderStyle = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder()).
+	BorderForeground(lipgloss.Color("10")) // Verde claro
 
-// 	// Calcula la altura disponible para los mensajes
-// 	messageHeight := t.height - 3 // 1 línea para el título, 1 para el espacio después del título, 1 para el footer
-
-// 	// Muestra los mensajes o espacios vacíos para llenar la altura disponible
-// 	numMessages := len(t.messages)
-// 	for i := 0; i < messageHeight; i++ {
-// 		if i < numMessages {
-// 			s += t.messages[i] + "\n"
-// 		} else {
-// 			s += "\n"
-// 		}
-// 	}
-
-// 	// Agrega el footer
-// 	s += t.footer
-
-// 	return s
-// }
+var headerFooterStyle = lipgloss.NewStyle().
+	Background(lipgloss.Color("7")). // Gris claro de fondo
+	Foreground(lipgloss.Color("0")). // Texto negro
+	Padding(0, 1)
 
 // View renderiza la interfaz
 func (t Terminal) View() string {
-	// Construye la vista principal
-	s := fmt.Sprintf("Terminal Simple - Tiempo Actual: %s\n\n", t.currentTime)
+	if t.width == 0 || t.height == 0 {
+		return "Terminal demasiado pequeña"
+	}
+
+	// Construye la vista principal con ancho limitado
+	header := headerFooterStyle.Width(t.width - 4).Render(fmt.Sprintf("Terminal Simple - Tiempo Actual: %s", t.currentTime))
+	s := "\n" + borderStyle.Width(t.width-2).Render(header) + "\n\n"
 
 	// Calcula la altura disponible para los mensajes
-	messageHeight := t.height - 3 // 1 línea para el título, 1 para el espacio después del título, 1 para el footer
+	messageHeight := t.height - 8 // Ajustado para dar más espacio al header
+
+	// Asegura que messageHeight no sea negativo
+	if messageHeight < 0 {
+		messageHeight = 0
+	}
 
 	// Determina el punto de inicio para mostrar los mensajes
 	start := 0
@@ -119,7 +116,7 @@ func (t Terminal) View() string {
 
 	// Muestra los últimos mensajes que caben en la pantalla
 	for i := start; i < len(t.messages); i++ {
-		s += t.messages[i] + "\n"
+		s += lipgloss.NewStyle().Width(t.width-2).Render(t.messages[i]) + "\n"
 	}
 
 	// Rellena el espacio restante con líneas vacías si hay menos mensajes que la altura disponible
@@ -127,8 +124,9 @@ func (t Terminal) View() string {
 		s += "\n"
 	}
 
-	// Agrega el footer
-	s += t.footer
+	// Agrega el footer con el mismo estilo que el header
+	footer := headerFooterStyle.Width(t.width - 4).Render(t.footer)
+	s += "\n" + borderStyle.Width(t.width-2).Render(footer)
 
 	return s
 }
