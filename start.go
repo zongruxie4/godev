@@ -71,6 +71,7 @@ func GodevStart() {
 	}
 
 	h.NewTerminal()
+	go h.RunTerminal()
 
 	// Cree un canal para recibir señales de interrupción
 	// signal.Notify(h.Interrupt, os.Interrupt, syscall.SIGTERM)
