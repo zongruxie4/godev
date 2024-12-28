@@ -38,8 +38,10 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			t.messages = append(t.messages, fmt.Sprintf("%s: exit",
+			// Mostrar todos los mensajes antes de salir
+			t.messages = append(t.messages, fmt.Sprintf("%s: Exiting... Showing all messages",
 				time.Now().Format("15:04:05")))
+			time.Sleep(1 * time.Second) // Dar tiempo para mostrar los mensajes
 			return t, tea.Quit
 		case "t":
 			// Acción especial al presionar 't'
