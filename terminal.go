@@ -73,10 +73,26 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	})
 }
 
-// Define estilos para el borde del contenido header y footer
-var borderStyle = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(lipgloss.Color("10")) // Verde claro
+// Define estilos base
+var (
+	// Estilo para el borde principal
+	borderStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62")). // Morado
+			Padding(0, 1)
+
+	// Estilo para el header y footer
+	headerFooterStyle = lipgloss.NewStyle().
+				Background(lipgloss.Color("62")). // Morado
+				Foreground(lipgloss.Color("15")). // Blanco
+				Bold(true).
+				Padding(0, 2)
+
+	// Estilo para los mensajes
+	messageStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("15")). // Blanco
+			PaddingLeft(2)
+)
 
 // View renderiza la interfaz
 func (t Terminal) View() string {
@@ -84,18 +100,16 @@ func (t Terminal) View() string {
 		return "Terminal too small"
 	}
 
-	headerFooterStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("7")). // Gris claro de fondo
-		Foreground(lipgloss.Color("0")). // Texto negro
-		Padding(0, 1).
-		Width(t.width - 4) // Ajustar al ancho del borde
+	// Ajustar estilos según el tamaño de la terminal
+	headerFooterStyle = headerFooterStyle.Width(t.width - 4)
+	messageStyle = messageStyle.Width(t.width - 4)
 
 	// Construye el header
 	header := borderStyle.
 		Width(t.width).
 		Render(
 			headerFooterStyle.
-				Render(fmt.Sprintf("GoDEV: %s", t.currentTime)),
+				Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime)),
 		)
 
 	// Construye el footer
@@ -107,31 +121,21 @@ func (t Terminal) View() string {
 		)
 
 	// Calcula la altura disponible para los mensajes
-	// Restamos 4 líneas: 1 para header, 1 para su borde, 1 para footer, 1 para su borde
 	messageHeight := t.height - 4
-
-	// Asegura que messageHeight no sea negativo
 	if messageHeight < 0 {
 		messageHeight = 0
 	}
 
-	// Determina el punto de inicio para mostrar los mensajes
+	// Determina qué mensajes mostrar
 	start := 0
 	if len(t.messages) > messageHeight {
 		start = len(t.messages) - messageHeight
 	}
 
-	// Crea un área de contenido para los mensajes
+	// Construye el contenido de los mensajes
 	content := ""
-
-	// Muestra los últimos mensajes que caben en la pantalla
 	for i := start; i < len(t.messages); i++ {
-		// Aplica estilo a cada mensaje
-		msgStyle := lipgloss.NewStyle().
-			Width(t.width - 4).              // Ancho ajustado
-			PaddingLeft(2).                  // Margen izquierdo
-			Foreground(lipgloss.Color("15")) // Color blanco
-		content += msgStyle.Render(t.messages[i]) + "\n"
+		content += messageStyle.Render("• "+t.messages[i]) + "\n"
 	}
 
 	// Construye la vista completa
