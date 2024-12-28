@@ -4,6 +4,6 @@ import "github.com/cdvelop/godev"
 
 func main() {
 
-	godev.RunTerminal()
+	godev.GodevStart()
 
 }

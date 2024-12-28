@@ -37,38 +37,29 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c":
+		case "esc":
+			t.messages = append(t.messages, fmt.Sprintf("%s: exit",
+				time.Now().Format("15:04:05")))
 			return t, tea.Quit
 		case "t":
 			// Acción especial al presionar 't'
-			t.messages = append(t.messages, fmt.Sprintf("%s: ¡Has activado una acción especial!",
+			t.messages = append(t.messages, fmt.Sprintf("%s: You have activated a special action!",
+				time.Now().Format("15:04:05")))
+		case "b":
+			// Acción para abrir el navegador
+			t.messages = append(t.messages, fmt.Sprintf("%s: Opening browser...",
 				time.Now().Format("15:04:05")))
 		default:
 			// Registra cualquier otra tecla presionada
-			t.messages = append(t.messages, fmt.Sprintf("%s: Tecla presionada: %s",
+			t.messages = append(t.messages, fmt.Sprintf("%s: Key pressed: %s",
 				time.Now().Format("15:04:05"), msg.String()))
 		}
-		// **Eliminamos la limitación del historial de mensajes**
-		// if len(t.messages) > 10 {
-		// 	t.messages = t.messages[1:]
-		// }
 	case tickMsg:
 		// Actualiza el tiempo cada segundo
 		now := time.Now()
 		t.currentTime = now.Format("15:04:05")
-		t.tickCount++
-
-		// Cada 5 segundos muestra un mensaje de tiempo transcurrido
-		if t.tickCount%5 == 0 {
-			t.messages = append(t.messages, fmt.Sprintf("%s: Han pasado 5 segundos", t.currentTime))
-			// **Eliminamos la limitación del historial de mensajes aquí también**
-			// if len(t.messages) > 10 {
-			// 	t.messages = t.messages[1:]
-			// }
-		}
-
 		// Actualiza el footer
-		t.footer = fmt.Sprintf("Presiona 'q' para salir | 't' para acción especial | Tiempo actual: %s",
+		t.footer = fmt.Sprintf("Press 'ESC' to exit | 't' Tinygo Compiler Activated: %s | 'b' Browser | ",
 			t.currentTime)
 	case tea.WindowSizeMsg:
 		t.width = msg.Width
@@ -93,11 +84,11 @@ var headerFooterStyle = lipgloss.NewStyle().
 // View renderiza la interfaz
 func (t Terminal) View() string {
 	if t.width == 0 || t.height == 0 {
-		return "Terminal demasiado pequeña"
+		return "Terminal too small"
 	}
 
 	// Construye la vista principal con ancho limitado
-	header := headerFooterStyle.Width(t.width - 4).Render(fmt.Sprintf("Terminal Simple - Tiempo Actual: %s", t.currentTime))
+	header := headerFooterStyle.Width(t.width - 4).Render(fmt.Sprintf("GoDEV: %s", t.currentTime))
 	s := "\n" + borderStyle.Width(t.width-2).Render(header) + "\n\n"
 
 	// Calcula la altura disponible para los mensajes
@@ -131,20 +122,26 @@ func (t Terminal) View() string {
 	return s
 }
 
-// RunTerminal inicia la aplicación
-func RunTerminal() {
-	terminal := &Terminal{
+// inicia una nueva terminal
+func (h *handler) NewTerminal() {
+
+	h.terminal = &Terminal{
 		messages:    make([]string, 0),
-		footer:      "Iniciando...",
+		footer:      "Starting...",
 		currentTime: time.Now().Format("15:04:05"),
 		tickCount:   0,
 	}
 
 	options := []tea.ProgramOption{tea.WithAltScreen()}
-	p := tea.NewProgram(terminal, options...)
+	h.tea = tea.NewProgram(h.terminal, options...)
 
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Error al ejecutar la aplicación: %v\n", err)
+}
+
+// inicia la aplicación de terminal
+func (h *handler) RunTerminal() {
+
+	if _, err := h.tea.Run(); err != nil {
+		fmt.Printf("Error running the application: %v\n", err)
 		os.Exit(1)
 	}
 }

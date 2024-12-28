@@ -8,6 +8,35 @@ import (
 	"os/exec"
 )
 
+func (h *handler) StartProgram() {
+
+	// BUILD AND RUN
+	err := h.buildAndRun()
+	if err != nil {
+		PrintError("StartProgram " + err.Error())
+	}
+
+}
+
+func (h *handler) Restart(event_name string) error {
+	var this = errors.New("Restart error")
+	fmt.Println("Restarting APP..." + event_name)
+
+	// STOP
+	err := h.StopProgram()
+	if err != nil {
+		return errors.Join(this, errors.New("when closing app"), err)
+	}
+
+	// BUILD AND RUN
+	err = h.buildAndRun()
+	if err != nil {
+		return errors.Join(this, errors.New("when building and starting app"), err)
+	}
+
+	return nil
+}
+
 func (h *handler) buildAndRun() error {
 	var this = errors.New("buildAndRun")
 	PrintWarning(fmt.Sprintf("Building and Running %s...\n", h.app_path))
@@ -85,7 +114,7 @@ func (h *handler) run() error {
 }
 
 func (h handler) Write(p []byte) (n int, err error) {
-	h.ProgramStartedMessages <- string(p)
+	h.ProgramMessages <- string(p)
 	// fmt.Println(string(p))
 	return len(p), nil
 }
