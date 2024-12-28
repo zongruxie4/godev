@@ -157,7 +157,7 @@ func (t Terminal) View() string {
 
 	// Calcular dimensiones del contenido
 	contentWidth := t.width - 4 // Margen horizontal
-	contentHeight := t.height - 6 // Margen vertical
+	contentHeight := t.height - 4 // Margen vertical (2 para header, 2 para footer)
 
 	// Asegurar dimensiones mínimas
 	if contentWidth < 40 {
@@ -170,18 +170,20 @@ func (t Terminal) View() string {
 	// Construye el header
 	header := headerFooterStyle.
 		Width(contentWidth).
+		Height(1).
 		Padding(0, 1).
 		Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime))
 
 	// Construye el footer
 	footer := headerFooterStyle.
 		Width(contentWidth).
+		Height(1).
 		Padding(0, 1).
 		Render(t.footer)
 
 	// Determinar qué mensajes mostrar con scroll
 	start := 0
-	messageHeight := contentHeight - 2 // Altura disponible para mensajes
+	messageHeight := contentHeight // Altura disponible para mensajes
 	if len(t.messages) > messageHeight {
 		start = len(t.messages) - messageHeight
 		if start < 0 {
@@ -206,13 +208,18 @@ func (t Terminal) View() string {
 		Height(contentHeight).
 		Render(content)
 
-	// Construir la vista completa
-	s := lipgloss.JoinVertical(
-		lipgloss.Left,
-		header,
-		contentArea,
-		footer,
-	)
+	// Construir la vista completa con tamaño fijo para header y footer
+	s := lipgloss.NewStyle().
+		Width(t.width).
+		Height(t.height).
+		Render(
+			lipgloss.JoinVertical(
+				lipgloss.Left,
+				header,
+				contentArea,
+				footer,
+			),
+		)
 
 	return s
 }
