@@ -154,9 +154,9 @@ func (t Terminal) View() string {
 		return "Terminal too small"
 	}
 
-	// Ajustar estilos según el tamaño de la terminal con márgenes
-	contentWidth := t.width - 4
-	contentHeight := t.height - 6 // Dejamos espacio para header, footer y bordes
+	// Ajustar estilos según el tamaño de la terminal con márgenes más conservadores
+	contentWidth := t.width - 6 // Más margen horizontal
+	contentHeight := t.height - 8 // Más margen vertical
 
 	if contentWidth < 0 {
 		contentWidth = 0
@@ -165,22 +165,30 @@ func (t Terminal) View() string {
 		contentHeight = 0
 	}
 
-	headerFooterStyle = headerFooterStyle.Width(contentWidth)
-	messageStyle = messageStyle.Width(contentWidth)
+	// Ajustar estilos de header y footer
+	headerStyle := headerFooterStyle.
+		Width(contentWidth).
+		Padding(1, 1) // Añadir padding interno
 
-	// Construye el header con margen
+	footerStyle := headerFooterStyle.
+		Width(contentWidth).
+		Padding(1, 1) // Añadir padding interno
+
+	// Construye el header con márgenes más grandes
 	header := borderStyle.
 		Width(contentWidth).
+		Padding(1, 1). // Añadir padding externo
 		Render(
-			headerFooterStyle.
+			headerStyle.
 				Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime)),
 		)
 
-	// Construye el footer con margen
+	// Construye el footer con márgenes más grandes
 	footer := borderStyle.
 		Width(contentWidth).
+		Padding(1, 1). // Añadir padding externo
 		Render(
-			headerFooterStyle.
+			footerStyle.
 				Render(t.footer),
 		)
 
@@ -197,11 +205,11 @@ func (t Terminal) View() string {
 		content += messageStyle.Render("• "+t.messages[i]) + "\n"
 	}
 
-	// Construye la vista completa con márgenes
+	// Construye la vista completa con márgenes más grandes
 	s := lipgloss.NewStyle().
 		Width(t.width).
 		Height(t.height).
-		Padding(1, 1). // Añadir márgenes
+		Padding(2, 2). // Aumentar márgenes
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
@@ -209,6 +217,7 @@ func (t Terminal) View() string {
 				borderStyle.
 					Width(contentWidth).
 					Height(contentHeight).
+					Padding(1, 1). // Añadir padding interno
 					Render(content),
 				footer,
 			),
