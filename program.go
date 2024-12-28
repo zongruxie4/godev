@@ -120,10 +120,20 @@ func (h handler) Write(p []byte) (n int, err error) {
 }
 
 func (h *handler) StopProgram() error {
-
 	pid := h.Cmd.Process.Pid
-
 	PrintWarning(fmt.Sprintf("stop app PID %d\n", pid))
+
+	// Enviar mensaje de cierre
+	h.ProgramMessages <- fmt.Sprintf("%s: Stopping program...", time.Now().Format("15:04:05"))
+
+	// Dar tiempo para que los mensajes se procesen
+	time.Sleep(500 * time.Millisecond)
+
+	// Forzar actualización de la terminal
+	if h.tea != nil {
+		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+		time.Sleep(500 * time.Millisecond)
+	}
 
 	return h.Cmd.Process.Kill()
 }
