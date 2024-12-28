@@ -78,43 +78,31 @@ var borderStyle = lipgloss.NewStyle().
 	Border(lipgloss.RoundedBorder()).
 	BorderForeground(lipgloss.Color("10")) // Verde claro
 
-var headerFooterStyle = lipgloss.NewStyle().
-	Background(lipgloss.Color("7")). // Gris claro de fondo
-	Foreground(lipgloss.Color("0")). // Texto negro
-	Padding(0, 1)
-
-func (t *Terminal) getHeaderFooterStyle() lipgloss.Style {
-	if t == nil || t.width == 0 {
-		return headerFooterStyle.Width(80 - 4) // Ancho por defecto
-	}
-	return headerFooterStyle.Width(t.width - 4) // Ajustar al ancho del borde
-}
-
 // View renderiza la interfaz
 func (t Terminal) View() string {
 	if t.width == 0 || t.height == 0 {
 		return "Terminal too small"
 	}
 
-	// Construye el header
-	// Usar ancho por defecto si t.width es 0
-	width := t.width
-	if width == 0 {
-		width = 80
-	}
+	headerFooterStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("7")). // Gris claro de fondo
+		Foreground(lipgloss.Color("0")). // Texto negro
+		Padding(0, 1).
+		Width(t.width - 4) // Ajustar al ancho del borde
 
+	// Construye el header
 	header := borderStyle.
-		Width(width).
+		Width(t.width).
 		Render(
-			t.getHeaderFooterStyle().
+			headerFooterStyle.
 				Render(fmt.Sprintf("GoDEV: %s", t.currentTime)),
 		)
 
 	// Construye el footer
 	footer := borderStyle.
-		Width(width).
+		Width(t.width).
 		Render(
-			t.getHeaderFooterStyle().
+			headerFooterStyle.
 				Render(t.footer),
 		)
 
