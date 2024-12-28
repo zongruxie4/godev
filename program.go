@@ -12,13 +12,20 @@ import (
 )
 
 func (h *handler) StartProgram() {
+	// Agregar mensaje inicial
+	h.terminal.messages = append(h.terminal.messages, 
+		fmt.Sprintf("%s: Starting program...", time.Now().Format("15:04:05")))
+	h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	time.Sleep(100 * time.Millisecond)
 
 	// BUILD AND RUN
 	err := h.buildAndRun()
 	if err != nil {
-		PrintError("StartProgram " + err.Error())
+		h.terminal.messages = append(h.terminal.messages, 
+			fmt.Sprintf("%s: Error - %s", time.Now().Format("15:04:05"), err.Error()))
+		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+		time.Sleep(100 * time.Millisecond)
 	}
-
 }
 
 func (h *handler) Restart(event_name string) error {
@@ -74,7 +81,7 @@ func (h *handler) buildAndRun() error {
 		return errors.Join(this, err)
 	}
 
-	io.Copy(os.Stdout, stdout)
+	go io.Copy(h, stdout)
 	errBuf, _ := io.ReadAll(stderr)
 
 	// Esperar
@@ -131,8 +138,7 @@ func (h handler) Write(p []byte) (n int, err error) {
 		time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
 	}
 	
-	// También imprimir en stdout para depuración
-	fmt.Print(msg)
+	// No imprimir directamente a stdout
 	
 	return len(p), nil
 }
