@@ -155,44 +155,29 @@ func (t Terminal) View() string {
 		return "Terminal too small"
 	}
 
-	// Calcular dimensiones del contenido con márgenes adecuados
-	contentWidth := t.width - 6 // Margen horizontal más amplio
-	contentHeight := t.height - 8 // Margen vertical más amplio
+	// Calcular dimensiones del contenido
+	contentWidth := t.width - 4 // Margen horizontal
+	contentHeight := t.height - 6 // Margen vertical
 
 	// Asegurar dimensiones mínimas
 	if contentWidth < 40 {
 		contentWidth = 40
 	}
-	if contentHeight < 15 {
-		contentHeight = 15
+	if contentHeight < 10 {
+		contentHeight = 10
 	}
 
-	// Ajustar estilos de header y footer
-	headerStyle := headerFooterStyle.
+	// Construye el header
+	header := headerFooterStyle.
 		Width(contentWidth).
-		Padding(1, 1) // Añadir padding interno
+		Padding(0, 1).
+		Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime))
 
-	footerStyle := headerFooterStyle.
+	// Construye el footer
+	footer := headerFooterStyle.
 		Width(contentWidth).
-		Padding(1, 1) // Añadir padding interno
-
-	// Construye el header con márgenes más grandes
-	header := borderStyle.
-		Width(contentWidth).
-		Padding(1, 1). // Añadir padding externo
-		Render(
-			headerStyle.
-				Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime)),
-		)
-
-	// Construye el footer con márgenes más grandes
-	footer := borderStyle.
-		Width(contentWidth).
-		Padding(1, 1). // Añadir padding externo
-		Render(
-			footerStyle.
-				Render(t.footer),
-		)
+		Padding(0, 1).
+		Render(t.footer)
 
 	// Determinar qué mensajes mostrar con scroll
 	start := 0
@@ -215,26 +200,19 @@ func (t Terminal) View() string {
 		}
 	}
 
-	// Construir el área de contenido con scroll
+	// Construir el área de contenido
 	contentArea := borderStyle.
 		Width(contentWidth).
 		Height(contentHeight).
-		Padding(0, 1). // Reducir padding interno
 		Render(content)
 
-	// Construir la vista completa con márgenes ajustados
-	s := lipgloss.NewStyle().
-		Width(t.width).
-		Height(t.height).
-		Padding(2, 2). // Aumentar márgenes externos
-		Render(
-			lipgloss.JoinVertical(
-				lipgloss.Left,
-				header,
-				contentArea,
-				footer,
-			),
-		)
+	// Construir la vista completa
+	s := lipgloss.JoinVertical(
+		lipgloss.Left,
+		header,
+		contentArea,
+		footer,
+	)
 
 	return s
 }
