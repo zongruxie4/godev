@@ -49,7 +49,7 @@ func (h *handler) Restart(event_name string) error {
 
 func (h *handler) buildAndRun() error {
 	var this = errors.New("buildAndRun")
-	PrintWarning(fmt.Sprintf("Building and Running %s...\n", h.app_path))
+	h.terminal.PrintWarning(fmt.Sprintf("Building and Running %s...", h.app_path))
 
 	err := os.Remove(h.app_path)
 	if err != nil {
@@ -145,7 +145,7 @@ func (h handler) Write(p []byte) (n int, err error) {
 
 func (h *handler) StopProgram() error {
 	pid := h.Cmd.Process.Pid
-	PrintWarning(fmt.Sprintf("stop app PID %d\n", pid))
+	h.terminal.PrintWarning(fmt.Sprintf("Stopping app PID %d", pid))
 
 	// Enviar mensaje de cierre directamente al terminal
 	h.terminal.messages = append(h.terminal.messages, 

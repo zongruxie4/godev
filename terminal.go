@@ -19,6 +19,18 @@ type Terminal struct {
 	height      int
 }
 
+// Estilos para los mensajes de colores
+var (
+	okStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("32")) // Verde
+	errStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("31")) // Rojo
+	warnStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("33")) // Amarillo
+	infoStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("36")) // Cian
+)
+
 // Msg representa un mensaje de actualización
 type tickMsg time.Time
 
@@ -93,6 +105,47 @@ var (
 			Foreground(lipgloss.Color("15")). // Blanco
 			PaddingLeft(2)
 )
+
+// Métodos de impresión con colores
+func (t *Terminal) PrintOK(messages ...string) {
+	msg := t.joinMessages(messages...)
+	t.messages = append(t.messages, okStyle.Render(msg))
+	t.forceUpdate()
+}
+
+func (t *Terminal) PrintWarning(messages ...string) {
+	msg := t.joinMessages(messages...)
+	t.messages = append(t.messages, warnStyle.Render(msg))
+	t.forceUpdate()
+}
+
+func (t *Terminal) PrintError(messages ...string) {
+	msg := t.joinMessages(messages...)
+	t.messages = append(t.messages, errStyle.Render(msg))
+	t.forceUpdate()
+}
+
+func (t *Terminal) PrintInfo(messages ...string) {
+	msg := t.joinMessages(messages...)
+	t.messages = append(t.messages, infoStyle.Render(msg))
+	t.forceUpdate()
+}
+
+func (t *Terminal) joinMessages(messages ...string) string {
+	var message, space string
+	for _, m := range messages {
+		message += space + m
+		space = " "
+	}
+	return message
+}
+
+func (t *Terminal) forceUpdate() {
+	if t.tea != nil {
+		t.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+		time.Sleep(100 * time.Millisecond)
+	}
+}
 
 // View renderiza la interfaz
 func (t Terminal) View() string {
