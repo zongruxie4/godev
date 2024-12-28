@@ -154,31 +154,35 @@ func (t Terminal) View() string {
 		return "Terminal too small"
 	}
 
-	// Ajustar estilos según el tamaño de la terminal
-	headerFooterStyle = headerFooterStyle.Width(t.width - 4)
-	messageStyle = messageStyle.Width(t.width - 4)
+	// Ajustar estilos según el tamaño de la terminal con márgenes
+	contentWidth := t.width - 4
+	contentHeight := t.height - 6 // Dejamos espacio para header, footer y bordes
 
-	// Construye el header
+	if contentWidth < 0 {
+		contentWidth = 0
+	}
+	if contentHeight < 0 {
+		contentHeight = 0
+	}
+
+	headerFooterStyle = headerFooterStyle.Width(contentWidth)
+	messageStyle = messageStyle.Width(contentWidth)
+
+	// Construye el header con margen
 	header := borderStyle.
-		Width(t.width).
+		Width(contentWidth).
 		Render(
 			headerFooterStyle.
 				Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime)),
 		)
 
-	// Construye el footer
+	// Construye el footer con margen
 	footer := borderStyle.
-		Width(t.width).
+		Width(contentWidth).
 		Render(
 			headerFooterStyle.
 				Render(t.footer),
 		)
-
-	// Calcula la altura disponible para los mensajes
-	messageHeight := t.height - 4
-	if messageHeight < 0 {
-		messageHeight = 0
-	}
 
 	// Determina qué mensajes mostrar
 	start := 0
@@ -192,16 +196,22 @@ func (t Terminal) View() string {
 		content += messageStyle.Render("• "+t.messages[i]) + "\n"
 	}
 
-	// Construye la vista completa
-	s := lipgloss.JoinVertical(
-		lipgloss.Left,
-		header,
-		borderStyle.
-			Width(t.width).
-			Height(messageHeight).
-			Render(content),
-		footer,
-	)
+	// Construye la vista completa con márgenes
+	s := lipgloss.NewStyle().
+		Width(t.width).
+		Height(t.height).
+		Padding(1, 1). // Añadir márgenes
+		Render(
+			lipgloss.JoinVertical(
+				lipgloss.Left,
+				header,
+				borderStyle.
+					Width(contentWidth).
+					Height(contentHeight).
+					Render(content),
+				footer,
+			),
+		)
 
 	return s
 }
