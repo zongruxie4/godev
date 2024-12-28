@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"sync"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -77,13 +77,13 @@ func GodevStart() {
 
 	// Primero iniciar la terminal
 	go h.RunTerminal()
-	
+
 	// Dar un pequeño tiempo para que la terminal se inicialice
 	time.Sleep(500 * time.Millisecond)
-	
+
 	// Luego iniciar el programa
 	h.StartProgram()
-	
+
 	// Mantener el programa activo
 	select {}
 
