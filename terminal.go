@@ -156,15 +156,15 @@ func (t Terminal) View() string {
 	}
 
 	// Calcular dimensiones del contenido con márgenes adecuados
-	contentWidth := t.width - 4 // Margen horizontal reducido
-	contentHeight := t.height - 6 // Margen vertical reducido
+	contentWidth := t.width - 6 // Margen horizontal más amplio
+	contentHeight := t.height - 8 // Margen vertical más amplio
 
 	// Asegurar dimensiones mínimas
-	if contentWidth < 20 {
-		contentWidth = 20
+	if contentWidth < 40 {
+		contentWidth = 40
 	}
-	if contentHeight < 10 {
-		contentHeight = 10
+	if contentHeight < 15 {
+		contentHeight = 15
 	}
 
 	// Ajustar estilos de header y footer
@@ -226,7 +226,7 @@ func (t Terminal) View() string {
 	s := lipgloss.NewStyle().
 		Width(t.width).
 		Height(t.height).
-		Padding(1, 1). // Reducir márgenes externos
+		Padding(2, 2). // Aumentar márgenes externos
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,

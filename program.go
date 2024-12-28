@@ -75,7 +75,20 @@ func (h *handler) buildAndRun() (err error) {
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
 	// Construir el comando de compilación con el archivo correcto
-	h.Cmd = exec.Command("go", "build", "-o", path.Join(h.output_dir, h.output_name), h.main_file)
+	// Construir el comando de compilación con el archivo correcto
+	buildCmd := []string{"go", "build", "-o", path.Join(h.output_dir, h.output_name)}
+	
+	// Si el archivo está en otro directorio, cambiar al directorio primero
+	fileDir := path.Dir(h.main_file)
+	fileName := path.Base(h.main_file)
+	
+	if fileDir != "." {
+		buildCmd = append(buildCmd, fileName)
+		h.Cmd = exec.Command(buildCmd[0], buildCmd[1:]...)
+		h.Cmd.Dir = fileDir
+	} else {
+		h.Cmd = exec.Command(buildCmd[0], buildCmd[1:]...)
+	}
 	// h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", flags, "main.go")
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
@@ -151,13 +164,16 @@ func (h *handler) run() error {
 func (h handler) Write(p []byte) (n int, err error) {
 	msg := string(p)
 
-	// Agregar el mensaje con timestamp
-	timestamp := time.Now().Format("15:04:05")
-	formattedMsg := fmt.Sprintf("[%s] %s", timestamp, msg)
+	// Limpiar y formatear el mensaje
+	msg = strings.TrimSpace(msg)
+	if msg != "" {
+		// Agregar el mensaje con timestamp
+		timestamp := time.Now().Format("15:04:05")
+		formattedMsg := fmt.Sprintf("[%s] %s", timestamp, msg)
 
-	// Agregar el mensaje al terminal
-	if h.terminal != nil {
-		h.terminal.messages = append(h.terminal.messages, formattedMsg)
+		// Agregar el mensaje al terminal
+		if h.terminal != nil {
+			h.terminal.messages = append(h.terminal.messages, formattedMsg)
 
 		// Forzar actualización de la terminal
 		if h.tea != nil {
