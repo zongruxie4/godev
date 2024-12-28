@@ -75,22 +75,16 @@ func GodevStart() {
 	// var wg sync.WaitGroup
 	// wg.Add(2)
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	// Start the terminal UI
-	go func() {
-		defer wg.Done()
-		h.RunTerminal()
-	}()
-
-	// Start the program
-	go func() {
-		defer wg.Done()
-		h.StartProgram()
-	}()
-
-	// Esperar a que ambas goroutines terminen
-	wg.Wait()
+	// Primero iniciar la terminal
+	go h.RunTerminal()
+	
+	// Dar un pequeño tiempo para que la terminal se inicialice
+	time.Sleep(500 * time.Millisecond)
+	
+	// Luego iniciar el programa
+	h.StartProgram()
+	
+	// Mantener el programa activo
+	select {}
 
 }

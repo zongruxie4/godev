@@ -117,10 +117,18 @@ func (h *handler) run() error {
 }
 
 func (h handler) Write(p []byte) (n int, err error) {
-	h.terminal.messages = append(h.terminal.messages, string(p))
+	msg := string(p)
+	h.terminal.messages = append(h.terminal.messages, msg)
+	
+	// Forzar actualización de la terminal
 	if h.tea != nil {
-		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}}) // Forzar actualización
+		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+		time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
 	}
+	
+	// También imprimir en stdout para depuración
+	fmt.Print(msg)
+	
 	return len(p), nil
 }
 
