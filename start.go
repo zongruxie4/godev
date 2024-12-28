@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -81,7 +80,7 @@ func GodevStart() {
 	// Start the program
 	go h.StartProgram()
 
-	var app_started bool
+	// var app_started bool
 
 	// Mantener el programa activo
 	select {}
