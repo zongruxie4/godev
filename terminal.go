@@ -157,7 +157,7 @@ func (t Terminal) View() string {
 
 	// Calcular dimensiones del contenido
 	contentWidth := t.width - 4 // Margen horizontal
-	contentHeight := t.height - 4 // Margen vertical (2 para header, 2 para footer)
+	contentHeight := t.height - 6 // Margen vertical (2 para header, 2 para footer, 2 de espacio)
 
 	// Asegurar dimensiones mínimas
 	if contentWidth < 40 {
@@ -166,6 +166,11 @@ func (t Terminal) View() string {
 	if contentHeight < 10 {
 		contentHeight = 10
 	}
+
+	// Asegurar que el header tenga espacio
+	headerHeight := 1
+	footerHeight := 1
+	contentHeight = t.height - headerHeight - footerHeight - 2 // 2 de espacio adicional
 
 	// Construye el header
 	header := headerFooterStyle.
