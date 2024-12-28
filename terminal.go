@@ -98,6 +98,7 @@ func (t Terminal) View() string {
 		Width(t.width).
 		Render(
 			headerFooterStyle.
+				Width(t.width - 4). // Ajustar al ancho del borde
 				Render(fmt.Sprintf("GoDEV: %s", t.currentTime)),
 		)
 
@@ -106,6 +107,7 @@ func (t Terminal) View() string {
 		Width(t.width).
 		Render(
 			headerFooterStyle.
+				Width(t.width - 4). // Ajustar al ancho del borde
 				Render(t.footer),
 		)
 
