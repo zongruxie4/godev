@@ -155,15 +155,16 @@ func (t Terminal) View() string {
 		return "Terminal too small"
 	}
 
-	// Ajustar estilos según el tamaño de la terminal con márgenes más conservadores
-	contentWidth := t.width - 6 // Más margen horizontal
-	contentHeight := t.height - 8 // Más margen vertical
+	// Calcular dimensiones del contenido con márgenes adecuados
+	contentWidth := t.width - 4 // Margen horizontal reducido
+	contentHeight := t.height - 6 // Margen vertical reducido
 
-	if contentWidth < 0 {
-		contentWidth = 0
+	// Asegurar dimensiones mínimas
+	if contentWidth < 20 {
+		contentWidth = 20
 	}
-	if contentHeight < 0 {
-		contentHeight = 0
+	if contentHeight < 10 {
+		contentHeight = 10
 	}
 
 	// Ajustar estilos de header y footer
@@ -193,11 +194,14 @@ func (t Terminal) View() string {
 				Render(t.footer),
 		)
 
-	// Determina qué mensajes mostrar
+	// Determinar qué mensajes mostrar con scroll
 	start := 0
-	messageHeight := contentHeight - 2 // Ajusta este valor según sea necesario
+	messageHeight := contentHeight - 2 // Altura disponible para mensajes
 	if len(t.messages) > messageHeight {
 		start = len(t.messages) - messageHeight
+		if start < 0 {
+			start = 0
+		}
 	}
 
 	// Construye el contenido de los mensajes
@@ -211,20 +215,23 @@ func (t Terminal) View() string {
 		}
 	}
 
-	// Construye la vista completa con márgenes más grandes
+	// Construir el área de contenido con scroll
+	contentArea := borderStyle.
+		Width(contentWidth).
+		Height(contentHeight).
+		Padding(0, 1). // Reducir padding interno
+		Render(content)
+
+	// Construir la vista completa con márgenes ajustados
 	s := lipgloss.NewStyle().
 		Width(t.width).
 		Height(t.height).
-		Padding(2, 2). // Aumentar márgenes
+		Padding(1, 1). // Reducir márgenes externos
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
 				header,
-				borderStyle.
-					Width(contentWidth).
-					Height(contentHeight).
-					Padding(1, 1). // Añadir padding interno
-					Render(content),
+				contentArea,
 				footer,
 			),
 		)

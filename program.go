@@ -130,8 +130,20 @@ func (h *handler) run() error {
 		return errors.Join(this, err)
 	}
 
-	go io.Copy(h, stderr)
-	go io.Copy(h, stdout)
+	// Capturar salida estándar y de error
+	go func() {
+		_, err := io.Copy(h, stdout)
+		if err != nil {
+			h.terminal.PrintError("Error capturing stdout:", err.Error())
+		}
+	}()
+
+	go func() {
+		_, err := io.Copy(h, stderr)
+		if err != nil {
+			h.terminal.PrintError("Error capturing stderr:", err.Error())
+		}
+	}()
 
 	return nil
 }
