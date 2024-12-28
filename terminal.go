@@ -17,6 +17,7 @@ type Terminal struct {
 	tickCount   int
 	width       int
 	height      int
+	tea         *tea.Program
 }
 
 // Estilos para los mensajes de colores
@@ -24,11 +25,11 @@ var (
 	okStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("32")) // Verde
 	errStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("31")) // Rojo
+			Foreground(lipgloss.Color("31")) // Rojo
 	warnStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("33")) // Amarillo
+			Foreground(lipgloss.Color("33")) // Amarillo
 	infoStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("36")) // Cian
+			Foreground(lipgloss.Color("36")) // Cian
 )
 
 // Msg representa un mensaje de actualización
@@ -207,7 +208,6 @@ func (t Terminal) View() string {
 
 // inicia una nueva terminal
 func (h *handler) NewTerminal() {
-
 	h.terminal = &Terminal{
 		messages:    make([]string, 0),
 		footer:      "Starting...",
@@ -216,13 +216,12 @@ func (h *handler) NewTerminal() {
 	}
 
 	options := []tea.ProgramOption{tea.WithAltScreen()}
-	h.tea = tea.NewProgram(h.terminal, options...)
-
+	h.terminal.tea = tea.NewProgram(h.terminal, options...)
 }
 
 // inicia la aplicación de terminal
 func (h *handler) RunTerminal() {
-	if _, err := h.tea.Run(); err != nil {
+	if _, err := h.terminal.tea.Run(); err != nil {
 		fmt.Printf("Error running the application: %v\n", err)
 		os.Exit(1)
 	}
