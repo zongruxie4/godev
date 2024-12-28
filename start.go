@@ -75,13 +75,17 @@ func GodevStart() {
 	// var wg sync.WaitGroup
 	// wg.Add(2)
 
-	// Primero iniciar la terminal
-	go h.RunTerminal()
+	// Iniciar la terminal en una goroutine
+	terminalReady := make(chan bool)
+	go func() {
+		h.RunTerminal()
+		terminalReady <- true
+	}()
 
-	// Dar un pequeño tiempo para que la terminal se inicialice
-	time.Sleep(500 * time.Millisecond)
+	// Esperar a que la terminal esté lista
+	<-terminalReady
 
-	// Luego iniciar el programa
+	// Iniciar el programa
 	h.StartProgram()
 
 	// Mantener el programa activo
