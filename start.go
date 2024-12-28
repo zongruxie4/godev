@@ -78,36 +78,22 @@ func GodevStart() {
 	// var wg sync.WaitGroup
 	// wg.Add(2)
 
+	// Start the terminal UI
+	go h.RunTerminal()
+
+	// Start the program
 	go h.StartProgram()
 
 	var app_started bool
 
 	for {
-
 		select {
-
 		case message := <-h.ProgramMessages:
+			// Send messages to terminal
+			h.terminal.messages = append(h.terminal.messages, message)
 
-			if strings.Contains(strings.ToLower(message), "err") {
-				fmt.Println(message)
-			} else {
-				fmt.Println(message)
-
-				// go d.DevBrowserSTART(&wg)
-
-				// go d.DevFileWatcherSTART(&wg)
-
-				if !app_started {
-
-					// var wg sync.WaitGroup
-					// wg.Add(2)
-
-					// go h.DevBrowserSTART(&wg)
-
-					// go h.DevFileWatcherSTART(&wg)
-
-					app_started = true
-				}
+			if !app_started && !strings.Contains(strings.ToLower(message), "err") {
+				app_started = true
 			}
 
 			// case <-h.Interrupt:
