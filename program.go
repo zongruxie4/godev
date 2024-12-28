@@ -189,12 +189,18 @@ func (h handler) Write(p []byte) (n int, err error) {
 }
 
 func (h *handler) StopProgram() error {
+	if h.Cmd == nil || h.Cmd.Process == nil {
+		return errors.New("no running process to stop")
+	}
+
 	pid := h.Cmd.Process.Pid
 	h.terminal.PrintWarning(fmt.Sprintf("Stopping app PID %d", pid))
 
 	// Enviar mensaje de cierre directamente al terminal
-	h.terminal.messages = append(h.terminal.messages,
-		fmt.Sprintf("%s: Stopping program...", time.Now().Format("15:04:05")))
+	if h.terminal != nil {
+		h.terminal.messages = append(h.terminal.messages,
+			fmt.Sprintf("%s: Stopping program...", time.Now().Format("15:04:05")))
+	}
 
 	// Forzar actualización de la terminal
 	if h.tea != nil {
