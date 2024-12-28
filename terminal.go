@@ -81,7 +81,8 @@ var borderStyle = lipgloss.NewStyle().
 var headerFooterStyle = lipgloss.NewStyle().
 	Background(lipgloss.Color("7")). // Gris claro de fondo
 	Foreground(lipgloss.Color("0")). // Texto negro
-	Padding(0, 1)
+	Padding(0, 1).
+	Width(t.width - 4) // Ajustar al ancho del borde
 
 // View renderiza la interfaz
 func (t Terminal) View() string {
@@ -90,14 +91,20 @@ func (t Terminal) View() string {
 	}
 
 	// Construye el header
-	header := headerFooterStyle.
-		Width(t.width - 2). // Ajustar al ancho total
-		Render(fmt.Sprintf("GoDEV: %s", t.currentTime))
+	header := borderStyle.
+		Width(t.width).
+		Render(
+			headerFooterStyle.
+				Render(fmt.Sprintf("GoDEV: %s", t.currentTime)),
+		)
 
 	// Construye el footer
-	footer := headerFooterStyle.
-		Width(t.width - 2). // Ajustar al ancho total
-		Render(t.footer)
+	footer := borderStyle.
+		Width(t.width).
+		Render(
+			headerFooterStyle.
+				Render(t.footer),
+		)
 
 	// Calcula la altura disponible para los mensajes
 	// Restamos 4 líneas: 1 para header, 1 para su borde, 1 para footer, 1 para su borde
@@ -128,16 +135,15 @@ func (t Terminal) View() string {
 	}
 
 	// Construye la vista completa
-	s := borderStyle.
-		Width(t.width).
-		Render(
-			header + "\n" +
-			borderStyle.
-				Width(t.width - 2).
-				Height(messageHeight).
-				Render(content) + "\n" +
-			footer,
-		)
+	s := lipgloss.JoinVertical(
+		lipgloss.Left,
+		header,
+		borderStyle.
+			Width(t.width).
+			Height(messageHeight).
+			Render(content),
+		footer,
+	)
 
 	return s
 }
