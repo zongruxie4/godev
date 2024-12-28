@@ -118,7 +118,12 @@ func (h *handler) run() error {
 
 func (h handler) Write(p []byte) (n int, err error) {
 	msg := string(p)
-	h.terminal.messages = append(h.terminal.messages, msg)
+	
+	// Agregar el mensaje con timestamp
+	timestamp := time.Now().Format("15:04:05")
+	formattedMsg := fmt.Sprintf("[%s] %s", timestamp, msg)
+	
+	h.terminal.messages = append(h.terminal.messages, formattedMsg)
 	
 	// Forzar actualización de la terminal
 	if h.tea != nil {

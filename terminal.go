@@ -107,15 +107,29 @@ func (t Terminal) View() string {
 		start = len(t.messages) - messageHeight
 	}
 
+	// Crea un área de contenido para los mensajes
+	content := ""
+	
 	// Muestra los últimos mensajes que caben en la pantalla
 	for i := start; i < len(t.messages); i++ {
-		s += lipgloss.NewStyle().Width(t.width-2).Render(t.messages[i]) + "\n"
+		// Aplica estilo a cada mensaje
+		msgStyle := lipgloss.NewStyle().
+			Width(t.width - 4). // Ancho ajustado
+			PaddingLeft(2).     // Margen izquierdo
+			Foreground(lipgloss.Color("15")) // Color blanco
+		content += msgStyle.Render(t.messages[i]) + "\n"
 	}
 
 	// Rellena el espacio restante con líneas vacías si hay menos mensajes que la altura disponible
 	for i := len(t.messages); i < messageHeight; i++ {
-		s += "\n"
+		content += "\n"
 	}
+
+	// Agrega el contenido dentro del área principal
+	s += borderStyle.
+		Width(t.width-2).
+		Height(messageHeight).
+		Render(content)
 
 	// Agrega el footer con el mismo estilo que el header
 	footer := headerFooterStyle.Width(t.width - 4).Render(t.footer)
