@@ -175,14 +175,15 @@ func (h handler) Write(p []byte) (n int, err error) {
 		if h.terminal != nil {
 			h.terminal.messages = append(h.terminal.messages, formattedMsg)
 
-		// Forzar actualización de la terminal
-		if h.tea != nil {
-			h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
-			time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
+			// Forzar actualización de la terminal
+			if h.tea != nil {
+				h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+				time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
+			}
+		} else {
+			// Si no hay terminal, imprimir directamente
+			fmt.Print(formattedMsg)
 		}
-	} else {
-		// Si no hay terminal, imprimir directamente
-		fmt.Print(formattedMsg)
 	}
 
 	return len(p), nil
