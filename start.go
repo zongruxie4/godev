@@ -19,8 +19,7 @@ type handler struct {
 	*exec.Cmd
 	// Scanner   *bufio.Scanner
 	// Interrupt              chan os.Signal
-	ProgramMessages chan string
-	run_arguments   []string
+	run_arguments []string
 
 	terminal *Terminal
 	tea      *tea.Program
@@ -65,9 +64,7 @@ func GodevStart() {
 	h := &handler{
 		app_path: path.Join(outputDir, outputName+exe_ext),
 		Cmd:      &exec.Cmd{},
-		// Interrupt:              make(chan os.Signal, 1),
-		ProgramMessages: make(chan string),
-		// terminal:               NewTerminal(),
+		// Interrupt: make(chan os.Signal, 1),
 	}
 
 	h.NewTerminal()
@@ -86,29 +83,7 @@ func GodevStart() {
 
 	var app_started bool
 
-	for {
-		select {
-		case message := <-h.ProgramMessages:
-			// Send messages to terminal
-			h.terminal.messages = append(h.terminal.messages, message)
-
-			if !app_started && !strings.Contains(strings.ToLower(message), "err") {
-				app_started = true
-			}
-
-			// case <-h.Interrupt:
-			// 	// Detenga el navegador y cierre la aplicación cuando se recibe una señal de interrupción
-			// 	// if er := chromedp.Cancel(d.Context); er != nil {
-			// 	// 	log.Println("al cerrar browser: " + er.Error())
-			// 	// }
-			// 	err := h.StopProgram()
-			// 	if err != nil {
-			// 		log.Println("al detener app: " + err.Error())
-			// 	}
-
-			// 	os.Exit(0)
-		}
-
-	}
+	// Mantener el programa activo
+	select {}
 
 }

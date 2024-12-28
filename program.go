@@ -117,8 +117,10 @@ func (h *handler) run() error {
 }
 
 func (h handler) Write(p []byte) (n int, err error) {
-	h.ProgramMessages <- string(p)
-	// fmt.Println(string(p))
+	h.terminal.messages = append(h.terminal.messages, string(p))
+	if h.tea != nil {
+		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}}) // Forzar actualización
+	}
 	return len(p), nil
 }
 
@@ -126,16 +128,14 @@ func (h *handler) StopProgram() error {
 	pid := h.Cmd.Process.Pid
 	PrintWarning(fmt.Sprintf("stop app PID %d\n", pid))
 
-	// Enviar mensaje de cierre
-	h.ProgramMessages <- fmt.Sprintf("%s: Stopping program...", time.Now().Format("15:04:05"))
-
-	// Dar tiempo para que los mensajes se procesen
-	time.Sleep(500 * time.Millisecond)
-
+	// Enviar mensaje de cierre directamente al terminal
+	h.terminal.messages = append(h.terminal.messages, 
+		fmt.Sprintf("%s: Stopping program...", time.Now().Format("15:04:05")))
+	
 	// Forzar actualización de la terminal
 	if h.tea != nil {
 		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond) // Dar tiempo para mostrar el mensaje
 	}
 
 	return h.Cmd.Process.Kill()
