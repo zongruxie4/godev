@@ -89,12 +89,19 @@ func (t Terminal) View() string {
 		return "Terminal too small"
 	}
 
-	// Construye la vista principal con ancho limitado
-	header := headerFooterStyle.Width(t.width - 4).Render(fmt.Sprintf("GoDEV: %s", t.currentTime))
-	s := "\n" + borderStyle.Width(t.width-2).Render(header) + "\n\n"
+	// Construye el header
+	header := headerFooterStyle.
+		Width(t.width - 2). // Ajustar al ancho total
+		Render(fmt.Sprintf("GoDEV: %s", t.currentTime))
+
+	// Construye el footer
+	footer := headerFooterStyle.
+		Width(t.width - 2). // Ajustar al ancho total
+		Render(t.footer)
 
 	// Calcula la altura disponible para los mensajes
-	messageHeight := t.height - 8 // Ajustado para dar más espacio al header
+	// Restamos 4 líneas: 1 para header, 1 para su borde, 1 para footer, 1 para su borde
+	messageHeight := t.height - 4
 
 	// Asegura que messageHeight no sea negativo
 	if messageHeight < 0 {
@@ -120,20 +127,17 @@ func (t Terminal) View() string {
 		content += msgStyle.Render(t.messages[i]) + "\n"
 	}
 
-	// Rellena el espacio restante con líneas vacías si hay menos mensajes que la altura disponible
-	for i := len(t.messages); i < messageHeight; i++ {
-		content += "\n"
-	}
-
-	// Agrega el contenido dentro del área principal
-	s += borderStyle.
-		Width(t.width-2).
-		Height(messageHeight).
-		Render(content)
-
-	// Agrega el footer con el mismo estilo que el header
-	footer := headerFooterStyle.Width(t.width - 4).Render(t.footer)
-	s += "\n" + borderStyle.Width(t.width-2).Render(footer)
+	// Construye la vista completa
+	s := borderStyle.
+		Width(t.width).
+		Render(
+			header + "\n" +
+			borderStyle.
+				Width(t.width - 2).
+				Height(messageHeight).
+				Render(content) + "\n" +
+			footer,
+		)
 
 	return s
 }
