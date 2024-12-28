@@ -186,6 +186,7 @@ func (t Terminal) View() string {
 
 	// Determina qué mensajes mostrar
 	start := 0
+	messageHeight := contentHeight - 2 // Ajusta este valor según sea necesario
 	if len(t.messages) > messageHeight {
 		start = len(t.messages) - messageHeight
 	}

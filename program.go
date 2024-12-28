@@ -18,9 +18,9 @@ func (h *handler) StartProgram() {
 	}
 
 	// Agregar mensaje inicial
-	h.terminal.messages = append(h.terminal.messages, 
+	h.terminal.messages = append(h.terminal.messages,
 		fmt.Sprintf("%s: Starting program...", time.Now().Format("15:04:05")))
-	
+
 	if h.tea != nil {
 		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
 		time.Sleep(100 * time.Millisecond)
@@ -29,7 +29,7 @@ func (h *handler) StartProgram() {
 	// BUILD AND RUN
 	err := h.buildAndRun()
 	if err != nil {
-		h.terminal.messages = append(h.terminal.messages, 
+		h.terminal.messages = append(h.terminal.messages,
 			fmt.Sprintf("%s: Error - %s", time.Now().Format("15:04:05"), err.Error()))
 		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
 		time.Sleep(100 * time.Millisecond)
@@ -70,7 +70,7 @@ func (h *handler) buildAndRun() error {
 
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
-	h.Cmd = exec.Command("go", "build", "-o", h.app_path, mainFile)
+	h.Cmd = exec.Command("go", "build", "-o", h.app_path)
 	// h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", flags, "main.go")
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
@@ -133,21 +133,21 @@ func (h *handler) run() error {
 
 func (h handler) Write(p []byte) (n int, err error) {
 	msg := string(p)
-	
+
 	// Agregar el mensaje con timestamp
 	timestamp := time.Now().Format("15:04:05")
 	formattedMsg := fmt.Sprintf("[%s] %s", timestamp, msg)
-	
+
 	h.terminal.messages = append(h.terminal.messages, formattedMsg)
-	
+
 	// Forzar actualización de la terminal
 	if h.tea != nil {
 		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
 		time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
 	}
-	
+
 	// No imprimir directamente a stdout
-	
+
 	return len(p), nil
 }
 
@@ -156,9 +156,9 @@ func (h *handler) StopProgram() error {
 	h.terminal.PrintWarning(fmt.Sprintf("Stopping app PID %d", pid))
 
 	// Enviar mensaje de cierre directamente al terminal
-	h.terminal.messages = append(h.terminal.messages, 
+	h.terminal.messages = append(h.terminal.messages,
 		fmt.Sprintf("%s: Stopping program...", time.Now().Format("15:04:05")))
-	
+
 	// Forzar actualización de la terminal
 	if h.tea != nil {
 		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})

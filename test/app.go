@@ -1,9 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func Main() {
-
-	fmt.Println("Hello, World!")
-
+	totalTime := 30
+	for i := 0; i < totalTime; i += 3 {
+		fmt.Println("Hello, World!", i)
+		time.Sleep(3 * time.Second)
+	}
+	fmt.Println("Finalizado")
 }
