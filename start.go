@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -74,15 +75,22 @@ func GodevStart() {
 	// var wg sync.WaitGroup
 	// wg.Add(2)
 
+	var wg sync.WaitGroup
+	wg.Add(2)
+
 	// Start the terminal UI
-	go h.RunTerminal()
+	go func() {
+		defer wg.Done()
+		h.RunTerminal()
+	}()
 
 	// Start the program
-	go h.StartProgram()
+	go func() {
+		defer wg.Done()
+		h.StartProgram()
+	}()
 
-	// var app_started bool
-
-	// Mantener el programa activo
-	select {}
+	// Esperar a que ambas goroutines terminen
+	wg.Wait()
 
 }

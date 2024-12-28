@@ -141,20 +141,8 @@ func (h *handler) NewTerminal() {
 
 // inicia la aplicación de terminal
 func (h *handler) RunTerminal() {
-	// Canal para sincronizar la salida
-	done := make(chan struct{})
-
-	go func() {
-		if _, err := h.tea.Run(); err != nil {
-			fmt.Printf("Error running the application: %v\n", err)
-			os.Exit(1)
-		}
-		close(done)
-	}()
-
-	// Esperar a que la terminal esté lista
-	time.Sleep(500 * time.Millisecond)
-
-	// Mantener la terminal activa hasta que se cierre
-	<-done
+	if _, err := h.tea.Run(); err != nil {
+		fmt.Printf("Error running the application: %v\n", err)
+		os.Exit(1)
+	}
 }
