@@ -13,7 +13,9 @@ import (
 )
 
 type handler struct {
-	app_path string //ej: build/app.exe
+	main_file  string // ej: test/app.go
+	output_name string // ej: app
+	output_dir  string // ej: build
 
 	*exec.Cmd
 	// Scanner   *bufio.Scanner
@@ -64,8 +66,10 @@ func GodevStart() {
 	}
 
 	h := &handler{
-		app_path: path.Join(outputDir, outputName+exe_ext),
-		Cmd:      &exec.Cmd{},
+		main_file:    mainFile,
+		output_name:  outputName,
+		output_dir:   outputDir,
+		Cmd:          &exec.Cmd{},
 		// Interrupt: make(chan os.Signal, 1),
 		run_arguments: []string{}, // Inicializar sin argumentos
 	}

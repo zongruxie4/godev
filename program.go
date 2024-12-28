@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -57,24 +58,23 @@ func (h *handler) Restart(event_name string) error {
 
 func (h *handler) buildAndRun() error {
 	var this = errors.New("buildAndRun")
-	h.terminal.PrintWarning(fmt.Sprintf("Building and Running %s...", h.app_path))
+	exePath := path.Join(h.output_dir, h.output_name)
+	if runtime.GOOS == "windows" {
+		exePath += ".exe"
+	}
+
+	h.terminal.PrintWarning(fmt.Sprintf("Building and Running %s...", exePath))
 
 	// Eliminar el ejecutable anterior si existe
-	if _, err := os.Stat(h.app_path); err == nil {
-		err := os.Remove(h.app_path)
+	if _, err := os.Stat(exePath); err == nil {
+		err := os.Remove(exePath)
 		if err != nil {
 			return errors.Join(this, err)
 		}
 	}
-	// flags, err := ldflags.Add(
-	// 	d.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
-	// // sessionbackend.AddPrivateSecretKeySigning(),
-	// )
-
-	// var ldflags = `-X 'main.version=` + tag + `'`
 
 	// Construir el comando de compilación con el archivo correcto
-	h.Cmd = exec.Command("go", "build", "-o", h.app_path, mainFile)
+	h.Cmd = exec.Command("go", "build", "-o", exePath, h.main_file)
 	// h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", flags, "main.go")
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
@@ -112,7 +112,11 @@ func (h *handler) buildAndRun() error {
 func (h *handler) run() error {
 	var this = errors.New("run")
 
-	h.Cmd = exec.Command("./"+h.app_path, h.run_arguments...)
+	exePath := path.Join(h.output_dir, h.output_name)
+	if runtime.GOOS == "windows" {
+		exePath += ".exe"
+	}
+	h.Cmd = exec.Command("./"+exePath, h.run_arguments...)
 
 	stderr, err := h.Cmd.StderrPipe()
 	if err != nil {
