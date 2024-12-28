@@ -64,6 +64,7 @@ func GodevStart() {
 		app_path: path.Join(outputDir, outputName+exe_ext),
 		Cmd:      &exec.Cmd{},
 		// Interrupt: make(chan os.Signal, 1),
+		run_arguments: os.Args[1:], // Pasar los argumentos de la línea de comandos
 	}
 
 	h.NewTerminal()

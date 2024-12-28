@@ -138,15 +138,19 @@ func (h handler) Write(p []byte) (n int, err error) {
 	timestamp := time.Now().Format("15:04:05")
 	formattedMsg := fmt.Sprintf("[%s] %s", timestamp, msg)
 
-	h.terminal.messages = append(h.terminal.messages, formattedMsg)
-
-	// Forzar actualización de la terminal
-	if h.tea != nil {
-		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
-		time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
+	// Agregar el mensaje al terminal
+	if h.terminal != nil {
+		h.terminal.messages = append(h.terminal.messages, formattedMsg)
+		
+		// Forzar actualización de la terminal
+		if h.tea != nil {
+			h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+			time.Sleep(100 * time.Millisecond) // Dar tiempo para mostrar el mensaje
+		}
+	} else {
+		// Si no hay terminal, imprimir directamente
+		fmt.Print(formattedMsg)
 	}
-
-	// No imprimir directamente a stdout
 
 	return len(p), nil
 }

@@ -3,6 +3,7 @@ package godev
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -202,7 +203,12 @@ func (t Terminal) View() string {
 	// Construye el contenido de los mensajes
 	content := ""
 	for i := start; i < len(t.messages); i++ {
-		content += messageStyle.Render("• "+t.messages[i]) + "\n"
+		msg := t.messages[i]
+		// Eliminar saltos de línea adicionales para evitar espacios vacíos
+		msg = strings.TrimSpace(msg)
+		if msg != "" {
+			content += messageStyle.Render("• "+msg) + "\n"
+		}
 	}
 
 	// Construye la vista completa con márgenes más grandes
