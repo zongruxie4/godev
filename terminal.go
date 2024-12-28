@@ -83,8 +83,8 @@ var headerFooterStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("0")). // Texto negro
 	Padding(0, 1)
 
-func (t *Terminal) updateHeaderFooterStyle() {
-	headerFooterStyle = headerFooterStyle.Width(t.width - 4) // Ajustar al ancho del borde
+func (t *Terminal) getHeaderFooterStyle() lipgloss.Style {
+	return headerFooterStyle.Width(t.width - 4) // Ajustar al ancho del borde
 }
 
 // View renderiza la interfaz
@@ -97,8 +97,7 @@ func (t Terminal) View() string {
 	header := borderStyle.
 		Width(t.width).
 		Render(
-			headerFooterStyle.
-				Width(t.width - 4). // Ajustar al ancho del borde
+			t.getHeaderFooterStyle().
 				Render(fmt.Sprintf("GoDEV: %s", t.currentTime)),
 		)
 
@@ -106,8 +105,7 @@ func (t Terminal) View() string {
 	footer := borderStyle.
 		Width(t.width).
 		Render(
-			headerFooterStyle.
-				Width(t.width - 4). // Ajustar al ancho del borde
+			t.getHeaderFooterStyle().
 				Render(t.footer),
 		)
 
