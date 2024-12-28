@@ -6,6 +6,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func (h *handler) StartProgram() {
