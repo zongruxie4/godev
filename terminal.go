@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -144,8 +145,9 @@ func (t *Terminal) joinMessages(messages ...string) string {
 
 func (t *Terminal) forceUpdate() {
 	if t.tea != nil {
+		// Enviar mensaje de actualización
 		t.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Aumentar el tiempo para asegurar la actualización
 	}
 }
 
@@ -243,7 +245,8 @@ func (h *handler) NewTerminal() {
 }
 
 // inicia la aplicación de terminal
-func (h *handler) RunTerminal() {
+func (h *handler) RunTerminal(wg *sync.WaitGroup) {
+	defer wg.Done()
 	if _, err := h.terminal.tea.Run(); err != nil {
 		fmt.Printf("Error running the application: %v\n", err)
 		os.Exit(1)

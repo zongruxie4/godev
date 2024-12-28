@@ -33,26 +33,26 @@ func print(message string, options ...string) {
 	}
 }
 
-func PrintOK(messages ...string) {
+func PrintOK(messages ...any) {
 	print(joinMessages(messages...), "ok")
 }
 
-func PrintWarning(messages ...string) {
-
+func PrintWarning(messages ...any) {
 	print(joinMessages(messages...), "warn")
 }
-func PrintError(messages ...string) {
+
+func PrintError(messages ...any) {
 	print(joinMessages(messages...), "err")
 }
 
-func PrintInfo(messages ...string) {
+func PrintInfo(messages ...any) {
 	print(joinMessages(messages...), "info")
 }
 
-func joinMessages(messages ...string) (message string) {
+func joinMessages(messages ...any) (message string) {
 	var space string
 	for _, m := range messages {
-		message += space + m
+		message += space + fmt.Sprint(m)
 		space = " "
 	}
 	return

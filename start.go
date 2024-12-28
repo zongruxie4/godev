@@ -8,14 +8,16 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type handler struct {
-	main_file   string // ej: test/app.go
-	output_name string // ej: app
-	output_dir  string // ej: build
+	main_file    string // ej: test/app.go
+	output_name  string // ej: app
+	output_dir   string // ej: build
+	out_app_path string // ej: built/app.exe
 
 	*exec.Cmd
 	// Scanner   *bufio.Scanner
@@ -66,11 +68,11 @@ func GodevStart() {
 	}
 
 	h := &handler{
-		main_file:   mainFile,
-		output_name: outputName + exe_ext,
-		output_dir:  outputDir,
-		Cmd:         &exec.Cmd{},
-		// Interrupt: make(chan os.Signal, 1),
+		main_file:     mainFile,
+		output_name:   outputName + exe_ext,
+		output_dir:    outputDir,
+		out_app_path:  path.Join(outputDir, outputName+exe_ext),
+		Cmd:           &exec.Cmd{},
 		run_arguments: []string{}, // Inicializar sin argumentos
 	}
 
@@ -79,21 +81,16 @@ func GodevStart() {
 	// Cree un canal para recibir señales de interrupción
 	// signal.Notify(h.Interrupt, os.Interrupt, syscall.SIGTERM)
 
-	// var wg sync.WaitGroup
-	// wg.Add(2)
+	var wg sync.WaitGroup
+	wg.Add(2)
 
 	// Iniciar la terminal en una goroutine
-	terminalReady := make(chan bool)
-	go func() {
-		h.RunTerminal()
-		terminalReady <- true
-	}()
+	go h.RunTerminal(&wg)
 
 	// Esperar a que la terminal esté lista
-	<-terminalReady
-
 	// Iniciar el programa
-	h.StartProgram()
+	go h.StartProgram(&wg)
+	wg.Wait()
 
 	// Mantener el programa activo
 	select {}
