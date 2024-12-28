@@ -84,6 +84,9 @@ var headerFooterStyle = lipgloss.NewStyle().
 	Padding(0, 1)
 
 func (t *Terminal) getHeaderFooterStyle() lipgloss.Style {
+	if t == nil || t.width == 0 {
+		return headerFooterStyle.Width(80 - 4) // Ancho por defecto
+	}
 	return headerFooterStyle.Width(t.width - 4) // Ajustar al ancho del borde
 }
 
@@ -94,8 +97,14 @@ func (t Terminal) View() string {
 	}
 
 	// Construye el header
+	// Usar ancho por defecto si t.width es 0
+	width := t.width
+	if width == 0 {
+		width = 80
+	}
+
 	header := borderStyle.
-		Width(t.width).
+		Width(width).
 		Render(
 			t.getHeaderFooterStyle().
 				Render(fmt.Sprintf("GoDEV: %s", t.currentTime)),
@@ -103,7 +112,7 @@ func (t Terminal) View() string {
 
 	// Construye el footer
 	footer := borderStyle.
-		Width(t.width).
+		Width(width).
 		Render(
 			t.getHeaderFooterStyle().
 				Render(t.footer),
