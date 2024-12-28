@@ -157,8 +157,15 @@ func (t Terminal) View() string {
 
 	// Calcular dimensiones del contenido
 	contentWidth := t.width - 4 // Margen horizontal
-	contentHeight := t.height - 6 // Margen vertical (2 para header, 2 para footer, 2 de espacio)
-
+	
+	// Reservar espacio fijo para header y footer
+	headerHeight := 1
+	footerHeight := 1
+	spacing := 4 // Más espacio entre elementos
+	
+	// Calcular altura del contenido asegurando que el header siempre sea visible
+	contentHeight := t.height - headerHeight - footerHeight - spacing
+	
 	// Asegurar dimensiones mínimas
 	if contentWidth < 40 {
 		contentWidth = 40
@@ -166,11 +173,11 @@ func (t Terminal) View() string {
 	if contentHeight < 10 {
 		contentHeight = 10
 	}
-
-	// Asegurar que el header tenga espacio
-	headerHeight := 1
-	footerHeight := 1
-	contentHeight = t.height - headerHeight - footerHeight - 2 // 2 de espacio adicional
+	
+	// Asegurar que el header siempre tenga espacio
+	if contentHeight >= t.height - headerHeight {
+		contentHeight = t.height - headerHeight - spacing
+	}
 
 	// Construye el header
 	header := headerFooterStyle.
@@ -213,16 +220,30 @@ func (t Terminal) View() string {
 		Height(contentHeight).
 		Render(content)
 
-	// Construir la vista completa con tamaño fijo para header y footer
+	// Construir la vista completa con header fijo
 	s := lipgloss.NewStyle().
 		Width(t.width).
 		Height(t.height).
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
-				header,
-				contentArea,
-				footer,
+				// Header fijo
+				lipgloss.NewStyle().
+					Width(t.width).
+					Height(headerHeight).
+					Render(header),
+				// Contenido con scroll
+				lipgloss.NewStyle().
+					Width(contentWidth).
+					Height(contentHeight).
+					PaddingTop(1).
+					Render(contentArea),
+				// Footer
+				lipgloss.NewStyle().
+					Width(t.width).
+					Height(footerHeight).
+					PaddingTop(1).
+					Render(footer),
 			),
 		)
 
