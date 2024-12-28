@@ -81,8 +81,11 @@ var borderStyle = lipgloss.NewStyle().
 var headerFooterStyle = lipgloss.NewStyle().
 	Background(lipgloss.Color("7")). // Gris claro de fondo
 	Foreground(lipgloss.Color("0")). // Texto negro
-	Padding(0, 1).
-	Width(t.width - 4) // Ajustar al ancho del borde
+	Padding(0, 1)
+
+func (t *Terminal) updateHeaderFooterStyle() {
+	headerFooterStyle = headerFooterStyle.Width(t.width - 4) // Ajustar al ancho del borde
+}
 
 // View renderiza la interfaz
 func (t Terminal) View() string {
@@ -123,13 +126,13 @@ func (t Terminal) View() string {
 
 	// Crea un área de contenido para los mensajes
 	content := ""
-	
+
 	// Muestra los últimos mensajes que caben en la pantalla
 	for i := start; i < len(t.messages); i++ {
 		// Aplica estilo a cada mensaje
 		msgStyle := lipgloss.NewStyle().
-			Width(t.width - 4). // Ancho ajustado
-			PaddingLeft(2).     // Margen izquierdo
+			Width(t.width - 4).              // Ancho ajustado
+			PaddingLeft(2).                  // Margen izquierdo
 			Foreground(lipgloss.Color("15")) // Color blanco
 		content += msgStyle.Render(t.messages[i]) + "\n"
 	}
