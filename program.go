@@ -59,9 +59,12 @@ func (h *handler) buildAndRun() error {
 	var this = errors.New("buildAndRun")
 	h.terminal.PrintWarning(fmt.Sprintf("Building and Running %s...", h.app_path))
 
-	err := os.Remove(h.app_path)
-	if err != nil {
-		return errors.Join(this, err)
+	// Eliminar el ejecutable anterior si existe
+	if _, err := os.Stat(h.app_path); err == nil {
+		err := os.Remove(h.app_path)
+		if err != nil {
+			return errors.Join(this, err)
+		}
 	}
 	// flags, err := ldflags.Add(
 	// 	d.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
@@ -70,7 +73,8 @@ func (h *handler) buildAndRun() error {
 
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
-	h.Cmd = exec.Command("go", "build", "-o", h.app_path)
+	// Construir el comando de compilación con el archivo correcto
+	h.Cmd = exec.Command("go", "build", "-o", h.app_path, mainFile)
 	// h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", flags, "main.go")
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 

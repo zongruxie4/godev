@@ -35,20 +35,23 @@ func GodevStart() {
 		os.Exit(1)
 	}
 
-	mainFile := os.Args[1]
-	outputName := "app"
-	outputDir := "build"
-
-	if len(os.Args) > 1 && os.Args[1] != "" {
+	// Obtener el archivo principal a compilar
+	mainFile := "cmd/main.go" // Valor por defecto
+	if len(os.Args) > 1 {
 		mainFile = os.Args[1]
 	}
 
-	if len(os.Args) > 2 && os.Args[2] != "" {
-		outputName = os.Args[2]
+	// Verificar si el archivo existe
+	if _, err := os.Stat(mainFile); os.IsNotExist(err) {
+		log.Fatalf("Archivo principal no encontrado: %s", mainFile)
 	}
 
-	if len(os.Args) > 3 && os.Args[3] != "" {
-		outputDir = os.Args[3]
+	outputName := "app"
+	outputDir := "build"
+
+	// Crear el directorio de salida si no existe
+	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+		log.Fatalf("No se pudo crear el directorio de salida: %v", err)
 	}
 
 	if _, err := os.Stat(mainFile); errors.Is(err, os.ErrNotExist) {
@@ -64,7 +67,7 @@ func GodevStart() {
 		app_path: path.Join(outputDir, outputName+exe_ext),
 		Cmd:      &exec.Cmd{},
 		// Interrupt: make(chan os.Signal, 1),
-		run_arguments: os.Args[1:], // Pasar los argumentos de la línea de comandos
+		run_arguments: []string{}, // Inicializar sin argumentos
 	}
 
 	h.NewTerminal()
