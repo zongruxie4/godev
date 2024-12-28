@@ -35,7 +35,7 @@ func GodevStart() {
 		os.Exit(1)
 	}
 
-	mainFile := "cmd/main.go"
+	mainFile := os.Args[1]
 	outputName := "app"
 	outputDir := "build"
 

@@ -12,11 +12,19 @@ import (
 )
 
 func (h *handler) StartProgram() {
+	// Verificar si la terminal está lista
+	if h.terminal == nil || h.tea == nil {
+		h.NewTerminal()
+	}
+
 	// Agregar mensaje inicial
 	h.terminal.messages = append(h.terminal.messages, 
 		fmt.Sprintf("%s: Starting program...", time.Now().Format("15:04:05")))
-	h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
-	time.Sleep(100 * time.Millisecond)
+	
+	if h.tea != nil {
+		h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+		time.Sleep(100 * time.Millisecond)
+	}
 
 	// BUILD AND RUN
 	err := h.buildAndRun()
@@ -62,7 +70,7 @@ func (h *handler) buildAndRun() error {
 
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
-	h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", "main.go")
+	h.Cmd = exec.Command("go", "build", "-o", h.app_path, mainFile)
 	// h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", flags, "main.go")
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
