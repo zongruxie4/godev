@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"runtime"
+	"path"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -56,25 +56,26 @@ func (h *handler) Restart(event_name string) error {
 	return nil
 }
 
-func (h *handler) buildAndRun() error {
+func (h *handler) buildAndRun() (err error) {
 	var this = errors.New("buildAndRun")
-	exePath := path.Join(h.output_dir, h.output_name)
-	if runtime.GOOS == "windows" {
-		exePath += ".exe"
-	}
-
-	h.terminal.PrintWarning(fmt.Sprintf("Building and Running %s...", exePath))
+	h.terminal.PrintWarning(fmt.Sprintf("Building and Running %s...", h.main_file))
 
 	// Eliminar el ejecutable anterior si existe
-	if _, err := os.Stat(exePath); err == nil {
-		err := os.Remove(exePath)
+	if _, err := os.Stat(h.main_file); err == nil {
+		err := os.Remove(h.main_file)
 		if err != nil {
 			return errors.Join(this, err)
 		}
 	}
+	// flags, err := ldflags.Add(
+	// 	d.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
+	// // sessionbackend.AddPrivateSecretKeySigning(),
+	// )
+
+	// var ldflags = `-X 'main.version=` + tag + `'`
 
 	// Construir el comando de compilación con el archivo correcto
-	h.Cmd = exec.Command("go", "build", "-o", exePath, h.main_file)
+	h.Cmd = exec.Command("go", "build", "-o", path.Join(h.output_dir, h.output_name), h.main_file)
 	// h.Cmd = exec.Command("go", "build", "-o", h.app_path, "-ldflags", flags, "main.go")
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
@@ -112,11 +113,7 @@ func (h *handler) buildAndRun() error {
 func (h *handler) run() error {
 	var this = errors.New("run")
 
-	exePath := path.Join(h.output_dir, h.output_name)
-	if runtime.GOOS == "windows" {
-		exePath += ".exe"
-	}
-	h.Cmd = exec.Command("./"+exePath, h.run_arguments...)
+	h.Cmd = exec.Command(h.main_file, h.run_arguments...)
 
 	stderr, err := h.Cmd.StderrPipe()
 	if err != nil {
@@ -149,7 +146,7 @@ func (h handler) Write(p []byte) (n int, err error) {
 	// Agregar el mensaje al terminal
 	if h.terminal != nil {
 		h.terminal.messages = append(h.terminal.messages, formattedMsg)
-		
+
 		// Forzar actualización de la terminal
 		if h.tea != nil {
 			h.tea.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
