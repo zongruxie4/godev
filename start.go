@@ -13,7 +13,7 @@ import (
 )
 
 type handler struct {
-	main_file  string // ej: test/app.go
+	main_file   string // ej: test/app.go
 	output_name string // ej: app
 	output_dir  string // ej: build
 
@@ -38,8 +38,8 @@ func GodevStart() {
 	}
 
 	// Obtener el archivo principal a compilar
-	mainFile := "cmd/main.go" // Valor por defecto
-	if len(os.Args) > 1 {
+	mainFile := path.Join("cmd", "main.go") // Valor por defecto
+	if len(os.Args) > 1 && os.Args[1] != "" {
 		mainFile = os.Args[1]
 	}
 
@@ -66,10 +66,10 @@ func GodevStart() {
 	}
 
 	h := &handler{
-		main_file:    mainFile,
-		output_name:  outputName,
-		output_dir:   outputDir,
-		Cmd:          &exec.Cmd{},
+		main_file:   mainFile,
+		output_name: outputName + exe_ext,
+		output_dir:  outputDir,
+		Cmd:         &exec.Cmd{},
 		// Interrupt: make(chan os.Signal, 1),
 		run_arguments: []string{}, // Inicializar sin argumentos
 	}

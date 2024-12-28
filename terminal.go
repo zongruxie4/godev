@@ -151,103 +151,82 @@ func (t *Terminal) forceUpdate() {
 
 // View renderiza la interfaz
 func (t Terminal) View() string {
-	if t.width == 0 || t.height == 0 {
-		return "Terminal too small"
+	// Dimensiones mínimas requeridas
+	minWidth := 40
+	minHeight := 10
+
+	if t.width < minWidth || t.height < minHeight {
+		return fmt.Sprintf("Terminal too small. Minimum size: %dx%d", minWidth, minHeight)
 	}
 
-	// Calcular dimensiones del contenido
-	contentWidth := t.width - 4 // Margen horizontal
-	
-	// Reservar espacio fijo para header y footer
-	headerHeight := 1
-	footerHeight := 1
-	spacing := 4 // Más espacio entre elementos
-	
-	// Calcular altura del contenido asegurando que el header siempre sea visible
-	contentHeight := t.height - headerHeight - footerHeight - spacing
-	
-	// Asegurar dimensiones mínimas
-	if contentWidth < 40 {
-		contentWidth = 40
-	}
-	if contentHeight < 10 {
-		contentHeight = 10
-	}
-	
-	// Asegurar que el header siempre tenga espacio
-	if contentHeight >= t.height - headerHeight {
-		contentHeight = t.height - headerHeight - spacing
-	}
+	// Dimensiones fijas para header y footer
+	headerHeight := 3
+	footerHeight := 3
+	contentHeight := t.height - headerHeight - footerHeight
 
-	// Construye el header
+	// Ancho efectivo del contenido
+	contentWidth := t.width - 4 // 4 para los bordes
+
+	// Header siempre visible
 	header := headerFooterStyle.
 		Width(contentWidth).
-		Height(1).
-		Padding(0, 1).
 		Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime))
 
-	// Construye el footer
+	// Footer siempre visible
 	footer := headerFooterStyle.
 		Width(contentWidth).
-		Height(1).
-		Padding(0, 1).
 		Render(t.footer)
 
-	// Determinar qué mensajes mostrar con scroll
+	// Manejo de mensajes con scroll
+	visibleMessages := contentHeight - 2
 	start := 0
-	messageHeight := contentHeight // Altura disponible para mensajes
-	if len(t.messages) > messageHeight {
-		start = len(t.messages) - messageHeight
-		if start < 0 {
-			start = 0
-		}
+	if len(t.messages) > visibleMessages {
+		start = len(t.messages) - visibleMessages
 	}
 
-	// Construye el contenido de los mensajes
-	content := ""
+	// Procesar mensajes manteniendo el estilo
+	var contentLines []string
 	for i := start; i < len(t.messages); i++ {
 		msg := t.messages[i]
-		// Eliminar saltos de línea adicionales para evitar espacios vacíos
-		msg = strings.TrimSpace(msg)
 		if msg != "" {
-			content += messageStyle.Render("• "+msg) + "\n"
+			// Dividir mensajes largos en múltiples líneas
+			maxLineWidth := contentWidth - 6 // Espacio para bullet y padding
+			for len(msg) > maxLineWidth {
+				line := msg[:maxLineWidth]
+				contentLines = append(contentLines, messageStyle.Render("• "+line))
+				msg = msg[maxLineWidth:]
+			}
+			if len(msg) > 0 {
+				contentLines = append(contentLines, messageStyle.Render("• "+msg))
+			}
 		}
 	}
 
-	// Construir el área de contenido
+	// Asegurar que hay suficientes líneas para llenar el espacio
+	for len(contentLines) < visibleMessages {
+		contentLines = append(contentLines, "")
+	}
+
+	// Si hay más líneas que espacio visible, truncar
+	if len(contentLines) > visibleMessages {
+		contentLines = contentLines[len(contentLines)-visibleMessages:]
+	}
+
+	content := strings.Join(contentLines, "\n")
+
+	// Área de contenido con scroll
 	contentArea := borderStyle.
 		Width(contentWidth).
 		Height(contentHeight).
 		Render(content)
 
-	// Construir la vista completa con header fijo
-	s := lipgloss.NewStyle().
-		Width(t.width).
-		Height(t.height).
-		Render(
-			lipgloss.JoinVertical(
-				lipgloss.Left,
-				// Header fijo
-				lipgloss.NewStyle().
-					Width(t.width).
-					Height(headerHeight).
-					Render(header),
-				// Contenido con scroll
-				lipgloss.NewStyle().
-					Width(contentWidth).
-					Height(contentHeight).
-					PaddingTop(1).
-					Render(contentArea),
-				// Footer
-				lipgloss.NewStyle().
-					Width(t.width).
-					Height(footerHeight).
-					PaddingTop(1).
-					Render(footer),
-			),
-		)
-
-	return s
+	// Unir las secciones manteniendo la alineación
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		header,
+		contentArea,
+		footer,
+	)
 }
 
 // inicia una nueva terminal

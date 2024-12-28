@@ -9,11 +9,6 @@ import (
 
 func TestInstallScript(t *testing.T) {
 
-	// cmd := exec.Command("sh", "./install.sh")
-	// err := cmd.Run()
-	// if err != nil {
-	// 	t.Errorf("Failed to execute install.sh: %v", err)
-	// }
 	var cmd *exec.Cmd
 
 	switch runtime.GOOS {

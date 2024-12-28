@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -77,11 +78,11 @@ func (h *handler) buildAndRun() (err error) {
 	// Construir el comando de compilación con el archivo correcto
 	// Construir el comando de compilación con el archivo correcto
 	buildCmd := []string{"go", "build", "-o", path.Join(h.output_dir, h.output_name)}
-	
+
 	// Si el archivo está en otro directorio, cambiar al directorio primero
 	fileDir := path.Dir(h.main_file)
 	fileName := path.Base(h.main_file)
-	
+
 	if fileDir != "." {
 		buildCmd = append(buildCmd, fileName)
 		h.Cmd = exec.Command(buildCmd[0], buildCmd[1:]...)
