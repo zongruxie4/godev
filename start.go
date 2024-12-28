@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
