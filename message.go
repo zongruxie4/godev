@@ -18,28 +18,28 @@ type TerminalMessage struct {
 }
 
 // Msg sends a normal message to the terminal
-func (h Terminal) Msg(messages ...any) {
+func (h *Terminal) Msg(messages ...any) {
 	h.SendMessage(joinMessages(messages...), NormMsg)
 }
 
 // MsgError sends an error message to the terminal
-func (h Terminal) MsgError(messages ...any) {
+func (h *Terminal) MsgError(messages ...any) {
 	h.SendMessage(joinMessages(messages...), ErrorMsg)
 }
 
 // MsgWarning sends a warning message to the terminal
-func (h Terminal) MsgWarning(messages ...any) {
+func (h *Terminal) MsgWarning(messages ...any) {
 	h.SendMessage(joinMessages(messages...), WarnMsg)
 }
 
 // MsgInfo sends an informational message to the terminal
-func (h Terminal) MsgInfo(messages ...any) {
+func (h *Terminal) MsgInfo(messages ...any) {
 	h.SendMessage(joinMessages(messages...), InfoMsg)
 }
 
 // MsgOk sends a success message to the terminal
-func (h handler) MsgOk(messages ...any) {
-	h.terminal.SendMessage(joinMessages(messages...), OkMsg)
+func (h *Terminal) MsgOk(messages ...any) {
+	h.SendMessage(joinMessages(messages...), OkMsg)
 }
 
 func joinMessages(messages ...any) (message string) {
@@ -77,9 +77,13 @@ var (
 
 	infoStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("#00FFFF")) // Cian brillante
+			Foreground(lipgloss.Color(background)) //
 
 	normStyle = lipgloss.NoColor{}
+
+	timeStyle = lipgloss.NewStyle().Foreground(
+		lipgloss.Color("#666666"),
+	)
 )
 
 // MessageType define el tipo de mensaje
@@ -95,21 +99,23 @@ const (
 
 // formatMessage formatea un mensaje según su tipo
 func (t *Terminal) formatMessage(msg TerminalMessage) string {
-	timeStr := msg.Time.Format("15:04:05")
-	content := fmt.Sprintf("[%s] %s", timeStr, msg.Content)
+	timeStr := timeStyle.Render(fmt.Sprintf("%s", msg.Time.Format("15:04:05")))
+	// content := fmt.Sprintf("[%s] %s", timeStr, msg.Content)
 
 	switch msg.Type {
 	case ErrorMsg:
-		return errStyle.Render(content)
+		msg.Content = errStyle.Render(msg.Content)
 	case WarnMsg:
-		return warnStyle.Render(content)
+		msg.Content = warnStyle.Render(msg.Content)
 	case InfoMsg:
-		return infoStyle.Render(content)
+		msg.Content = infoStyle.Render(msg.Content)
 	case OkMsg:
-		return okStyle.Render(content)
-	default:
-		return content
+		msg.Content = okStyle.Render(msg.Content)
+		// default:
+		// 	msg.Content= msg.Content
 	}
+
+	return fmt.Sprintf("%s %s", timeStr, msg.Content)
 }
 
 // Función para detectar el tipo de mensaje basado en su contenido

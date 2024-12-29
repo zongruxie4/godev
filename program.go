@@ -2,9 +2,7 @@ package godev
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -31,23 +29,19 @@ func NewProgram(terminal *Terminal) *Program {
 		Cmd:      &exec.Cmd{},
 		terminal: terminal,
 	}
-
-	if err := p.programCheck(); err != nil {
-		log.Fatal(err)
-	}
-
 	return p
 }
 
-func (h *Program) programCheck() error {
+func (h *Program) programFileOK() bool {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: godev <mainFilePath> [outputName] [outputDir]")
-		fmt.Println("Parameters:")
-		fmt.Println("  mainFilePath   : Path to main file (e.g., backend/main.go, server.go default: cmd/main.go)")
-		fmt.Println("  outputName : Name of output executable (default: app)")
-		fmt.Println("  outputDir  : Output directory (default: build)")
-		os.Exit(1)
+		h.terminal.MsgInfo(`Usage for build app eg: godev <mainFilePath> [outputName] [outputDir]`)
+		h.terminal.MsgInfo(`Parameters:`)
+		h.terminal.MsgInfo(`mainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
+		h.terminal.MsgInfo(`outputName   : Name of output executable eg: miAppName, server (default: app)`)
+		h.terminal.MsgInfo(`outputDir    : Output directory eg: dist/build (default: build)`)
+
+		return false
 	}
 
 	// Obtener el archivo principal a compilar
@@ -57,12 +51,14 @@ func (h *Program) programCheck() error {
 	}
 
 	if _, err := os.Stat(mainFilePath); errors.Is(err, os.ErrNotExist) {
-		log.Fatalf("Main file not found: %s", mainFilePath)
+		h.terminal.MsgError("Main file not found: %s", mainFilePath)
+		return false
 	}
 
 	// Crear el directorio de salida si no existe
 	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
-		log.Fatalf("No se pudo crear el directorio de salida: %v", err)
+		h.terminal.MsgError("No se pudo crear el directorio de salida:", err)
+		return false
 	}
 
 	var exe_ext = ""
@@ -72,28 +68,21 @@ func (h *Program) programCheck() error {
 
 	outPathApp = path.Join(outputDir, outputName+exe_ext)
 
-	return nil
+	return true
 }
 
 func (h *Program) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
-	// var this = errors.New("StartProgram")
 
-	// if strings.Contains(h.main_file, "cmd") {
-	// 	// Cambiar al directorio "cmd" si existe
-	// 	cmdDir := "cmd"
-	// 	if _, err := os.Stat(cmdDir); err == nil {
-	// 		err := os.Chdir(cmdDir)
-	// 		if err != nil {
-	// 			PrintError(this, err, "al cambiar al directorio ", cmdDir)
-	// 		}
-	// 	}
-	// }
+	if !h.programFileOK() {
+		return
+	}
 
 	// BUILD AND RUN
 	err := h.buildAndRun()
 	if err != nil {
 		h.terminal.MsgError("StartProgram ", err)
+		return
 	}
 }
 
@@ -106,6 +95,7 @@ func (h *Program) buildAndRun() error {
 
 	// flags, err := ldflags.Add(
 	// 	h.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
+	// 	h.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
 	// // sessionbackend.AddPrivateSecretKeySigning(),
 	// )
 
@@ -116,29 +106,23 @@ func (h *Program) buildAndRun() error {
 
 	stderr, err := h.Cmd.StderrPipe()
 	if err != nil {
-		return errors.Join(this, err)
+		return err
 	}
 
 	stdout, err := h.Cmd.StdoutPipe()
 	if err != nil {
-		return errors.Join(this, err)
+		return err
 	}
 
 	err = h.Cmd.Start()
 	if err != nil {
-		return errors.Join(this, err)
+		return err
 	}
 
-	io.Copy(os.Stdout, stdout)
-	errBuf, _ := io.ReadAll(stderr)
+	go io.Copy(h.terminal, stderr)
+	go io.Copy(h.terminal, stdout)
 
-	// Esperar
-	err = h.Cmd.Wait()
-	if err != nil {
-		return errors.Join(this, errors.New(mainFilePath+" "+string(errBuf)), err)
-	}
-
-	return h.run()
+	return nil
 }
 
 // Construir el comando con argumentos dinámicos

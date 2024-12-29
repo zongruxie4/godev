@@ -19,7 +19,7 @@ func GodevStart() {
 	wg.Add(2)
 
 	// Iniciar la terminal en una goroutine
-	go h.RunTerminal(&wg)
+	go h.terminal.Start(&wg)
 
 	// Iniciar el programa
 	go h.program.Start(&wg)
