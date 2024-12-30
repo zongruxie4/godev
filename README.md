@@ -5,6 +5,9 @@ This project is currently under active development and may contain unstable feat
 
 A live reload development environment for full stack web applications with Go and WebAssembly in frontend (PWA). When detecting file changes, it automatically reloads the browser and recompiles the application.
 
+
+![godev tui preview](docs/tui.JPG)
+
 ## Table of Contents
 - [Motivation](#motivation)
 - [Features](#features)
