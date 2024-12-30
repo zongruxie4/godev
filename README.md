@@ -60,6 +60,9 @@ For help and available options:
 
 godev
 
+## Architecture
+![godev architecture](docs/godev.arq.svg)
+
 
 ## Project Structure
 godev uses `go.mod` as the reference point for your project:
