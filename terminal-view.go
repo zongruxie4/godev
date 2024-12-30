@@ -7,6 +7,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const background = "#FF6600" // orange
+const foreGround = "#F4F4F4" //white
+const black = "#000000"      //black
+
 // Estilos para las pestañas
 var (
 	activeTabBorder = lipgloss.Border{
@@ -80,32 +84,34 @@ func (t *Terminal) View() string {
 
 	headerHeight := 3
 	footerHeight := 3
+	// contentHeight := t.height - footerHeight
 	contentHeight := t.height - headerHeight - footerHeight
 	contentWidth := t.width - 2
-
-	// Header con pestañas
-	header := headerFooterStyle.
-		Width(contentWidth).
-		Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime))
 
 	// Pestañas
 	tabs := t.renderTabs()
 
-	// Contenido de la pestaña activa
-	visibleMessages := contentHeight - 1
-	start := 0
-	activeContent := t.tabs[t.activeTab].content
-	if len(activeContent) > visibleMessages {
-		start = len(activeContent) - visibleMessages
+	var content string
+	if t.activeTab == 0 {
+		content = t.renderConfigFields()
+	} else {
+		// Contenido de la pestaña activa
+		visibleMessages := contentHeight - 1
+		start := 0
+		activeContent := t.tabs[t.activeTab].content
+		if len(activeContent) > visibleMessages {
+			start = len(activeContent) - visibleMessages
+		}
+
+		var contentLines []string
+		for i := start; i < len(activeContent); i++ {
+			formattedMsg := t.formatMessage(activeContent[i])
+			contentLines = append(contentLines, messageStyle.Render(formattedMsg))
+		}
+
+		content = strings.Join(contentLines, "\n")
 	}
 
-	var contentLines []string
-	for i := start; i < len(activeContent); i++ {
-		formattedMsg := t.formatMessage(activeContent[i])
-		contentLines = append(contentLines, messageStyle.Render(formattedMsg))
-	}
-
-	content := strings.Join(contentLines, "\n")
 	contentArea := borderStyle.
 		Width(contentWidth).
 		Height(contentHeight).
@@ -118,9 +124,92 @@ func (t *Terminal) View() string {
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
-		header,
+		// header,
 		tabs,
 		contentArea,
 		footer,
 	)
+}
+
+func (t *Terminal) renderTabs() string {
+	var leftTab, centerTabs, rightTab []string
+
+	// Tab izquierdo (GODEV)
+	leftStyle := tab
+	if t.activeTab == 0 {
+		leftStyle = activeTab
+	}
+	leftTab = append(leftTab, leftStyle.Render(t.tabs[0].title))
+
+	// Tabs centrales (BUILD, TEST, DEPLOY)
+	for i := 1; i < len(t.tabs)-1; i++ {
+		style := tab
+		if i == t.activeTab {
+			style = activeTab
+		}
+		centerTabs = append(centerTabs, style.Render(t.tabs[i].title))
+	}
+
+	// Tab derecho (HELP)
+	rightStyle := tab
+	if t.activeTab == len(t.tabs)-1 {
+		rightStyle = activeTab
+	}
+	rightTab = append(rightTab, rightStyle.Render(t.tabs[len(t.tabs)-1].title))
+
+	// Combinar todo con espaciado apropiado
+	centerSection := lipgloss.JoinHorizontal(lipgloss.Top, centerTabs...)
+
+	// Calcular espaciado para centrar la sección central
+	totalWidth := t.width - lipgloss.Width(leftTab[0]) - lipgloss.Width(rightTab[0]) - 4
+	centerWidth := lipgloss.Width(centerSection)
+	padding := (totalWidth - centerWidth) / 2
+
+	spacer := strings.Repeat(" ", padding)
+
+	return lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		leftTab[0],
+		spacer,
+		centerSection,
+		spacer,
+		rightTab[0],
+	)
+}
+
+func (t *Terminal) renderConfigFields() string {
+	var lines []string
+
+	style := lipgloss.NewStyle().
+		Padding(0, 2)
+
+	selectedStyle := style
+	selectedStyle = selectedStyle.
+		Bold(true).
+		Background(lipgloss.Color(background)).
+		Foreground(lipgloss.Color(foreGround))
+
+	editingStyle := selectedStyle
+	editingStyle = editingStyle.
+		Foreground(lipgloss.Color(black))
+
+	for i, field := range t.tabs[0].configs {
+		line := fmt.Sprintf("%s: %s", field.label, field.value)
+
+		if t.activeTab == 0 {
+			if i == t.activeConfig {
+				if t.editingConfig {
+					line = editingStyle.Render(line + "▋")
+				} else {
+					line = selectedStyle.Render(line)
+				}
+			} else {
+				line = style.Render(line)
+			}
+		}
+
+		lines = append(lines, line)
+	}
+
+	return strings.Join(lines, "\n")
 }

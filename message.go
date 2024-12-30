@@ -10,9 +10,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const background = "#FF6600" // orange
-const foreGround = "#F4F4F4" //white
-
 // TerminalMessage representa un mensaje en la terminal
 type TerminalMessage struct {
 	Content string

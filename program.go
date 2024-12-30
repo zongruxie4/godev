@@ -35,7 +35,7 @@ func NewProgram(terminal *Terminal) *Program {
 func (h *Program) programFileOK() bool {
 
 	if len(os.Args) < 2 {
-		h.terminal.MsgInfo(`Usage for build app eg: godev <mainFilePath> [outputName] [outputDir]`)
+		h.terminal.MsgInfo(`Usage for build app without godev.yml config file eg: godev <mainFilePath> [outputName] [outputDir]`)
 		h.terminal.MsgInfo(`Parameters:`)
 		h.terminal.MsgInfo(`mainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
 		h.terminal.MsgInfo(`outputName   : Name of output executable eg: miAppName, server (default: app)`)
