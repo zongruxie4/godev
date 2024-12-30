@@ -21,6 +21,13 @@ func GodevStart() {
 	// Iniciar la terminal en una goroutine
 	go h.terminal.Start(&wg)
 
+	// mostrar errores de configuración como warning
+	if len(configErrors) != 0 {
+		for _, err := range configErrors {
+			h.terminal.MsgWarning(err)
+		}
+	}
+
 	// Iniciar el programa
 	go h.program.Start(&wg)
 	wg.Wait()

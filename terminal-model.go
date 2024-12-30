@@ -8,13 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// ConfigField representa un campo de configuración editable
-type ConfigField struct {
-	label    string
-	value    string
-	editable bool
-	selected bool
-}
+const BUILD_TAB_INDEX = 1
 
 // Tab representa una pestaña individual incluye un slice de campos de configuración
 type Tab struct {
@@ -80,13 +74,27 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if t.activeTab == 0 && t.editingConfig { // GODEV tab y editando
 			switch msg.String() {
 			case "enter":
+				currentField := &t.tabs[0].configs[t.activeConfig]
+				if err := config.UpdateFieldWithNotification(currentField, currentField.value); err != nil {
+					t.tabs[BUILD_TAB_INDEX].content = append(
+						t.tabs[BUILD_TAB_INDEX].content,
+						TerminalMessage{
+							Type:    ErrorMsg,
+							Content: fmt.Sprintf("Error updating field:%v %v", currentField.name, err),
+							Time:    time.Now(),
+						},
+					)
+				}
 				t.editingConfig = false
 				return t, nil
 			case "esc":
+				// Al presionar ESC, descartamos los cambios
+				currentField := &t.tabs[0].configs[t.activeConfig]
+				currentField.value = config.GetConfigFields()[t.activeConfig].value // Restaurar valor original
 				t.editingConfig = false
 				return t, nil
 			default:
-				// Actualizar el valor del campo actual
+				// Solo actualizamos el valor del campo sin notificar
 				currentField := &t.tabs[0].configs[t.activeConfig]
 				if msg.String() == "backspace" {
 					if len(currentField.value) > 0 {
@@ -95,6 +103,7 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else if len(msg.String()) == 1 {
 					currentField.value += msg.String()
 				}
+
 			}
 		} else {
 			switch msg.String() {
@@ -150,18 +159,13 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // NewTerminal crea una nueva instancia de Terminal
 func NewTerminal() *Terminal {
-	defaultConfigs := []ConfigField{
-		{label: "Server Port", value: "8080", editable: true},
-		{label: "Output Dir", value: "build", editable: true},
-		{label: "Main File", value: "cmd/main.go", editable: true},
-	}
 
 	t := &Terminal{
 		tabs: []Tab{
 			{
 				title:   "GODEV",
 				content: []TerminalMessage{},
-				configs: defaultConfigs,
+				configs: config.GetConfigFields(),
 				footer:  "↑↓ to navigate | ENTER to edit | ESC to exit edit",
 			},
 			{
@@ -195,7 +199,7 @@ func NewTerminal() *Terminal {
 				footer:  "Press 'h' for commands list | 'ctrl+c' to Exit",
 			},
 		},
-		activeTab:    1, // Iniciamos en BUILD
+		activeTab:    BUILD_TAB_INDEX, // Iniciamos en BUILD
 		messagesChan: make(chan TerminalMessage, 100),
 		currentTime:  time.Now().Format("15:04:05"),
 	}
@@ -208,5 +212,8 @@ func (t *Terminal) Start(wg *sync.WaitGroup) {
 	t.tea = tea.NewProgram(t, tea.WithAltScreen())
 	if _, err := t.tea.Run(); err != nil {
 		fmt.Println("Error running program:", err)
+		fmt.Println("\nPress any key to exit...")
+		var input string
+		fmt.Scanln(&input)
 	}
 }

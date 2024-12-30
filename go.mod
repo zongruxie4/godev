@@ -7,6 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/chromedp/chromedp v0.11.2
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
