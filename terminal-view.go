@@ -51,23 +51,6 @@ var (
 		Padding(0, 1)
 )
 
-// renderTabs renderiza la barra de pestañas
-func (t *Terminal) renderTabs() string {
-	var renderedTabs []string
-
-	for i, currentTab := range t.tabs {
-		var style lipgloss.Style
-		if i == t.activeTab {
-			style = activeTab
-		} else {
-			style = tab
-		}
-		renderedTabs = append(renderedTabs, style.Render(currentTab.title))
-	}
-
-	return lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
-}
-
 // Define estilos base
 var (
 	// Estilo para el borde principal
@@ -131,7 +114,7 @@ func (t *Terminal) View() string {
 	// Footer
 	footer := headerFooterStyle.
 		Width(contentWidth).
-		Render(t.footer)
+		Render(t.tabs[t.activeTab].footer)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,

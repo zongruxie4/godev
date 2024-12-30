@@ -1,10 +1,12 @@
 package godev
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // Tab representa una pestaña individual
@@ -12,12 +14,21 @@ type Tab struct {
 	title    string
 	content  []TerminalMessage
 	selected bool
+	footer   string
+	actions  map[string]string // tecla -> descripción
 }
 
 // Terminal mantiene el estado de la aplicación
 type Terminal struct {
-	*terminalModel
-	*terminalView
+	tabs         []Tab
+	activeTab    int
+	messages     []TerminalMessage
+	footer       string
+	currentTime  string
+	width        int
+	height       int
+	messagesChan chan TerminalMessage
+	tea          *tea.Program
 }
 
 // channelMsg es un tipo especial para mensajes del canal
@@ -70,8 +81,19 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			t.tabs[t.activeTab].content = []TerminalMessage{}
 		case "esc", "ctrl+c":
 			return t, tea.Quit
+		default:
+			// Manejar acciones específicas de la pestaña
+			if action, exists := t.tabs[t.activeTab].actions[msg.String()]; exists {
+				t.tabs[t.activeTab].content = append(
+					t.tabs[t.activeTab].content,
+					TerminalMessage{
+						Type:    "action",
+						Content: action,
+						Time:    time.Now(), // Agregamos la marca de tiempo actual
+					},
+				)
+			}
 		}
-
 	case channelMsg:
 		t.tabs[t.activeTab].content = append(t.tabs[t.activeTab].content, TerminalMessage(msg))
 		cmds = append(cmds, t.listenToMessages())
@@ -88,20 +110,67 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return t, tea.Batch(cmds...)
 }
 
+// renderTabs renderiza la barra de pestañas
+func (t *Terminal) renderTabs() string {
+	var renderedTabs []string
+
+	for i, currentTab := range t.tabs {
+		var style lipgloss.Style
+		if i == t.activeTab {
+			style = activeTab
+		} else {
+			style = tab
+		}
+		renderedTabs = append(renderedTabs, style.Render(currentTab.title))
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+}
+
 // NewTerminal crea una nueva instancia de Terminal
 func NewTerminal() *Terminal {
 	t := &Terminal{
-		terminalModel: newTerminalModel(),
-		terminalView:  newTerminalView(),
+		tabs: []Tab{
+			{
+				title:   "BUILD",
+				content: []TerminalMessage{},
+				footer:  "ESC to exit | 't' TinyGo | 'w' Web Browser | 'ctrl+l' clear",
+				actions: map[string]string{
+					"t": "TinyGo compiler activated!",
+					"w": "Opening browser...",
+				},
+			},
+			{
+				title:   "DEPLOY",
+				content: []TerminalMessage{},
+				footer:  "ESC to exit | 'd' Docker | 'v' VPS Setup | 'ctrl+l' clear",
+				actions: map[string]string{
+					"d": "Generating Dockerfile...",
+					"v": "Configuring VPS...",
+				},
+			},
+			{
+				title:   "HELP",
+				content: []TerminalMessage{},
+				footer:  "ESC to exit | 'h' Show Commands | 'ctrl+l' clear",
+				actions: map[string]string{
+					"h": "Showing available commands...",
+				},
+			},
+		},
+		activeTab:    0,
+		messagesChan: make(chan TerminalMessage, 100),
+		currentTime:  time.Now().Format("15:04:05"),
 	}
+
 	return t
 }
 
 func (t *Terminal) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	t.tea = t.terminalModel.startTeaProgram(t.terminalView)
+	t.tea = tea.NewProgram(t, tea.WithAltScreen())
 	if _, err := t.tea.Run(); err != nil {
-		t.MsgError("Error running program:", err)
+		fmt.Println("Error running program:", err)
 	}
 }

@@ -1,9 +1,7 @@
 package godev
 
 import (
-	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -91,9 +89,6 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return t, tea.Batch(cmds...)
 }
 
-const background = "#FF6600" // orange
-const foreGround = "#F4F4F4" //white
-
 // Define estilos base
 var (
 	// Estilo para el borde principal
@@ -114,58 +109,6 @@ var (
 			Foreground(lipgloss.Color(foreGround)).
 			PaddingLeft(2)
 )
-
-// View renderiza la interfaz
-func (t *Terminal) View() string {
-	if t.width < 40 || t.height < 10 {
-		return "Terminal too small. Minimum size: 40x10"
-	}
-
-	headerHeight := 3
-	footerHeight := 3
-	contentHeight := t.height - headerHeight - footerHeight + 2
-	contentWidth := t.width - 2
-	// contentWidth := t.width - 4
-
-	// Header
-	header := headerFooterStyle.
-		Width(contentWidth).
-		Render(fmt.Sprintf("🚀 GoDEV - %s", t.currentTime))
-
-	// Content
-	// t.mu.Lock()
-	visibleMessages := contentHeight
-	// visibleMessages := contentHeight - 2
-	start := 0
-	if len(t.messages) > visibleMessages {
-		start = len(t.messages) - visibleMessages
-	}
-
-	var contentLines []string
-	for i := start; i < len(t.messages); i++ {
-		formattedMsg := t.formatMessage(t.messages[i])
-		contentLines = append(contentLines, messageStyle.Render(formattedMsg))
-	}
-	// t.mu.Unlock()
-
-	content := strings.Join(contentLines, "\n")
-	contentArea := borderStyle.
-		Width(contentWidth).
-		Height(contentHeight).
-		Render(content)
-
-	// Footer
-	footer := headerFooterStyle.
-		Width(contentWidth).
-		Render(t.footer)
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		header,
-		contentArea,
-		footer,
-	)
-}
 
 // NewTerminal crea una nueva instancia de Terminal
 func NewTerminal() *Terminal {
