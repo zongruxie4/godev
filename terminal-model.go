@@ -85,6 +85,10 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						},
 					)
 				}
+
+				// volvemos el cursor a su posición
+				currentField.SetCursorAtEnd()
+
 				t.editingConfig = false
 				return t, nil
 			case "esc":
@@ -92,18 +96,30 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				currentField := &t.tabs[0].configs[t.activeConfig]
 				currentField.value = config.GetConfigFields()[t.activeConfig].value // Restaurar valor original
 				t.editingConfig = false
-				return t, nil
-			default:
-				// Solo actualizamos el valor del campo sin notificar
-				currentField := &t.tabs[0].configs[t.activeConfig]
-				if msg.String() == "backspace" {
-					if len(currentField.value) > 0 {
-						currentField.value = currentField.value[:len(currentField.value)-1]
-					}
-				} else if len(msg.String()) == 1 {
-					currentField.value += msg.String()
-				}
 
+				// volvemos el cursor a su posición
+				currentField.SetCursorAtEnd()
+
+				return t, nil
+			case "left":
+				currentField := &t.tabs[0].configs[t.activeConfig]
+				if currentField.cursor > 0 {
+					currentField.cursor--
+				}
+			case "right":
+				currentField := &t.tabs[0].configs[t.activeConfig]
+				if currentField.cursor < len(currentField.value) {
+					currentField.cursor++
+				}
+			default:
+				currentField := &t.tabs[0].configs[t.activeConfig]
+				if msg.String() == "backspace" && currentField.cursor > 0 {
+					currentField.value = currentField.value[:currentField.cursor-1] + currentField.value[currentField.cursor:]
+					currentField.cursor--
+				} else if len(msg.String()) == 1 {
+					currentField.value = currentField.value[:currentField.cursor] + msg.String() + currentField.value[currentField.cursor:]
+					currentField.cursor++
+				}
 			}
 		} else {
 			switch msg.String() {

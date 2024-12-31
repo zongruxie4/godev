@@ -199,7 +199,9 @@ func (t *Terminal) renderConfigFields() string {
 		if t.activeTab == 0 {
 			if i == t.activeConfig {
 				if t.editingConfig {
-					line = editingStyle.Render(line + "▋")
+					cursorPos := field.cursor + len(field.label) + 2
+					line = line[:cursorPos] + "▋" + line[cursorPos:]
+					line = editingStyle.Render(line)
 				} else {
 					line = selectedStyle.Render(line)
 				}

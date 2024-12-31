@@ -16,6 +16,7 @@ type ConfigField struct {
 	value    string
 	editable bool
 	selected bool
+	cursor   int // Posición del cursor
 }
 
 type Config struct {
@@ -38,6 +39,10 @@ func init() {
 		configErrors = append(configErrors, err)
 	}
 
+}
+
+func (cf *ConfigField) SetCursorAtEnd() {
+	cf.cursor = len(cf.value)
 }
 
 func (c *Config) DefaultConfig() {
@@ -72,6 +77,7 @@ func (c *Config) GetConfigFields() []ConfigField {
 			value:    value,
 			editable: editable,
 			selected: false,
+			cursor:   len(value),
 		})
 	}
 	return fields
