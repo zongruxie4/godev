@@ -31,27 +31,16 @@ This project is designed to bring **Go** to the frontend compiled to **WebAssemb
 ## Installation
 
 ### Prerequisites
-1. **Install Go**  
+ **Install Go**  
    Download and install Go from the [official Go website](https://go.dev/dl/).
    Verify installation with:
    
    go version
-   
-
-2. **Configure `$GOBIN`** (optional)  
-   Add to your shell configuration (`~/.bashrc`, `~/.zshrc`):
-   
-   export PATH=$PATH:$HOME/go/bin
-   
-   Apply changes:
-   
-   source ~/.bashrc  # or ~/.zshrc
-   
 
 ### Installing with go install
-
-go install github.com/cdvelop/godev@latest
-
+```bash	
+go install -v github.com/cdvelop/godev/cmd/godev@latest
+```
 
 ## Usage
 Run the basic command:
