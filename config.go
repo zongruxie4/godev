@@ -3,7 +3,9 @@ package godev
 import (
 	"errors"
 	"os"
+	"path"
 	"reflect"
+	"runtime"
 
 	"gopkg.in/yaml.v3"
 )
@@ -20,25 +22,74 @@ type ConfigField struct {
 }
 
 type Config struct {
-	Port         string `yaml:"Port" label:"Server Port" value:"9090" editable:"true"`
-	OutputDir    string `yaml:"OutputDir" label:"Output Dir" value:"build" editable:"true"`
-	MainFilePath string `yaml:"MainFilePath" label:"Main File" value:"cmd/main.go" editable:"true"`
+	// ej: app
+	AppName string `yaml:"AppName" label:"App Name" value:"app" editable:"true"`
+	// ej: test/app.go
+	MainFilePath string `yaml:"MainFilePath" label:"Main File Path" value:"cmd/main.go" editable:"true"`
+	// ej: build
+	OutputDir string `yaml:"OutputDir" label:"Output Dir" value:"build" editable:"true"`
+	// eg : build/app.exe
+	OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
+	// ej: 8080
+	ServerPort string `yaml:"ServerPort" label:"Server Port" value:"8080" editable:"true"`
 }
 
 var (
-	config       *Config
-	configErrors []error
+	config          *Config
+	configErrors    []error
+	configFileFound bool
+	APP_ROOT_DIR    string // app root directory e.g: /home/user/go/src/github.com/user/app
 )
 
 func init() {
 	config = &Config{}
 	// 1 load default config
 	config.DefaultConfig()
+
 	// 2 load config from file
 	if err := config.LoadConfigFromYML(); err != nil {
 		configErrors = append(configErrors, err)
+	} else {
+		configFileFound = true
 	}
 
+	// 3 load config from params
+	if err := config.LoadConfigFromParams(); err != nil {
+		configErrors = append(configErrors, err)
+	}
+
+	// 4 Crear el directorio de salida si no existe
+	if err := os.MkdirAll(config.OutputDir, os.ModePerm); err != nil {
+		configErrors = append(configErrors, errors.New("Could not create output directory: "+err.Error()))
+	}
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		configErrors = append(configErrors, err)
+	}
+	APP_ROOT_DIR = currentDir
+
+}
+
+func (c *Config) LoadConfigFromParams() error {
+
+	// Obtener el archivo principal a compilar
+	if len(os.Args) > 1 && os.Args[1] != "" {
+		c.MainFilePath = os.Args[1]
+	}
+
+	if _, err := os.Stat(c.MainFilePath); errors.Is(err, os.ErrNotExist) {
+		return errors.New("Main file not found: " + c.MainFilePath)
+	}
+
+	var exe_ext = ""
+	if runtime.GOOS == "windows" {
+		exe_ext = ".exe"
+	}
+
+	c.OutPathApp = path.Join(c.OutputDir, c.AppName+exe_ext)
+
+	return nil
 }
 
 func (cf *ConfigField) SetCursorAtEnd() {

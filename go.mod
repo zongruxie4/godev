@@ -33,6 +33,7 @@ require (
 
 require (
 	github.com/charmbracelet/bubbletea v1.2.4
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

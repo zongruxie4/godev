@@ -158,7 +158,7 @@ func (t *Terminal) Write(p []byte) (n int, err error) {
 
 		// Si es un error, escribirlo en el archivo de log
 		if msgType == ErrorMsg {
-			logFile, err := os.OpenFile(path.Join(outputDir, outputName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			logFile, err := os.OpenFile(path.Join(config.OutputDir, config.AppName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err == nil {
 				defer logFile.Close()
 				timestamp := time.Now().Format("2006-01-02 15:04:05")
