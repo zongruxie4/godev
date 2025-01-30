@@ -120,7 +120,8 @@ func (t *Terminal) View() string {
 	// Footer
 	footer := headerFooterStyle.
 		Width(contentWidth).
-		Render(t.tabs[t.activeTab].footer)
+		// Render(t.tabs[t.activeTab].footer)
+		Render(t.renderFooter(t.tabs[t.activeTab]))
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
@@ -214,4 +215,21 @@ func (t *Terminal) renderConfigFields() string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+func (t *Terminal) renderFooter(tab Tab) string {
+
+	if tab.footer != "" {
+		return tab.footer
+	}
+
+	var footerParts []string
+	for _, action := range tab.actions {
+		status := "○" // inactive
+		if action.active {
+			status = "●" // active
+		}
+		footerParts = append(footerParts, fmt.Sprintf("'%s' %s %s", action.shortCuts, action.message, status))
+	}
+	return strings.Join(footerParts, " | ")
 }

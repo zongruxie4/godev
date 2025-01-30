@@ -11,12 +11,19 @@ import (
 const BUILD_TAB_INDEX = 1
 
 // Tab representa una pestaña individual incluye un slice de campos de configuración
+type TabAction struct {
+	message   string
+	active    bool
+	shortCuts string // e.g. "t" for TinyGo
+	handler   func() error
+}
+
 type Tab struct {
 	title    string
 	content  []TerminalMessage
 	selected bool
 	footer   string
-	actions  map[string]string
+	actions  []TabAction   // Now it's a slice instead of map
 	configs  []ConfigField // Campos de configuración para GODEV
 }
 
@@ -146,15 +153,43 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return t, tea.Quit
 			default:
 				// Manejar acciones específicas de la pestaña
-				if action, exists := t.tabs[t.activeTab].actions[msg.String()]; exists {
-					t.tabs[t.activeTab].content = append(
-						t.tabs[t.activeTab].content,
-						TerminalMessage{
-							Type:    "action",
-							Content: action,
-							Time:    time.Now(),
-						},
-					)
+
+				action, exist := t.getAction(t.activeTab, msg.String())
+
+				if exist {
+					if err := action.handler(); err != nil {
+						t.tabs[t.activeTab].content = append(
+							t.tabs[t.activeTab].content,
+							TerminalMessage{
+								Type:    ErrorMsg,
+								Content: err.Error(),
+								Time:    time.Now(),
+							},
+						)
+					} else {
+						// Update the action state directly in the slice
+						action.active = !action.active
+						for i, a := range t.tabs[t.activeTab].actions {
+							if a.message == action.message {
+								t.tabs[t.activeTab].actions[i] = action
+								break
+							}
+						}
+
+						status := "activated"
+						if !action.active {
+							status = "deactivated"
+						}
+
+						t.tabs[t.activeTab].content = append(
+							t.tabs[t.activeTab].content,
+							TerminalMessage{
+								Type:    OkMsg,
+								Content: fmt.Sprintf("%s %s!", action.message, status),
+								Time:    time.Now(),
+							},
+						)
+					}
 				}
 			}
 		}
@@ -173,6 +208,17 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	return t, tea.Batch(cmds...)
 }
+func (t *Terminal) getAction(activeTab int, shortcut string) (TabAction, bool) {
+
+	if activeTab >= 0 && activeTab < len(t.tabs) {
+		for _, action := range t.tabs[activeTab].actions {
+			if action.shortCuts == shortcut {
+				return action, true
+			}
+		}
+	}
+	return TabAction{}, false
+}
 
 // NewTerminal crea una nueva instancia de Terminal
 func NewTerminal() *Terminal {
@@ -188,26 +234,65 @@ func NewTerminal() *Terminal {
 			{
 				title:   "BUILD",
 				content: []TerminalMessage{},
-				footer:  "'t' TinyGo | 'w' Web Browser",
-				actions: map[string]string{
-					"t": "TinyGo compiler activated!",
-					"w": "Opening browser...",
+				actions: []TabAction{
+					{
+						message:   "TinyGo compiler",
+						active:    false,
+						shortCuts: "t",
+						handler: func() error {
+							// TinyGo compilation logic
+							return nil
+						},
+					},
+					{
+						message:   "Web Browser",
+						active:    false,
+						shortCuts: "w",
+						handler: func() error {
+							// Browser logic
+							return nil
+						},
+					},
 				},
 			},
 			{
 				title:   "TEST",
 				content: []TerminalMessage{},
-				actions: map[string]string{
-					"r": "Running tests...",
+				actions: []TabAction{
+					{
+						message:   "Running tests...",
+						active:    false,
+						shortCuts: "r",
+						handler: func() error {
+							// Implement test running logic
+							return nil
+						},
+					},
 				},
 			},
 			{
 				title:   "DEPLOY",
 				content: []TerminalMessage{},
 				footer:  "'d' Docker | 'v' VPS Setup",
-				actions: map[string]string{
-					"d": "Generating Dockerfile...",
-					"v": "Configuring VPS...",
+				actions: []TabAction{
+					{
+						message:   "Generating Dockerfile...",
+						active:    false,
+						shortCuts: "d",
+						handler: func() error {
+							// Implement Docker generation logic
+							return nil
+						},
+					},
+					{
+						message:   "Configuring VPS...",
+						active:    false,
+						shortCuts: "v",
+						handler: func() error {
+							// Implement VPS configuration logic
+							return nil
+						},
+					},
 				},
 			},
 			{
