@@ -50,7 +50,6 @@ var exitChan = make(chan bool)
 // }
 
 func GodevStart() {
-
 	h := &handler{
 		terminal: NewTerminal(),
 	}
@@ -60,6 +59,7 @@ func GodevStart() {
 		configErrors = append(configErrors, err)
 	} else {
 		h.watcher = watcher
+		defer h.watcher.Close()
 	}
 
 	var wg sync.WaitGroup
@@ -68,7 +68,7 @@ func GodevStart() {
 	// Iniciar la terminal en una goroutine
 	go h.terminal.Start(&wg)
 
-	// mostrar errores de configuración como warning
+	// Mostrar errores de configuración como warning
 	if len(configErrors) != 0 {
 		for _, err := range configErrors {
 			h.terminal.MsgWarning(err)
@@ -78,24 +78,9 @@ func GodevStart() {
 	// Iniciar el programa
 	go h.program.Start(&wg)
 
+	// Iniciar el watcher de archivos
 	go h.FileWatcherStart(&wg)
 
 	// Esperar a que todas las goroutines terminen
-
 	wg.Wait()
-
-	for {
-
-		select {
-
-		case <-exitChan:
-			// Detener la terminal
-			// h.terminal.tea.Quit()
-			// os.Exit(0)
-			return
-
-		}
-
-	}
-
 }

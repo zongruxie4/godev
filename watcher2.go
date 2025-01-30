@@ -9,7 +9,6 @@ import (
 )
 
 func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
-	defer wg.Done()
 
 	if h.watcher == nil {
 		h.terminal.MsgError("No file watcher found")
@@ -26,51 +25,10 @@ func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	select {
 	case <-exitChan:
-
+		wg.Done()
 		return
 	}
 }
-
-// func (h *handler) FileWatcherStartOLD(wg *sync.WaitGroup) {
-
-// 	if h.watcher == nil {
-// 		h.terminal.MsgError("No file watcher found")
-// 		return
-// 	}
-
-// 	h.RegisterFiles()
-
-// 	go h.watchEvents(wg)
-// 	defer h.watcher.Close()
-
-// 	h.terminal.MsgOk("Listening for File Changes ... ")
-
-// 	// Esperar señal de cierre
-// 	<-exitChan
-// }
-
-// func (h *handler) watchEvents(eventChan chan bool) {
-// 	for {
-// 		select {
-// 		case <-eventChan:
-// 			return
-// 		case event, ok := <-h.watcher.Events:
-// 			if !ok {
-// 				return
-// 			}
-// 			// Aplicar debouncing para evitar múltiples eventos
-// 			if h.handleFileEvent(event) {
-// 				// Si se necesita reiniciar el programa
-// 				h.program.Restart(event.Name)
-// 			}
-// 		case err, ok := <-h.watcher.Errors:
-// 			if !ok {
-// 				return
-// 			}
-// 			h.terminal.MsgError("Watcher error:", err)
-// 		}
-// 	}
-// }
 
 func (h *handler) watchEvents() {
 	lastActions := make(map[string]time.Time)

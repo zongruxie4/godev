@@ -142,7 +142,7 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+l":
 				t.tabs[t.activeTab].content = []TerminalMessage{}
 			case "ctrl+c":
-				exitChan <- true // Señalizar el cierre a todas las goroutines
+				close(exitChan) // Cerrar el canal para señalizar a todas las goroutines
 				return t, tea.Quit
 			default:
 				// Manejar acciones específicas de la pestaña
