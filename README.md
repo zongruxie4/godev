@@ -65,7 +65,7 @@ project
 
 
 ### Module Structure
-
+```
 Module  
 ├── js  
 │    ├── 1xFun.js
@@ -79,6 +79,7 @@ Module
 │    ├── Help.css
 │    └── main.css
 └── Load.js
+```
 
 
 ### JavaScript Loading Order
