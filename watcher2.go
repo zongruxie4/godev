@@ -10,6 +10,7 @@ import (
 
 func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 	defer wg.Done()
+	defer h.watcher.Close()
 
 	if h.watcher == nil {
 		h.terminal.MsgError("No file watcher found")
@@ -18,33 +19,72 @@ func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	h.RegisterFiles()
 
-	done := make(chan bool)
-	go h.watchEvents(done)
-	defer h.watcher.Close()
-
 	h.terminal.MsgOk("Listening for File Changes ... ")
+
+	// Canal para manejar eventos
+	eventChan := make(chan bool)
+	go func() {
+		h.watchEvents(eventChan)
+	}()
 
 	// Esperar señal de cierre
 	<-exitChan
+	close(eventChan) // Notificar a watchEvents que debe terminar
 }
 
-func (h *handler) watchEvents(done chan bool) {
+// func (h *handler) FileWatcherStartOLD(wg *sync.WaitGroup) {
+
+// 	if h.watcher == nil {
+// 		h.terminal.MsgError("No file watcher found")
+// 		return
+// 	}
+
+// 	h.RegisterFiles()
+
+// 	go h.watchEvents(wg)
+// 	defer h.watcher.Close()
+
+// 	h.terminal.MsgOk("Listening for File Changes ... ")
+
+// 	// Esperar señal de cierre
+// 	<-exitChan
+// }
+
+// func (h *handler) watchEvents(eventChan chan bool) {
+// 	for {
+// 		select {
+// 		case <-eventChan:
+// 			return
+// 		case event, ok := <-h.watcher.Events:
+// 			if !ok {
+// 				return
+// 			}
+// 			// Aplicar debouncing para evitar múltiples eventos
+// 			if h.handleFileEvent(event) {
+// 				// Si se necesita reiniciar el programa
+// 				h.program.Restart(event.Name)
+// 			}
+// 		case err, ok := <-h.watcher.Errors:
+// 			if !ok {
+// 				return
+// 			}
+// 			h.terminal.MsgError("Watcher error:", err)
+// 		}
+// 	}
+// }
+
+func (h *handler) watchEvents(eventChan chan bool) {
 	lastActions := make(map[string]time.Time)
 
 	for {
 		select {
-		case <-exitChan:
+		case <-eventChan:
 			return
 
 		case event, ok := <-h.watcher.Events:
 			if !ok {
-				done <- true
+				h.terminal.MsgError("Error h.watcher.Events")
 				return
-			}
-
-			// Ignorar archivos temporales o hidden
-			if strings.HasPrefix(filepath.Base(event.Name), ".") {
-				continue
 			}
 
 			// Aplicar debouncing para evitar múltiples eventos
@@ -64,6 +104,37 @@ func (h *handler) watchEvents(done chan bool) {
 
 					if !info.IsDir() {
 						h.terminal.Msg("Event type:", event.Op.String(), "File changed:", event.Name)
+
+						extension := filepath.Ext(event.Name)
+						// fmt.Println("extension:", extension, "File Event:", event)
+
+						switch extension {
+						case ".html":
+							h.terminal.MsgOk("HTML File")
+							// err = w.HTML.UpdateFileOnDisk(event)
+
+							// if err == nil {
+							// 	resetWaitingTime = true
+							// }
+						case ".css":
+							h.terminal.MsgOk("CSS File")
+							// err = w.CSS.UpdateFileOnDisk(event)
+							// if err == nil {
+							// 	resetWaitingTime = true
+							// }
+						case ".js":
+							h.terminal.MsgOk("JS File")
+							// err = w.JS.UpdateFileOnDisk(event)
+							// if err == nil {
+							// 	resetWaitingTime = true
+							// }
+
+						case ".go":
+
+							h.terminal.MsgOk("Go File")
+
+						}
+
 					}
 
 					lastActions[event.Name] = time.Now()
@@ -72,10 +143,9 @@ func (h *handler) watchEvents(done chan bool) {
 			}
 		case err, ok := <-h.watcher.Errors:
 			if !ok {
-				done <- true
+				h.terminal.MsgError("h.watcher.Errors:", err)
 				return
 			}
-			h.terminal.MsgError("Watcher error:", err)
 		}
 	}
 }
@@ -110,7 +180,13 @@ func (h *handler) RegisterFiles() {
 }
 
 func (h handler) Contain(path string) bool {
-	var no_add_to_watch = []string{".devcontainer", ".git", ".vscode", config.OutputDir}
+
+	// Ignorar archivos temporales o hidden
+	if strings.HasPrefix(filepath.Base(path), ".") {
+		return true
+	}
+
+	var no_add_to_watch = []string{config.OutputDir}
 
 	for _, value := range no_add_to_watch {
 		if strings.Contains(path, value) {

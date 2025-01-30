@@ -2,6 +2,7 @@ package godev
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path"
 	"reflect"
@@ -43,6 +44,18 @@ var (
 
 func init() {
 	config = &Config{}
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		configErrors = append(configErrors, err)
+	}
+
+	// Check if current directory is a user root directory
+	homeDir, _ := os.UserHomeDir()
+	if currentDir == homeDir || currentDir == "/" {
+		log.Fatal("Cannot run godev in user root directory. Please run in a Go project directory")
+	}
+
 	// 1 load default config
 	config.DefaultConfig()
 
@@ -63,10 +76,6 @@ func init() {
 		configErrors = append(configErrors, errors.New("Could not create output directory: "+err.Error()))
 	}
 
-	currentDir, err := os.Getwd()
-	if err != nil {
-		configErrors = append(configErrors, err)
-	}
 	APP_ROOT_DIR = currentDir
 
 }

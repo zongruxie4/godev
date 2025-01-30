@@ -30,12 +30,17 @@ func (h *Program) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	if len(os.Args) < 2 && !configFileFound {
-		h.terminal.MsgInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
-		h.terminal.MsgInfo(`Parameters:`)
-		h.terminal.MsgInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
-		h.terminal.MsgInfo(`AppName   : Name of output executable eg: miAppName, server (default: app)`)
-		h.terminal.MsgInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
-		return
+
+		pathMainFile, err := findMainFile()
+		if err != nil {
+			h.terminal.MsgError("findMainFile ", err)
+			h.showHelpExecProgram()
+			return
+		}
+		config.MainFilePath = pathMainFile
+
+		h.terminal.MsgOk("MainFile: " + pathMainFile)
+
 	}
 
 	// BUILD AND RUN
@@ -44,6 +49,9 @@ func (h *Program) Start(wg *sync.WaitGroup) {
 		h.terminal.MsgError("StartProgram ", err)
 		return
 	}
+
+	// Esperar señal de cierre
+	<-exitChan
 }
 
 func (h *Program) buildAndRun() error {
@@ -83,6 +91,14 @@ func (h *Program) buildAndRun() error {
 	go io.Copy(h.terminal, stdout)
 
 	return nil
+}
+
+func (h *Program) showHelpExecProgram() {
+	h.terminal.MsgInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
+	h.terminal.MsgInfo(`Parameters:`)
+	h.terminal.MsgInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
+	h.terminal.MsgInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
+	h.terminal.MsgInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
 }
 
 // Construir el comando con argumentos dinámicos
