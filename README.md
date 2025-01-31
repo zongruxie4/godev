@@ -1,23 +1,25 @@
 # GoDEV
 
-⚠️ **Warning: Development in Progress**
-This project is currently under active development and may contain unstable features. NOT USE.
 
-A live reload development environment for full stack web applications with Go and WebAssembly (PWA). When detecting file changes, it automatically reloads the browser and recompiles the application.
+Entorno de desarrollo [TUI](https://en.wikipedia.org/wiki/Text-based_user_interface) full stack con recarga en vivo, test, despliegue, ci/cd para aplicaciones web (PWA) con Go, WebAssembly y TinyGo.
 
+⚠️ **Advertencia: Desarrollo en Progreso**
+Este proyecto está actualmente en desarrollo activo y puede contener características inestables. NO USAR.
 
-![godev tui preview](docs/tui.JPG)
+![vista previa de godev tui](docs/tui.JPG)
 
-## Table of Contents
-- [Motivation](#motivation)
-- [Features](#features)
-- [Installation](#installation)
-  - [Prerequisites](#prerequisites)
-  - [Installing with go install](#installing-with-go-install)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Acknowledgments](#acknowledgments)
+## Tabla de Contenidos
+- [Motivación](#motivación)
+- [Características](#características)
+- [Instalación](#instalación)
+  - [Prerrequisitos](#prerrequisitos)
+  - [Instalación con go install](#instalación-con-go-install)
+- [Uso](#uso)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Configuración](#configuración)
+- [Hoja de ruta](#-hoja-de-ruta)
+- [Agradecimientos](#prerrequisitos)
+- [Contribuir](#contribuir)
 
 ## Motivación  
 
@@ -51,111 +53,117 @@ A live reload development environment for full stack web applications with Go an
   - Similar a Webpack en el empaquetado, pero sin dependencias de JavaScript o CSS externas.  
   - Se enfoca en **Go como lenguaje principal** y minimiza los tiempos de carga optimizando los archivos generados.  
 
+## Instalación
 
-## Installation
-
-### Prerequisites
- **Install Go**  
-   Download and install Go from the [official Go website](https://go.dev/dl/).
-   Verify installation with:
+### Prerrequisitos
+ **Instalar Go**  
+   Descarga e instala Go desde el [sitio web oficial de Go](https://go.dev/dl/).
+   Verifica la instalación con:
    
    go version
 
-### Installing with go install
-```bash	
+### Instalación con go install
+	
 go install -v github.com/cdvelop/godev/cmd/godev@latest
-```
-
-## Usage
-Run the basic command:
-
-godev
 
 
-For help and available options:
+## Uso
+Ejecuta el comando básico:
 
 godev
 
-## Architecture
-![godev architecture](docs/godev.arq.svg)
+Para ayuda y opciones disponibles:
 
+godev
 
-## Project Structure
-godev uses `go.mod` as the reference point for your project:
+## Arquitectura
+![arquitectura godev](docs/godev.arq.svg)
 
+## Estructura del Proyecto
 
-project  
+miProyecto/
+├── cmd/
+│   └── appName/           # el nombre de esta carpeta sera el nombre del archivo binario
+│       └── main.go        # Punto de entrada principal app servidor
+|
+├── modules/
+│   ├── modules.go         # Registro e inicialización de módulos
+│   │
+│   ├── auth/
+│   │   ├── auth.go        # Estructuras y lógica compartida
+│   │   ├── back.api.go    # API endpoints (// go: build !wasm)
+│   │   ├── wasm.go        # Package main para compilación wasm
+│   │   └── handlers.go    # Handlers compartidos
+│   │
+│   ├── users/
+│   │   ├── user.go        # Definición de estructuras y modelos
+│   │   ├── back.api.go    # API endpoints
+│   │   ├── wasm.go        # Compilación wasm (// go: build wasm)
+│   │   └── events.go      # Definición de eventos pub/sub
+│   │
+│   └── medical/
+│       ├── patient.go     # Modelo de paciente
+│       ├── back.api.go    # API endpoints
+│       ├── wasm.go        # UI handlers y lógica frontend
+│       └── handlers.go    # Handlers compartidos
+│
+├── web/                   # Archivos web serán sincronizados en build/
+│   ├── assets/            # Assets globales
+│   │   ├── img/           # Imágenes
+│   │   └── shared/        # Assets compartidos entre módulos
+│   └── wasm/              # Archivos compilados wasm
+|
+├── build/                 # Carpeta de salida de compilación por defecto de godev
+│   ├── assets/            # Archivos estáticos optimizados
+│   │   ├── img/           # Imágenes optimizadas y comprimidas
+│   │   ├── styles.css     # CSS minificado y concatenado
+│   │   ├── main.js        # JavaScript minificado y concatenado
+│   │   └── shared/        # Recursos compartidos optimizados
+│   ├── wasm/              # Archivos WebAssembly compilados
+│   ├── index.html         # HTML principal generado
+│   └── appName.exe        # Ejecutable del servidor compilado
+|
 └── go.mod
 
 
-### Module Structure
-```
-Module  
-├── js  
-│    ├── 1xFun.js
-│    ├── func.js
-│    ├── Help.js
-│    └── main.js
-├── jsTest
-│    └── test.js
-├── css  
-│    ├── 1xStyle.css
-│    ├── Help.css
-│    └── main.css
-└── Load.js
-```
+### Orden de Carga de JavaScript
+1. Archivos raíz que comienzan con mayúsculas
+2. Archivos en la carpeta `js` (alfabéticamente)
+3. Archivos en la carpeta `jsTest`
 
+### Orden de Carga de CSS
+Similar a JavaScript, pero usando la carpeta `css`.
 
-### JavaScript Loading Order
-1. Root files starting with uppercase
-2. Files in the `js` folder (alphabetically)
-3. Files in the `jsTest` folder
+## Configuración
+- Puerto predeterminado: 8080 (http)
+- HTTPS se usa cuando el puerto contiene "44" (ej., 4433)
+- Los directorios de módulos se pueden configurar en `godev.yml`
 
-### CSS Loading Order
-Similar to JavaScript, but using the `css` folder.
-
-## Configuration
-- Default port: 8080 (http)
-- HTTPS is used when port contains "44" (e.g., 4433)
-- Module directories can be configured in `godev.yml`
-
-
-
-## 📌 Roadmap  
+## 📌 Hoja de Ruta  
 
 ### ✅ MVP (Versión Mínima Viable)  
 - [ ] **Compilación y empaquetado básico:**  
-  - [ ] Unificación y minificación de archivos **CSS** y **JavaScript** en `build/`  
-  - [ ] Generación automática de `build/index.html` si este no existe  
+- [ ] Unificación y minificación de archivos **CSS** y **JavaScript** en `build/`  
+- [ ] Generación automática de `build/index.html` si este no existe  
 - [ ] **Soporte para Go en frontend con WebAssembly**  
 - [ ] **Servidor de desarrollo integrado** para servir archivos estáticos y WebAssembly  
-- [ ] **Ejecución automática del navegador Chrome** (opcional con tecla `W`)  
+- [ ] **Ejecución automática del navegador Chrome** (opcional con tecla `w`)  
 - [ ] **Recarga en caliente (Hot Reload):**  
-  - [ ] Detección de cambios en archivos Go, HTML, CSS y JS  
-  - [ ] Recarga del navegador automáticamente  
+- [x] Detección de cambios en archivos Go, HTML, CSS y JS  
+- [ ] Recarga del navegador automáticamente  
 - [ ] **Soporte para backend en Go:**  
-  - [ ] Detección de cambios en archivos del servidor  
-  - [ ] Reinicio automático si hay modificaciones  
-
----
+- [ ] Detección de cambios en archivos del servidor  
+- [ ] Reinicio automático si hay modificaciones  
+- [x] **Interfaz TUI mejorada** con más opciones de configuración  
+- [x] **Soporte para configuración mediante archivo `godev.yml`**  
 
 ### 🚀 Mejoras Futuras  
-- [ ] **Compatibilidad con Docker para despliegue automatizado**  
-- [x] **Interfaz TUI mejorada** con más opciones de configuración  
 - [ ] **Modo producción:** Generación de artefactos optimizados y listos para deploy  
-- [x] **Soporte para configuración mediante archivo `godev.yml`**  
-- [ ] **Integración con framework de interoperabilidad Go ↔ JavaScript**  
-- [ ] **Optimización en la carga de WebAssembly para mejorar rendimiento**  
 - [ ] **Compatibilidad con servidores VPS para despliegue automatizado**  
+- [ ] **Compatibilidad con Docker para despliegue automatizado**  
 
-
-
-
-
-
-
-## Acknowledgments
-This project wouldn't be possible without:
+## Agradecimientos
+Este proyecto no sería posible sin:
 - github.com/fsnotify
 - github.com/chromedp
 - github.com/tdewolff/minify
@@ -168,4 +176,14 @@ This project wouldn't be possible without:
 - github.com/ledongthuc/pdf
 - github.com/osharian/intern
 
-For issues or support, please visit [GitHub Issues](https://github.com/cdvelop/godev/issues).
+Para problemas o soporte, por favor visita [GitHub Issues](https://github.com/cdvelop/godev/issues).
+
+## Participar
+si quieres participar en el proyecto puedes contactarme con un mensaje privado 
+
+
+## Contribuir
+
+Si encuentras útil este proyecto y te gustaría apoyarlo, puedes hacer una donación [aquí con paypal](https://paypal.me/cdvelop?country.x=CL&locale.x=es_XC)
+
+Cualquier contribución, por pequeña que sea, es muy apreciada. 🙌
