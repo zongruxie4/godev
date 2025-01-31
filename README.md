@@ -51,7 +51,10 @@ Este proyecto está actualmente en desarrollo activo y puede contener caracterí
 
 - **Alternativa ligera a Webpack:**  
   - Similar a Webpack en el empaquetado, pero sin dependencias de JavaScript o CSS externas.  
-  - Se enfoca en **Go como lenguaje principal** y minimiza los tiempos de carga optimizando los archivos generados.  
+  - Se enfoca en **Go como lenguaje principal** y minimiza los tiempos de carga optimizando los archivos generados. 
+
+- **Uso de fichero de configuración mínimo**
+  - para desarrollo no es necesario crear un fichero de configuración, este se creara automáticamente si cambias algún setting. 
 
 ## Instalación
 
