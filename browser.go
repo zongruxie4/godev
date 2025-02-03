@@ -38,6 +38,12 @@ func (b *Browser) OpenBrowser() error {
 	if b.isOpen {
 		return errors.New("Browser is already open")
 	}
+
+	// Add listener for exit signal
+	go func() {
+		<-exitChan
+		b.CloseBrowser()
+	}()
 	// fmt.Println("*** START DEV BROWSER ***")
 	go func() {
 		err := b.CreateBrowserContext()
@@ -62,6 +68,7 @@ func (b *Browser) OpenBrowser() error {
 			for {
 				var readyState string
 				select {
+
 				case <-ctx.Done():
 					return ctx.Err()
 				default:

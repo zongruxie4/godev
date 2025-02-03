@@ -145,22 +145,30 @@ Similar a JavaScript, pero usando la carpeta `css`.
 ## 📌 Hoja de Ruta  
 
 ### ✅ MVP (Versión Mínima Viable)  
+### Frontend
 - [ ] **Compilación y empaquetado básico:**  
 - [ ] Unificación y minificación de archivos **CSS** y **JavaScript** en `build/`  
 - [ ] Generación automática de `build/index.html` si este no existe  
 - [ ] **Soporte para Go en frontend con WebAssembly**  
+
+### Servidor de Desarrollo
 - [ ] **Servidor de desarrollo integrado** para servir archivos estáticos y WebAssembly  
 - [x] **Ejecución navegador Chrome** (tecla `w`)  
+- [x] cerrar navegador al cerrar aplicación 
+
+### Hot Reload
 - [ ] **Recarga en caliente (Hot Reload):**  
 - [x] Detección de cambios en archivos Go, HTML, CSS y JS  
 - [ ] Recarga del navegador automáticamente 
-- [ ] cerrar navegador al cerrar aplicación 
+
+### Backend
 - [ ] **Soporte para backend en Go:**  
 - [ ] Detección de cambios en archivos del servidor  
 - [ ] Reinicio automático si hay modificaciones  
+
+### Configuración
 - [x] **Interfaz TUI mejorada** con más opciones de configuración  
 - [x] **Soporte para configuración mediante archivo `godev.yml`**  
-
 ### 🚀 Mejoras Futuras  
 - [ ] **Modo producción:** Generación de artefactos optimizados y listos para deploy  
 - [ ] **Compatibilidad con servidores VPS para despliegue automatizado**  
