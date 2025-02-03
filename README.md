@@ -150,10 +150,11 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [ ] Generación automática de `build/index.html` si este no existe  
 - [ ] **Soporte para Go en frontend con WebAssembly**  
 - [ ] **Servidor de desarrollo integrado** para servir archivos estáticos y WebAssembly  
-- [ ] **Ejecución automática del navegador Chrome** (opcional con tecla `w`)  
+- [x] **Ejecución navegador Chrome** (tecla `w`)  
 - [ ] **Recarga en caliente (Hot Reload):**  
 - [x] Detección de cambios en archivos Go, HTML, CSS y JS  
-- [ ] Recarga del navegador automáticamente  
+- [ ] Recarga del navegador automáticamente 
+- [ ] cerrar navegador al cerrar aplicación 
 - [ ] **Soporte para backend en Go:**  
 - [ ] Detección de cambios en archivos del servidor  
 - [ ] Reinicio automático si hay modificaciones  
@@ -164,6 +165,7 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [ ] **Modo producción:** Generación de artefactos optimizados y listos para deploy  
 - [ ] **Compatibilidad con servidores VPS para despliegue automatizado**  
 - [ ] **Compatibilidad con Docker para despliegue automatizado**  
+- [ ] **Integrar ayudante IA**
 
 ## Agradecimientos
 Este proyecto no sería posible sin:

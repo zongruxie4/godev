@@ -12,10 +12,11 @@ const BUILD_TAB_INDEX = 1
 
 // Tab representa una pestaña individual incluye un slice de campos de configuración
 type TabAction struct {
-	message   string
-	active    bool
-	shortCuts string // e.g. "t" for TinyGo
-	handler   func() error
+	message      string
+	active       bool
+	shortCuts    string
+	openHandler  func() error // handler para abrir/iniciar
+	closeHandler func() error // handler para cerrar/detener
 }
 
 type Tab struct {
@@ -157,7 +158,37 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				action, exist := t.getAction(t.activeTab, msg.String())
 
 				if exist {
-					if err := action.handler(); err != nil {
+					// Toggle the active state of the action
+					action.active = !action.active
+
+					status := "opened"
+					if !action.active {
+						status = "closed"
+					}
+
+					// console action message
+					t.tabs[t.activeTab].content = append(
+						t.tabs[t.activeTab].content,
+						TerminalMessage{
+							Type:    OkMsg,
+							Content: fmt.Sprintf("%s %s", action.message, status),
+							Time:    time.Now(),
+						},
+					)
+
+					var err error
+					if !action.active {
+						if action.closeHandler != nil {
+							err = action.closeHandler()
+						}
+					} else {
+						if action.openHandler != nil {
+							err = action.openHandler()
+						}
+					}
+
+					if err != nil {
+						// execution result message
 						t.tabs[t.activeTab].content = append(
 							t.tabs[t.activeTab].content,
 							TerminalMessage{
@@ -166,30 +197,17 @@ func (t *Terminal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								Time:    time.Now(),
 							},
 						)
-					} else {
-						// Update the action state directly in the slice
-						action.active = !action.active
-						for i, a := range t.tabs[t.activeTab].actions {
-							if a.message == action.message {
-								t.tabs[t.activeTab].actions[i] = action
-								break
-							}
-						}
-
-						status := "activated"
-						if !action.active {
-							status = "deactivated"
-						}
-
-						t.tabs[t.activeTab].content = append(
-							t.tabs[t.activeTab].content,
-							TerminalMessage{
-								Type:    OkMsg,
-								Content: fmt.Sprintf("%s %s!", action.message, status),
-								Time:    time.Now(),
-							},
-						)
 					}
+
+					// Update the action in the tab's actions list by finding the matching message
+					// and replacing it with the updated action
+					for i, a := range t.tabs[t.activeTab].actions {
+						if a.message == action.message {
+							t.tabs[t.activeTab].actions[i] = action
+							break
+						}
+					}
+
 				}
 			}
 		}
@@ -221,7 +239,7 @@ func (t *Terminal) getAction(activeTab int, shortcut string) (TabAction, bool) {
 }
 
 // NewTerminal crea una nueva instancia de Terminal
-func NewTerminal() *Terminal {
+func NewTerminal(b *Browser) *Terminal {
 
 	t := &Terminal{
 		tabs: []Tab{
@@ -239,19 +257,17 @@ func NewTerminal() *Terminal {
 						message:   "TinyGo compiler",
 						active:    false,
 						shortCuts: "t",
-						handler: func() error {
+						openHandler: func() error {
 							// TinyGo compilation logic
 							return nil
 						},
 					},
 					{
-						message:   "Web Browser",
-						active:    false,
-						shortCuts: "w",
-						handler: func() error {
-							// Browser logic
-							return nil
-						},
+						message:      "Web Browser",
+						active:       false,
+						shortCuts:    "w",
+						openHandler:  b.OpenBrowser,
+						closeHandler: b.CloseBrowser,
 					},
 				},
 			},
@@ -263,7 +279,7 @@ func NewTerminal() *Terminal {
 						message:   "Running tests...",
 						active:    false,
 						shortCuts: "r",
-						handler: func() error {
+						openHandler: func() error {
 							// Implement test running logic
 							return nil
 						},
@@ -279,7 +295,7 @@ func NewTerminal() *Terminal {
 						message:   "Generating Dockerfile...",
 						active:    false,
 						shortCuts: "d",
-						handler: func() error {
+						openHandler: func() error {
 							// Implement Docker generation logic
 							return nil
 						},
@@ -288,7 +304,7 @@ func NewTerminal() *Terminal {
 						message:   "Configuring VPS...",
 						active:    false,
 						shortCuts: "v",
-						handler: func() error {
+						openHandler: func() error {
 							// Implement VPS configuration logic
 							return nil
 						},

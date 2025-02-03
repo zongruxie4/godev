@@ -4,123 +4,101 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/chromedp/chromedp"
-	"github.com/fstanis/screenresolution"
 )
 
 type Browser struct {
-	HomePath string // ej: "/index.html", "/login", default: "/"
-	Port     int    // ej: 4430 default 8080,
-	With     int    // ej "800" default "1024"
+	Width    int    // ej "800" default "1024"
 	Height   int    //ej: "600" default "768"
 	Position string //ej: "1930,0" (when you have second monitor) default: "0,0"
+
+	isOpen bool // Indica si el navegador está abierto
 
 	context.Context    // Este campo no se codificará en YAML
 	context.CancelFunc // Este campo no se codificará en YAML
 
+	readyChan chan bool
+	errChan   chan error
 }
 
-func (b *Browser) SetDefault() error {
+func NewBrowser() *Browser {
 
-	b.HomePath = "/"
-	b.Port = 8080
-	b.Position = "0,0"
-
-	err := b.SetScreenSize()
-
-	return err
-}
-
-func (b Browser) ConfigTemplateContent() string {
-
-	return `# browser config:
-homePath: ` + b.HomePath + `
-port: ` + strconv.Itoa(b.Port) + `
-with: ` + strconv.Itoa(b.With) + `
-height: ` + strconv.Itoa(b.Height) + `
-position: ` + b.Position
-
-}
-
-func New() *Browser {
-
-	b := Browser{}
+	b := Browser{
+		readyChan: make(chan bool),
+		errChan:   make(chan error),
+	}
 
 	return &b
 }
 
-func (b *Browser) BrowserStart(wg *sync.WaitGroup) {
-	defer wg.Done()
-	fmt.Println("*** START DEV BROWSER ***")
-
-	b.CreateBrowserContext()
-	// defer cancel()
-	var protocol = "http"
-
-	// Convertir el puerto a una cadena de texto
-	portStr := strconv.Itoa(b.Port)
-
-	if strings.Contains(portStr, "44") {
-		protocol = "https"
+func (b *Browser) OpenBrowser() error {
+	if b.isOpen {
+		return errors.New("Browser is already open")
 	}
+	// fmt.Println("*** START DEV BROWSER ***")
+	go func() {
+		err := b.CreateBrowserContext()
+		if err != nil {
+			b.errChan <- err
+			return
+		}
 
-	// Navega a una página web
+		b.isOpen = true
+		var protocol = "http"
 
-	url := protocol + `://localhost:` + portStr + b.HomePath
+		url := protocol + `://localhost:` + config.ServerPort + config.BrowserStartUrl
 
-	err := chromedp.Run(b.Context, b.sendkeys(url)) // chromedp.Navigate(url),
+		err = chromedp.Run(b.Context, b.sendkeys(url))
+		if err != nil {
+			b.errChan <- fmt.Errorf("error navigating to %s: %v", config.BrowserStartUrl, err)
+			return
+		}
 
-	if err != nil {
-		log.Fatal("Error al navegar "+b.HomePath+" ", err)
-	}
-
-	// Espera hasta que la página esté completamente cargada
-	var loaded bool
-
-	err = chromedp.Run(b.Context, chromedp.ActionFunc(func(ctx context.Context) error {
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
+		// Verificar carga completa
+		err = chromedp.Run(b.Context, chromedp.ActionFunc(func(ctx context.Context) error {
+			for {
 				var readyState string
-				err := chromedp.Run(ctx, chromedp.EvaluateAsDevTools(`document.readyState`, &readyState))
-				if err != nil {
-					return err
-				}
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+					err := chromedp.Run(ctx, chromedp.EvaluateAsDevTools(`document.readyState`, &readyState))
+					if err != nil {
+						return err
+					}
 
-				if readyState == "complete" {
-					loaded = true
-
-					return nil
+					if readyState == "complete" {
+						b.readyChan <- true
+						return nil
+					}
 				}
 			}
+		}))
+
+		if err != nil {
+			b.errChan <- err
 		}
-	}))
-	if err != nil {
-		log.Fatal(err)
-	}
+	}()
 
-	// Verifica si la página se ha cargado correctamente
-	if !loaded {
-		log.Fatal("La página no se ha cargado correctamente")
+	// Esperar señal de inicio o error
+	select {
+	case err := <-b.errChan:
+		return err
+	case <-b.readyChan:
+		return nil
 	}
-
 }
 
-func (b *Browser) CreateBrowserContext() {
-	var Position = "0,0" // ej: "1930,0"
+func (b *Browser) CreateBrowserContext() error {
 
-	if b.Position != "" {
-		Position = b.Position
+	err := b.setBrowserPositionAndSize(config.BrowserPositionAndSize)
+	if err != nil {
+		return err
 	}
-
-	// fmt.Printf("tamaño monitor: [%d] x [%d] Position: [%v]\n", width, Height, Position)
+	// fmt.Printf("tamaño monitor: [%d] x [%d] BrowserPositionAndSize: [%v]\n", width, Height, BrowserPositionAndSize)
 
 	opts := append(
 
@@ -135,10 +113,10 @@ func (b *Browser) CreateBrowserContext() {
 		//quitar mensaje: Chrome is being controlled by automated test software
 
 		// chromedp.Flag("--webview-log-js-console-messages", true),
-		chromedp.WindowSize(b.With, b.Height),
-		chromedp.Flag("window-Position", Position),
+		chromedp.WindowSize(b.Width, b.Height),
+		chromedp.Flag("window-BrowserPositionAndSize", b.Position),
 		// chromedp.WindowSize(1530, 870),
-		// chromedp.Flag("window-Position", "1540,0"),
+		// chromedp.Flag("window-BrowserPositionAndSize", "1540,0"),
 		chromedp.Flag("use-fake-ui-for-media-stream", true),
 		// chromedp.Flag("exclude-switches", "enable-automation"),
 		// chromedp.Flag("disable-blink-features", "AutomationControlled"),
@@ -156,9 +134,35 @@ func (b *Browser) CreateBrowserContext() {
 	parentCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
 
 	b.Context, b.CancelFunc = chromedp.NewContext(parentCtx)
+
+	return nil
 }
-func (b Browser) BrowserContext() context.Context {
-	return b.Context
+
+func (b *Browser) CloseBrowser() error {
+	if !b.isOpen {
+		return errors.New("Browser is already closed")
+	}
+
+	// Primero cerrar todas las pestañas/contextos
+	if err := chromedp.Run(b.Context, chromedp.Tasks{
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			return nil
+		}),
+	}); err != nil {
+		return err
+	}
+
+	// Luego cancelar el contexto principal
+	if b.CancelFunc != nil {
+		b.CancelFunc()
+		b.isOpen = false
+	}
+
+	// Limpiar recursos
+	b.Context = nil
+	b.CancelFunc = nil
+
+	return nil
 }
 
 func (b Browser) sendkeys(host string) chromedp.Tasks {
@@ -168,27 +172,78 @@ func (b Browser) sendkeys(host string) chromedp.Tasks {
 	}
 }
 
-func (b *Browser) Reload() (err string) {
+func (b *Browser) Reload() (err error) {
 	if b.Context != nil {
 		// fmt.Println("Recargando Navegador")
-		er := chromedp.Run(b.Context, chromedp.Reload())
-		if er != nil {
-			return "Reload error al recargar Pagina " + er.Error()
+		err = chromedp.Run(b.Context, chromedp.Reload())
+		if err != nil {
+			return errors.New("Reload error al recargar Pagina " + err.Error())
 		}
 	}
 	return
 }
 
-func (b *Browser) SetScreenSize() error {
+func (b *Browser) setBrowserPositionAndSize(newConfig string) (err error) {
 
-	r := screenresolution.GetPrimary()
-	if r == nil {
-		return errors.New("error SetScreenSize sistema operativo no soportado")
+	this := errors.New("setBrowserPositionAndSize")
+
+	position, width, height, err := getBrowserPositionAndSize(newConfig)
+
+	if err != nil {
+		return errors.Join(this, err)
+	}
+	b.Position = position
+
+	b.Width, err = strconv.Atoi(width)
+	if err != nil {
+		return errors.Join(this, err)
+	}
+	b.Height, err = strconv.Atoi(height)
+	if err != nil {
+		return errors.Join(this, err)
 	}
 
-	b.With = r.Width
-	b.Height = r.Height
+	return
+}
+func getBrowserPositionAndSize(config string) (position, width, height string, err error) {
+	current := strings.Split(config, ":")
 
-	return nil
+	if len(current) != 2 {
+		err = errors.New("Browse Config must be in the format: 1930,0:800,600")
+		return
+	}
 
+	positions := strings.Split(current[0], ",")
+	if len(positions) != 2 {
+		err = errors.New("position must be with commas e.g.: 1930,0:800,600")
+		return
+	}
+	position = current[0]
+
+	sizes := strings.Split(current[1], ",")
+	if len(sizes) != 2 {
+		err = errors.New("width and height must be with commas e.g.: 1930,0:800,600")
+		return
+	}
+
+	widthInt, err := strconv.Atoi(sizes[0])
+	if err != nil {
+		err = errors.New("width must be an integer number")
+		return
+	}
+	width = strconv.Itoa(widthInt)
+
+	heightInt, err := strconv.Atoi(sizes[1])
+	if err != nil {
+		err = errors.New("height must be an integer number")
+		return
+	}
+	height = strconv.Itoa(heightInt)
+
+	return
+}
+
+func verifyBrowserPosition(newConfig string) (err error) {
+	_, _, _, err = getBrowserPositionAndSize(newConfig)
+	return
 }

@@ -2,12 +2,16 @@ package godev
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 
+	"github.com/fstanis/screenresolution"
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,6 +24,7 @@ type ConfigField struct {
 	editable bool
 	selected bool
 	cursor   int // Posición del cursor
+	validate func(string) error
 }
 
 type Config struct {
@@ -33,6 +38,10 @@ type Config struct {
 	OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
 	// ej: 8080
 	ServerPort string `yaml:"ServerPort" label:"Server Port" value:"8080" editable:"true"`
+	// ej: "/index.html", "/login", default: "/"
+	BrowserStartUrl string `yaml:"BrowserStartUrl" label:"Browser Home Path" value:"/" editable:"true"`
+	//ej: "1930,0:800,600" (when you have second monitor) default: "0,0:800,600"
+	BrowserPositionAndSize string `yaml:"BrowserPositionAndSize" label:"Browser Position" value:"0,0:800,600" editable:"true"`
 }
 
 var (
@@ -59,19 +68,24 @@ func init() {
 	// 1 load default config
 	config.DefaultConfig()
 
-	// 2 load config from file
+	// 2 load  default browser config
+	if err := config.DefaultBrowserConfig(); err != nil {
+		configErrors = append(configErrors, err)
+	}
+
+	// 3 load config from file
 	if err := config.LoadConfigFromYML(); err != nil {
 		configErrors = append(configErrors, err)
 	} else {
 		configFileFound = true
 	}
 
-	// 3 load config from params
+	// 4 load config from params
 	if err := config.LoadConfigFromParams(); err != nil {
 		configErrors = append(configErrors, err)
 	}
 
-	// 4 Crear el directorio de salida si no existe
+	// 5 Crear el directorio de salida si no existe
 	if err := os.MkdirAll(config.OutputDir, os.ModePerm); err != nil {
 		configErrors = append(configErrors, errors.New("Could not create output directory: "+err.Error()))
 	}
@@ -119,6 +133,21 @@ func (c *Config) DefaultConfig() {
 	}
 }
 
+func (c *Config) DefaultBrowserConfig() error {
+
+	r := screenresolution.GetPrimary()
+	if r == nil {
+		return errors.New("error SetScreenSize sistema operativo no soportado")
+	}
+
+	c.SetBrowserPosition("0,0", r.Width, r.Height)
+	return nil
+}
+
+func (c *Config) SetBrowserPosition(position string, width, height int) {
+	c.BrowserPositionAndSize = fmt.Sprintf("%v:%d,%d", position, width, height)
+}
+
 func (c *Config) GetConfigFields() []ConfigField {
 	fields := make([]ConfigField, 0)
 	t := reflect.TypeOf(*c)
@@ -129,6 +158,7 @@ func (c *Config) GetConfigFields() []ConfigField {
 		label := field.Tag.Get("label")
 		editable := field.Tag.Get("editable") == "true"
 		value := v.Field(i).String()
+		validatorType := field.Tag.Get("validate")
 
 		fields = append(fields, ConfigField{
 			index:    i,
@@ -138,6 +168,7 @@ func (c *Config) GetConfigFields() []ConfigField {
 			editable: editable,
 			selected: false,
 			cursor:   len(value),
+			validate: getValidationFunc(validatorType),
 		})
 	}
 	return fields
@@ -218,12 +249,19 @@ func (c *Config) UpdateFieldWithNotification(field *ConfigField, newValue string
 		return errors.New("field cannot be nil")
 	}
 
+	if err := field.validate(newValue); err != nil {
+		return err
+	}
+
 	oldValue := field.value
 	field.value = newValue
 
-	c.UpdateField(field.index, newValue)
+	err := c.UpdateField(field.index, newValue)
+	if err != nil {
+		return err
+	}
 
-	err := c.SaveConfigToYML()
+	err = c.SaveConfigToYML()
 	if err != nil {
 		return err
 	}
@@ -247,4 +285,41 @@ func (c *Config) UpdateField(index int, value string) error {
 
 	field.SetString(value)
 	return nil
+}
+
+// Validation functions map
+func getValidationFunc(fieldName string) func(input string) error {
+
+	fieldName = strings.ToLower(fieldName)
+
+	switch {
+	case strings.Contains(fieldName, "port"):
+		return func(input string) error {
+			port, err := strconv.Atoi(input)
+			if err != nil {
+				return errors.New("port must be a number")
+			}
+			if port < 1 || port > 65535 {
+				return errors.New("port must be between 1-65535")
+			}
+			return nil
+		}
+	case strings.Contains(fieldName, "url"):
+		return func(input string) error {
+			if !strings.HasPrefix(input, "/") {
+				return errors.New("url must start with /")
+			}
+			return nil
+		}
+	case fieldName == "BrowserPositionAndSize":
+		return verifyBrowserPosition
+
+	default:
+		return func(input string) error {
+			if input == "" {
+				return errors.New("field cannot be empty")
+			}
+			return nil
+		}
+	}
 }

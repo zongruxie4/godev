@@ -10,49 +10,20 @@ type handler struct {
 	terminal *Terminal
 	watcher  *fsnotify.Watcher
 	program  *Program
+	browser  *Browser
 }
 
 // Canal global para señalizar el cierre
 var exitChan = make(chan bool)
 
-// func GodevStart() {
-// 	h := &handler{
-// 		terminal: NewTerminal(),
-// 	}
-// 	h.program = NewProgram(h.terminal)
-
-// 	if watcher, err := fsnotify.NewWatcher(); err != nil {
-// 		configErrors = append(configErrors, err)
-// 	} else {
-// 		h.watcher = watcher
-// 	}
-
-// 	var wg sync.WaitGroup
-// 	wg.Add(2) // Reducimos a 2 porque la terminal se maneja con Bubbletea
-
-// 	// mostrar errores de configuración como warning
-// 	if len(configErrors) != 0 {
-// 		for _, err := range configErrors {
-// 			h.terminal.MsgWarning(err)
-// 		}
-// 	}
-
-// 	// Iniciar el watcher
-// 	go h.FileWatcherStart(&wg)
-
-// 	// Iniciar el programa
-// 	go h.program.Start(&wg)
-
-// 	// La terminal ya maneja el exitChan con Bubbletea
-
-// 	// Esperar a que las goroutines terminen
-// 	wg.Wait()
-// }
-
 func GodevStart() {
-	h := &handler{
-		terminal: NewTerminal(),
-	}
+
+	bws := NewBrowser()
+
+	h := &handler{}
+
+	h.browser = bws
+	h.terminal = NewTerminal(bws)
 	h.program = NewProgram(h.terminal)
 
 	if watcher, err := fsnotify.NewWatcher(); err != nil {
