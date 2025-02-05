@@ -26,12 +26,23 @@ type Browser struct {
 
 func NewBrowser() *Browser {
 
-	b := Browser{
+	b := &Browser{
 		readyChan: make(chan bool),
 		errChan:   make(chan error),
 	}
 
-	return &b
+	config.Subscribe(b)
+
+	return b
+}
+
+func (b *Browser) OnConfigChanged(fieldName string, oldValue, newValue string) {
+
+	if !b.isOpen {
+		return
+	}
+
+	return
 }
 
 func (b *Browser) OpenBrowser() error {

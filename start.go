@@ -7,10 +7,13 @@ import (
 )
 
 type handler struct {
-	terminal *Terminal
+	terminal *TextUserInterface
 	watcher  *fsnotify.Watcher
 	program  *Program
-	browser  *Browser
+}
+
+type Controllers struct {
+	browser *Browser
 }
 
 // Canal global para señalizar el cierre
@@ -18,12 +21,14 @@ var exitChan = make(chan bool)
 
 func GodevStart() {
 
-	bws := NewBrowser()
+	ctrl := &Controllers{
+		browser: NewBrowser(),
+	}
 
 	h := &handler{}
 
-	h.browser = bws
-	h.terminal = NewTerminal(bws)
+	// h.browser = bws
+	h.terminal = NewTerminal(ctrl)
 	h.program = NewProgram(h.terminal)
 
 	if watcher, err := fsnotify.NewWatcher(); err != nil {

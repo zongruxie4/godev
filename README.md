@@ -146,35 +146,36 @@ Similar a JavaScript, pero usando la carpeta `css`.
 
 ### ✅ MVP (Versión Mínima Viable)  
 ### Frontend
-- [ ] **Compilación y empaquetado básico:**  
-- [ ] Unificación y minificación de archivos **CSS** y **JavaScript** en `build/`  
+- [ ] Compilación y empaquetado básico:  
+- [ ] Unificación y minificación de archivos CSS y JavaScript en `build/`  
 - [ ] Generación automática de `build/index.html` si este no existe  
-- [ ] **Soporte para Go en frontend con WebAssembly**  
+- [ ] Soporte para Go en frontend con WebAssembly
 
 ### Servidor de Desarrollo
-- [ ] **Servidor de desarrollo integrado** para servir archivos estáticos y WebAssembly  
-- [x] **Ejecución navegador Chrome** (tecla `w`)  
+- [ ] Servidor de desarrollo integrado para servir archivos estáticos y WebAssembly  
 - [x] cerrar navegador al cerrar aplicación 
+- [x] Ejecución navegador Chrome (tecla `w`)  
+- [ ] cambiar el tamaño de la ventana del navegador desde la tui
 
 ### Hot Reload
-- [ ] **Recarga en caliente (Hot Reload):**  
+- [ ] Recarga en caliente (Hot Reload):  
 - [x] Detección de cambios en archivos Go, HTML, CSS y JS  
 - [ ] Recarga del navegador automáticamente 
 
 ### Backend
-- [ ] **Soporte para backend en Go:**  
+- [ ] Soporte para backend en Go:  
 - [ ] Detección de cambios en archivos del servidor  
 - [ ] Reinicio automático si hay modificaciones  
 
 ### Configuración
-- [x] **Interfaz TUI mejorada** con más opciones de configuración  
-- [x] **Soporte para configuración mediante archivo `godev.yml`**  
-### 🚀 Mejoras Futuras  
-- [ ] **Modo producción:** Generación de artefactos optimizados y listos para deploy  
-- [ ] **Compatibilidad con servidores VPS para despliegue automatizado**  
-- [ ] **Compatibilidad con Docker para despliegue automatizado**  
-- [ ] **Integrar ayudante IA**
+- [x] Interfaz TUI mejorada con más opciones de configuración  
+- [x] Soporte para configuración mediante archivo `godev.yml`  
 
+### 🚀 Mejoras Futuras  
+- [ ] Modo producción: Generación de artefactos optimizados y listos para deploy  
+- [ ] Compatibilidad con servidores VPS para despliegue automatizado  
+- [ ] Compatibilidad con Docker para despliegue automatizado  
+- [ ] Integrar ayudante IA
 ## Agradecimientos
 Este proyecto no sería posible sin:
 - github.com/fsnotify

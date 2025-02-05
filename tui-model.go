@@ -239,7 +239,7 @@ func (t *TextUserInterface) getAction(activeTab int, shortcut string) (TabAction
 }
 
 // NewTerminal crea una nueva instancia de TextUserInterface
-func NewTerminal(b *Browser) *TextUserInterface {
+func NewTerminal(ctrl *Controllers) *TextUserInterface {
 
 	t := &TextUserInterface{
 		tabs: []Tab{
@@ -266,8 +266,8 @@ func NewTerminal(b *Browser) *TextUserInterface {
 						message:      "Web Browser",
 						active:       false,
 						shortCuts:    "w",
-						openHandler:  b.OpenBrowser,
-						closeHandler: b.CloseBrowser,
+						openHandler:  ctrl.browser.OpenBrowser,
+						closeHandler: ctrl.browser.CloseBrowser,
 					},
 				},
 			},

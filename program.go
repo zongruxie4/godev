@@ -14,10 +14,10 @@ var (
 
 type Program struct {
 	*exec.Cmd
-	terminal *Terminal
+	terminal *TextUserInterface
 }
 
-func NewProgram(terminal *Terminal) *Program {
+func NewProgram(terminal *TextUserInterface) *Program {
 
 	p := &Program{
 		Cmd:      &exec.Cmd{},

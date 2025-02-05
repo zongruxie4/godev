@@ -18,27 +18,27 @@ type TerminalMessage struct {
 }
 
 // Msg sends a normal message to the terminal
-func (h *Terminal) Msg(messages ...any) {
+func (h *TextUserInterface) Msg(messages ...any) {
 	h.SendMessage(joinMessages(messages...), NormMsg)
 }
 
 // MsgError sends an error message to the terminal
-func (h *Terminal) MsgError(messages ...any) {
+func (h *TextUserInterface) MsgError(messages ...any) {
 	h.SendMessage(joinMessages(messages...), ErrorMsg)
 }
 
 // MsgWarning sends a warning message to the terminal
-func (h *Terminal) MsgWarning(messages ...any) {
+func (h *TextUserInterface) MsgWarning(messages ...any) {
 	h.SendMessage(joinMessages(messages...), WarnMsg)
 }
 
 // MsgInfo sends an informational message to the terminal
-func (h *Terminal) MsgInfo(messages ...any) {
+func (h *TextUserInterface) MsgInfo(messages ...any) {
 	h.SendMessage(joinMessages(messages...), InfoMsg)
 }
 
 // MsgOk sends a success message to the terminal
-func (h *Terminal) MsgOk(messages ...any) {
+func (h *TextUserInterface) MsgOk(messages ...any) {
 	h.SendMessage(joinMessages(messages...), OkMsg)
 }
 
@@ -52,7 +52,7 @@ func joinMessages(messages ...any) (message string) {
 }
 
 // SendMessage envía un mensaje al terminal
-func (t *Terminal) SendMessage(content string, msgType MessageType) {
+func (t *TextUserInterface) SendMessage(content string, msgType MessageType) {
 
 	t.messagesChan <- TerminalMessage{
 		Content: content,
@@ -98,7 +98,7 @@ const (
 )
 
 // formatMessage formatea un mensaje según su tipo
-func (t *Terminal) formatMessage(msg TerminalMessage) string {
+func (t *TextUserInterface) formatMessage(msg TerminalMessage) string {
 	timeStr := timeStyle.Render(fmt.Sprintf("%s", msg.Time.Format("15:04:05")))
 	// content := fmt.Sprintf("[%s] %s", timeStr, msg.Content)
 
@@ -149,7 +149,7 @@ func detectMessageType(content string) MessageType {
 }
 
 // Write implementa io.Writer para capturar la salida de otros procesos
-func (t *Terminal) Write(p []byte) (n int, err error) {
+func (t *TextUserInterface) Write(p []byte) (n int, err error) {
 	msg := strings.TrimSpace(string(p))
 	if msg != "" {
 		// Detectar automáticamente el tipo de mensaje
