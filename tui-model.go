@@ -239,9 +239,9 @@ func (t *TextUserInterface) getAction(activeTab int, shortcut string) (TabAction
 }
 
 // NewTerminal crea una nueva instancia de TextUserInterface
-func NewTerminal(ctrl *Controllers) *TextUserInterface {
+func (h *handler) NewTextUserInterface() {
 
-	t := &TextUserInterface{
+	h.terminal = &TextUserInterface{
 		tabs: []Tab{
 			{
 				title:   "GODEV",
@@ -266,8 +266,8 @@ func NewTerminal(ctrl *Controllers) *TextUserInterface {
 						message:      "Web Browser",
 						active:       false,
 						shortCuts:    "w",
-						openHandler:  ctrl.browser.OpenBrowser,
-						closeHandler: ctrl.browser.CloseBrowser,
+						openHandler:  h.browser.OpenBrowser,
+						closeHandler: h.browser.CloseBrowser,
 					},
 				},
 			},
@@ -321,7 +321,7 @@ func NewTerminal(ctrl *Controllers) *TextUserInterface {
 		messagesChan: make(chan TerminalMessage, 100),
 		currentTime:  time.Now().Format("15:04:05"),
 	}
-	return t
+	return
 }
 
 func (t *TextUserInterface) Start(wg *sync.WaitGroup) {

@@ -10,10 +10,7 @@ type handler struct {
 	terminal *TextUserInterface
 	watcher  *fsnotify.Watcher
 	program  *Program
-}
-
-type Controllers struct {
-	browser *Browser
+	browser  *Browser
 }
 
 // Canal global para señalizar el cierre
@@ -21,23 +18,21 @@ var exitChan = make(chan bool)
 
 func GodevStart() {
 
-	ctrl := &Controllers{
-		browser: NewBrowser(),
-	}
-
 	h := &handler{}
 
-	// h.browser = bws
-	h.terminal = NewTerminal(ctrl)
-	h.program = NewProgram(h.terminal)
+	h.NewBrowser()
+	h.NewTextUserInterface()
+	h.NewProgram()
 
-	if watcher, err := fsnotify.NewWatcher(); err != nil {
-		configErrors = append(configErrors, err)
-	} else {
-		h.watcher = watcher
-		defer h.watcher.Close()
-	}
+	h.NewWatcher()
+	defer h.watcher.Close()
 
+	// if watcher, err := fsnotify.NewWatcher(); err != nil {
+	// 	configErrors = append(configErrors, err)
+	// } else {
+	// 	h.watcher = watcher
+	// 	defer h.watcher.Close()
+	// }
 	var wg sync.WaitGroup
 	wg.Add(3)
 
@@ -52,7 +47,7 @@ func GodevStart() {
 	}
 
 	// Iniciar el programa
-	go h.program.Start(&wg)
+	go h.ProgramStart(&wg)
 
 	// Iniciar el watcher de archivos
 	go h.FileWatcherStart(&wg)

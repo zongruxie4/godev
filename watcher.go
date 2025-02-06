@@ -1,12 +1,25 @@
 package godev
 
 import (
+	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
+
+func (h *handler) NewWatcher() {
+
+	if watcher, err := fsnotify.NewWatcher(); err != nil {
+		log.Fatal(errors.New("Error New Watcher: " + err.Error()))
+	} else {
+		h.watcher = watcher
+	}
+}
 
 func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 

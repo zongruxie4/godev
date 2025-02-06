@@ -14,19 +14,17 @@ var (
 
 type Program struct {
 	*exec.Cmd
-	terminal *TextUserInterface
 }
 
-func NewProgram(terminal *TextUserInterface) *Program {
+func (h *handler) NewProgram() {
 
-	p := &Program{
-		Cmd:      &exec.Cmd{},
-		terminal: terminal,
+	h.program = &Program{
+		Cmd: &exec.Cmd{},
 	}
-	return p
+	return
 }
 
-func (h *Program) Start(wg *sync.WaitGroup) {
+func (h *handler) ProgramStart(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	if len(os.Args) < 2 && !configFileFound {
@@ -44,7 +42,7 @@ func (h *Program) Start(wg *sync.WaitGroup) {
 	}
 
 	// BUILD AND RUN
-	err := h.buildAndRun()
+	err := h.buildAndRunProgram()
 	if err != nil {
 		h.terminal.MsgError("StartProgram ", err)
 		return
@@ -54,7 +52,7 @@ func (h *Program) Start(wg *sync.WaitGroup) {
 	<-exitChan
 }
 
-func (h *Program) buildAndRun() error {
+func (h *handler) buildAndRunProgram() error {
 	var this = errors.New("buildAndRun")
 
 	h.terminal.Msg(this, config.AppName, "...")
@@ -69,20 +67,20 @@ func (h *Program) buildAndRun() error {
 
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
-	h.Cmd = exec.Command("go", "build", "-o", config.OutPathApp, config.MainFilePath)
+	h.program.Cmd = exec.Command("go", "build", "-o", config.OutPathApp, config.MainFilePath)
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
-	stderr, err := h.Cmd.StderrPipe()
+	stderr, err := h.program.Cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	stdout, err := h.Cmd.StdoutPipe()
+	stdout, err := h.program.Cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
 
-	err = h.Cmd.Start()
+	err = h.program.Cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -93,7 +91,7 @@ func (h *Program) buildAndRun() error {
 	return nil
 }
 
-func (h *Program) showHelpExecProgram() {
+func (h *handler) showHelpExecProgram() {
 	h.terminal.MsgInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
 	h.terminal.MsgInfo(`Parameters:`)
 	h.terminal.MsgInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
@@ -105,22 +103,22 @@ func (h *Program) showHelpExecProgram() {
 // cmdArgs := append([]string{"go", "build", "-o", d.app_path, "main.go"}, os.Args...)
 // d.Cmd = exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
-func (h *Program) run() error {
+func (h *handler) runProgram() error {
 
-	h.Cmd = exec.Command(config.OutPathApp)
+	h.program.Cmd = exec.Command(config.OutPathApp)
 	// h.Cmd = exec.Command("./"+d.app_path,h.main_file ,h.run_arguments...)
 
-	stderr, err := h.Cmd.StderrPipe()
+	stderr, err := h.program.Cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	stdout, err := h.Cmd.StdoutPipe()
+	stdout, err := h.program.Cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
 
-	err = h.Cmd.Start()
+	err = h.program.Cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -131,7 +129,7 @@ func (h *Program) run() error {
 	return nil
 }
 
-func (h *Program) Restart(event_name string) error {
+func (h *handler) RestartProgram(event_name string) error {
 	var this = errors.New("Restart")
 	h.terminal.MsgWarning(this, "APP...", event_name)
 
@@ -143,7 +141,7 @@ func (h *Program) Restart(event_name string) error {
 	}
 
 	// BUILD AND RUN
-	err = h.buildAndRun()
+	err = h.buildAndRunProgram()
 	if err != nil {
 		return errors.Join(this, err)
 	}
@@ -151,12 +149,12 @@ func (h *Program) Restart(event_name string) error {
 	return nil
 }
 
-func (h *Program) StopProgram() error {
+func (h *handler) StopProgram() error {
 	var this = errors.New("StopProgram")
 
-	h.terminal.MsgWarning(this, "PID:", h.Cmd.Process.Pid)
+	h.terminal.MsgWarning(this, "PID:", h.program.Cmd.Process.Pid)
 
-	err := h.Cmd.Process.Kill()
+	err := h.program.Cmd.Process.Kill()
 	if err != nil {
 		return errors.Join(this, err)
 	}

@@ -24,16 +24,15 @@ type Browser struct {
 	errChan   chan error
 }
 
-func NewBrowser() *Browser {
+func (h *handler) NewBrowser() {
 
-	b := &Browser{
+	h.browser = &Browser{
 		readyChan: make(chan bool),
 		errChan:   make(chan error),
 	}
 
-	config.Subscribe(b)
+	config.Subscribe(h.browser)
 
-	return b
 }
 
 func (b *Browser) OnConfigChanged(fieldName string, oldValue, newValue string) {
