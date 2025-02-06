@@ -31,17 +31,41 @@ func (h *handler) NewBrowser() {
 		errChan:   make(chan error),
 	}
 
-	h.ch.Subscribe(h.browser)
-
 }
 
-func (b *Browser) OnConfigChanged(fieldName string, oldValue, newValue string) {
+func (h *handler) BrowserPositionAndSizeChanged(fieldName string, oldValue, newValue string) error {
 
-	if !b.isOpen {
-		return
+	if !h.browser.isOpen {
+		return nil
 	}
 
-	return
+	err := h.browser.setBrowserPositionAndSize(newValue)
+	if err != nil {
+		return err
+	}
+
+	return h.RestartBrowser()
+}
+
+func (h *handler) BrowserStartUrlChanged(fieldName string, oldValue, newValue string) error {
+
+	if !h.browser.isOpen {
+		return nil
+	}
+
+	return h.RestartBrowser()
+}
+
+func (h *handler) RestartBrowser() error {
+
+	this := errors.New("RestartBrowser")
+
+	err := h.CloseBrowser()
+	if err != nil {
+		return errors.Join(this, err)
+	}
+
+	return h.OpenBrowser()
 }
 
 func (h *handler) OpenBrowser() error {
@@ -131,9 +155,9 @@ func (h *handler) CreateBrowserContext() error {
 
 		// chromedp.Flag("--webview-log-js-console-messages", true),
 		chromedp.WindowSize(h.browser.Width, h.browser.Height),
-		chromedp.Flag("window-BrowserPositionAndSize", h.browser.Position),
+		chromedp.Flag("window-position", h.browser.Position),
 		// chromedp.WindowSize(1530, 870),
-		// chromedp.Flag("window-BrowserPositionAndSize", "1540,0"),
+		// chromedp.Flag("window-position", "1540,0"),
 		chromedp.Flag("use-fake-ui-for-media-stream", true),
 		// chromedp.Flag("exclude-switches", "enable-automation"),
 		// chromedp.Flag("disable-blink-features", "AutomationControlled"),
@@ -222,6 +246,7 @@ func (b *Browser) setBrowserPositionAndSize(newConfig string) (err error) {
 
 	return
 }
+
 func getBrowserPositionAndSize(config string) (position, width, height string, err error) {
 	current := strings.Split(config, ":")
 

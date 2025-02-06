@@ -23,13 +23,13 @@ func GodevStart() {
 
 	h.NewConfig()
 
-	h.NewBrowser()
 	h.NewTextUserInterface()
 	h.NewProgram()
 
 	h.NewWatcher()
 	defer h.watcher.Close()
 
+	h.NewBrowser()
 	// if watcher, err := fsnotify.NewWatcher(); err != nil {
 	// 	configErrors = append(configErrors, err)
 	// } else {

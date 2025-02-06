@@ -83,12 +83,12 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 			case "enter":
 				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
-				if err := h.ch.UpdateFieldWithNotification(currentField, currentField.value); err != nil {
+				if err := h.UpdateFieldWithNotification(currentField, currentField.value); err != nil {
 					h.tui.tabs[BUILD_TAB_INDEX].content = append(
 						h.tui.tabs[BUILD_TAB_INDEX].content,
 						TerminalMessage{
 							Type:    ErrorMsg,
-							Content: fmt.Sprintf("Error updating field:%v %v", currentField.name, err),
+							Content: fmt.Sprintf("Error updating field: %v %v", currentField.name, err),
 							Time:    time.Now(),
 						},
 					)
@@ -102,7 +102,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "esc":
 				// Al presionar ESC, descartamos los cambios
 				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
-				currentField.value = h.ch.config.GetConfigFields()[h.tui.activeConfig].value // Restaurar valor original
+				currentField.value = h.GetConfigFields()[h.tui.activeConfig].value // Restaurar valor original
 				h.tui.editingConfig = false
 
 				// volvemos el cursor a su posición
@@ -246,7 +246,7 @@ func (h *handler) NewTextUserInterface() {
 			{
 				title:   "GODEV",
 				content: []TerminalMessage{},
-				configs: h.ch.config.GetConfigFields(),
+				configs: h.GetConfigFields(),
 				footer:  "↑↓ to navigate | ENTER to edit | ESC to exit edit",
 			},
 			{

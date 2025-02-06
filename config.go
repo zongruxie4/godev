@@ -19,21 +19,21 @@ type ConfigHandler struct {
 	config          *Config
 	configErrors    []error
 	configFileFound bool
-	appRootDir      string     // app root directory e.g: /home/user/go/src/github.com/user/app
-	conFileName     string     // config file name e.g: godev.yml
-	observers       []Observer // observers almacena la lista de observadores registrados
+	appRootDir      string // app root directory e.g: /home/user/go/src/github.com/user/app
+	conFileName     string // config file name e.g: godev.yml
 }
 
 // ConfigField representa un campo de configuración editable
 type ConfigField struct {
-	index    int
-	label    string
-	name     string
-	value    string
-	editable bool
-	selected bool
-	cursor   int // Posición del cursor
-	validate func(string) error
+	index               int
+	label               string
+	name                string
+	value               string
+	editable            bool
+	selected            bool
+	cursor              int // Posición del cursor
+	validate            func(string) error
+	notifyHandlerChange func(fieldName string, oldValue, newValue string) error
 }
 
 type Config struct {
@@ -155,10 +155,10 @@ func (c *Config) SetBrowserPosition(position string, width, height int) {
 	c.BrowserPositionAndSize = fmt.Sprintf("%v:%d,%d", position, width, height)
 }
 
-func (c *Config) GetConfigFields() []ConfigField {
+func (h *handler) GetConfigFields() []ConfigField {
 	fields := make([]ConfigField, 0)
-	t := reflect.TypeOf(*c)
-	v := reflect.ValueOf(c).Elem()
+	t := reflect.TypeOf(*h.ch.config)
+	v := reflect.ValueOf(h.ch.config).Elem()
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -167,7 +167,7 @@ func (c *Config) GetConfigFields() []ConfigField {
 		value := v.Field(i).String()
 		validatorType := field.Tag.Get("validate")
 
-		fields = append(fields, ConfigField{
+		newField := ConfigField{
 			index:    i,
 			label:    label,
 			name:     field.Name,
@@ -176,22 +176,40 @@ func (c *Config) GetConfigFields() []ConfigField {
 			selected: false,
 			cursor:   len(value),
 			validate: getValidationFunc(validatorType),
-		})
+		}
+
+		h.setNotifyObserver(&newField)
+
+		fields = append(fields, newField)
 	}
 	return fields
 }
 
-func (c *ConfigHandler) LoadConfigFromYML() error {
-	if _, err := os.Stat(c.conFileName); os.IsNotExist(err) {
-		return errors.New("config file: " + c.conFileName + " not found")
+func (h *handler) setNotifyObserver(f *ConfigField) {
+
+	// h.tui.Msg("setNotifyObserver: " + f.name)
+	// log.Println("setNotifyObserver: " + f.name)
+	switch f.name {
+	case "BrowserPositionAndSize":
+		f.notifyHandlerChange = h.BrowserPositionAndSizeChanged
+
+	case "BrowserStartUrl":
+		f.notifyHandlerChange = h.BrowserStartUrlChanged
 	}
 
-	data, err := os.ReadFile(c.conFileName)
+}
+
+func (ch *ConfigHandler) LoadConfigFromYML() error {
+	if _, err := os.Stat(ch.conFileName); os.IsNotExist(err) {
+		return errors.New("config file: " + ch.conFileName + " not found")
+	}
+
+	data, err := os.ReadFile(ch.conFileName)
 	if err != nil {
 		return err
 	}
 
-	if err := yaml.Unmarshal(data, c); err != nil {
+	if err := yaml.Unmarshal(data, ch.config); err != nil {
 		return err
 	}
 
@@ -199,15 +217,15 @@ func (c *ConfigHandler) LoadConfigFromYML() error {
 }
 
 // SaveConfigToYML guarda la configuración en un archivo YAML
-func (c *ConfigHandler) SaveConfigToYML() error {
+func (ch *ConfigHandler) SaveConfigToYML() error {
 	// Convierte la estructura Config a formato YAML
-	data, err := yaml.Marshal(c)
+	data, err := yaml.Marshal(ch.config)
 	if err != nil {
 		return err
 	}
 
 	// Escribe los datos en el archivo con permisos 0644 (lectura/escritura para el propietario, solo lectura para otros)
-	err = os.WriteFile(c.conFileName, data, 0644)
+	err = os.WriteFile(ch.conFileName, data, 0644)
 	if err != nil {
 		return err
 	}
@@ -215,37 +233,8 @@ func (c *ConfigHandler) SaveConfigToYML() error {
 	return nil
 }
 
-// Observer es una interfaz para los observadores que quieren ser notificados de cambios
-type Observer interface {
-	OnConfigChanged(fieldName string, oldValue, newValue string)
-}
-
-// Subscribe registra un nuevo observador para recibir notificaciones
-func (c *ConfigHandler) Subscribe(observer Observer) {
-	c.observers = append(c.observers, observer)
-}
-
-// Unsubscribe elimina un observador de la lista
-func (c *ConfigHandler) Unsubscribe(observer Observer) {
-	for i, obs := range c.observers {
-		// Compara directamente las referencias de los observadores para encontrar el que queremos eliminar
-		if obs == observer {
-			// Cuando lo encuentra, usa slice para remover el elemento uniendo la parte antes y después del índice
-			c.observers = append(c.observers[:i], c.observers[i+1:]...)
-			break
-		}
-	}
-}
-
-// notifyObservers notifica a todos los observadores registrados sobre un cambio
-func (c *ConfigHandler) notifyObservers(fieldName, oldValue, newValue string) {
-	for _, observer := range c.observers {
-		observer.OnConfigChanged(fieldName, oldValue, newValue)
-	}
-}
-
 // UpdateFieldWithNotification actualiza un campo y notifica a los observadores
-func (c *ConfigHandler) UpdateFieldWithNotification(field *ConfigField, newValue string) error {
+func (h *handler) UpdateFieldWithNotification(field *ConfigField, newValue string) error {
 
 	if field == nil {
 		return errors.New("field cannot be nil")
@@ -258,24 +247,30 @@ func (c *ConfigHandler) UpdateFieldWithNotification(field *ConfigField, newValue
 	oldValue := field.value
 	field.value = newValue
 
-	err := c.UpdateField(field.index, newValue)
+	err := h.ch.UpdateField(field.index, newValue)
 	if err != nil {
 		return err
 	}
 
-	err = c.SaveConfigToYML()
+	err = h.ch.SaveConfigToYML()
 	if err != nil {
 		return err
 	}
 
-	// Notificar a los observadores
-	c.notifyObservers(field.name, oldValue, newValue)
+	h.tui.MsgOk("Config updated successfully", field.name)
+
+	if field.notifyHandlerChange != nil {
+		err = field.notifyHandlerChange(field.name, oldValue, newValue)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
-func (c *ConfigHandler) UpdateField(index int, value string) error {
-	v := reflect.ValueOf(c).Elem()
+func (ch *ConfigHandler) UpdateField(index int, value string) error {
+	v := reflect.ValueOf(ch.config).Elem()
 	if index < 0 || index >= v.NumField() {
 		return errors.New("invalid field index")
 	}
