@@ -24,7 +24,7 @@ func (h *handler) NewWatcher() {
 func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	if h.watcher == nil {
-		h.terminal.MsgError("No file watcher found")
+		h.tui.MsgError("No file watcher found")
 		return
 	}
 
@@ -33,7 +33,7 @@ func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	h.RegisterFiles()
 
-	h.terminal.MsgOk("Listening for File Changes ... ")
+	h.tui.MsgOk("Listening for File Changes ... ")
 	// Wait for exit signal after watching is active
 
 	select {
@@ -55,7 +55,7 @@ func (h *handler) watchEvents() {
 
 		case event, ok := <-h.watcher.Events:
 			if !ok {
-				h.terminal.MsgError("Error h.watcher.Events")
+				h.tui.MsgError("Error h.watcher.Events")
 				return
 			}
 
@@ -68,34 +68,34 @@ func (h *handler) watchEvents() {
 					switch event.Op.String() {
 					case "CREATE":
 						h.watcher.Add(event.Name)
-						h.terminal.Msg("New directory created:", event.Name)
+						h.tui.Msg("New directory created:", event.Name)
 					case "REMOVE":
 						h.watcher.Remove(event.Name)
-						h.terminal.Msg("Directory removed:", event.Name)
+						h.tui.Msg("Directory removed:", event.Name)
 					}
 
 					if !info.IsDir() {
-						h.terminal.Msg("Event type:", event.Op.String(), "File changed:", event.Name)
+						h.tui.Msg("Event type:", event.Op.String(), "File changed:", event.Name)
 
 						extension := filepath.Ext(event.Name)
 						// fmt.Println("extension:", extension, "File Event:", event)
 
 						switch extension {
 						case ".html":
-							h.terminal.MsgOk("HTML File")
+							h.tui.MsgOk("HTML File")
 							// err = w.HTML.UpdateFileOnDisk(event)
 
 							// if err == nil {
 							// 	resetWaitingTime = true
 							// }
 						case ".css":
-							h.terminal.MsgOk("CSS File")
+							h.tui.MsgOk("CSS File")
 							// err = w.CSS.UpdateFileOnDisk(event)
 							// if err == nil {
 							// 	resetWaitingTime = true
 							// }
 						case ".js":
-							h.terminal.MsgOk("JS File")
+							h.tui.MsgOk("JS File")
 							// err = w.JS.UpdateFileOnDisk(event)
 							// if err == nil {
 							// 	resetWaitingTime = true
@@ -103,7 +103,7 @@ func (h *handler) watchEvents() {
 
 						case ".go":
 
-							h.terminal.MsgOk("Go File")
+							h.tui.MsgOk("Go File")
 
 						}
 
@@ -115,7 +115,7 @@ func (h *handler) watchEvents() {
 			}
 		case err, ok := <-h.watcher.Errors:
 			if !ok {
-				h.terminal.MsgError("h.watcher.Errors:", err)
+				h.tui.MsgError("h.watcher.Errors:", err)
 				return
 			}
 		}
@@ -123,42 +123,42 @@ func (h *handler) watchEvents() {
 }
 
 func (h *handler) RegisterFiles() {
-	h.terminal.MsgOk("RegisterFiles APP ROOT DIR: " + APP_ROOT_DIR)
+	h.tui.MsgOk("RegisterFiles APP ROOT DIR: " + h.ch.appRootDir)
 
 	reg := make(map[string]struct{})
 
-	err := filepath.Walk(APP_ROOT_DIR, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(h.ch.appRootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			h.terminal.MsgError("Error accessing path:", path, err)
+			h.tui.MsgError("Error accessing path:", path, err)
 			return nil
 		}
 
 		if info.IsDir() && !h.Contain(path) {
 			if _, exists := reg[path]; !exists {
 				if err := h.watcher.Add(path); err != nil {
-					h.terminal.MsgError("Error adding watch path:", path, err)
+					h.tui.MsgError("Error adding watch path:", path, err)
 					return nil
 				}
 				reg[path] = struct{}{}
-				h.terminal.Msg("Watch path added:", path)
+				h.tui.Msg("Watch path added:", path)
 			}
 		}
 		return nil
 	})
 
 	if err != nil {
-		h.terminal.MsgError("Error walking directory:", err)
+		h.tui.MsgError("Error walking directory:", err)
 	}
 }
 
-func (h handler) Contain(path string) bool {
+func (h *handler) Contain(path string) bool {
 
 	// Ignorar archivos temporales o hidden
 	if strings.HasPrefix(filepath.Base(path), ".") {
 		return true
 	}
 
-	var no_add_to_watch = []string{config.OutputDir}
+	var no_add_to_watch = []string{h.ch.config.OutputDir}
 
 	for _, value := range no_add_to_watch {
 		if strings.Contains(path, value) {

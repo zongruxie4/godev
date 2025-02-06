@@ -7,10 +7,11 @@ import (
 )
 
 type handler struct {
-	terminal *TextUserInterface
-	watcher  *fsnotify.Watcher
-	program  *Program
-	browser  *Browser
+	ch      *ConfigHandler
+	tui     *TextUserInterface
+	watcher *fsnotify.Watcher
+	program *Program
+	browser *Browser
 }
 
 // Canal global para señalizar el cierre
@@ -19,6 +20,8 @@ var exitChan = make(chan bool)
 func GodevStart() {
 
 	h := &handler{}
+
+	h.NewConfig()
 
 	h.NewBrowser()
 	h.NewTextUserInterface()
@@ -36,13 +39,13 @@ func GodevStart() {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	// Iniciar la terminal en una goroutine
-	go h.terminal.Start(&wg)
+	// Iniciar la tui en una goroutine
+	go h.Start(&wg)
 
 	// Mostrar errores de configuración como warning
-	if len(configErrors) != 0 {
-		for _, err := range configErrors {
-			h.terminal.MsgWarning(err)
+	if len(h.ch.configErrors) != 0 {
+		for _, err := range h.ch.configErrors {
+			h.tui.MsgWarning(err)
 		}
 	}
 

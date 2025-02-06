@@ -50,11 +50,11 @@ type channelMsg TerminalMessage
 type tickMsg time.Time
 
 // Init inicializa el modelo
-func (t *TextUserInterface) Init() tea.Cmd {
+func (h *handler) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
-		t.listenToMessages(),
-		t.tickEverySecond(),
+		h.tui.listenToMessages(),
+		h.tui.tickEverySecond(),
 	)
 }
 
@@ -74,18 +74,18 @@ func (t *TextUserInterface) tickEverySecond() tea.Cmd {
 }
 
 // Update maneja las actualizaciones del estado
-func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if t.activeTab == 0 && t.editingConfig { // GODEV tab y editando
+		if h.tui.activeTab == 0 && h.tui.editingConfig { // GODEV tab y editando
 			switch msg.String() {
 			case "enter":
-				currentField := &t.tabs[0].configs[t.activeConfig]
-				if err := config.UpdateFieldWithNotification(currentField, currentField.value); err != nil {
-					t.tabs[BUILD_TAB_INDEX].content = append(
-						t.tabs[BUILD_TAB_INDEX].content,
+				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
+				if err := h.ch.UpdateFieldWithNotification(currentField, currentField.value); err != nil {
+					h.tui.tabs[BUILD_TAB_INDEX].content = append(
+						h.tui.tabs[BUILD_TAB_INDEX].content,
 						TerminalMessage{
 							Type:    ErrorMsg,
 							Content: fmt.Sprintf("Error updating field:%v %v", currentField.name, err),
@@ -97,30 +97,30 @@ func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// volvemos el cursor a su posición
 				currentField.SetCursorAtEnd()
 
-				t.editingConfig = false
-				return t, nil
+				h.tui.editingConfig = false
+				return h, nil
 			case "esc":
 				// Al presionar ESC, descartamos los cambios
-				currentField := &t.tabs[0].configs[t.activeConfig]
-				currentField.value = config.GetConfigFields()[t.activeConfig].value // Restaurar valor original
-				t.editingConfig = false
+				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
+				currentField.value = h.ch.config.GetConfigFields()[h.tui.activeConfig].value // Restaurar valor original
+				h.tui.editingConfig = false
 
 				// volvemos el cursor a su posición
 				currentField.SetCursorAtEnd()
 
-				return t, nil
+				return h, nil
 			case "left":
-				currentField := &t.tabs[0].configs[t.activeConfig]
+				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
 				if currentField.cursor > 0 {
 					currentField.cursor--
 				}
 			case "right":
-				currentField := &t.tabs[0].configs[t.activeConfig]
+				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
 				if currentField.cursor < len(currentField.value) {
 					currentField.cursor++
 				}
 			default:
-				currentField := &t.tabs[0].configs[t.activeConfig]
+				currentField := &h.tui.tabs[0].configs[h.tui.activeConfig]
 				if msg.String() == "backspace" && currentField.cursor > 0 {
 					currentField.value = currentField.value[:currentField.cursor-1] + currentField.value[currentField.cursor:]
 					currentField.cursor--
@@ -132,30 +132,30 @@ func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			switch msg.String() {
 			case "up":
-				if t.activeTab == 0 && t.activeConfig > 0 {
-					t.activeConfig--
+				if h.tui.activeTab == 0 && h.tui.activeConfig > 0 {
+					h.tui.activeConfig--
 				}
 			case "down":
-				if t.activeTab == 0 && t.activeConfig < len(t.tabs[0].configs)-1 {
-					t.activeConfig++
+				if h.tui.activeTab == 0 && h.tui.activeConfig < len(h.tui.tabs[0].configs)-1 {
+					h.tui.activeConfig++
 				}
 			case "enter":
-				if t.activeTab == 0 {
-					t.editingConfig = true
+				if h.tui.activeTab == 0 {
+					h.tui.editingConfig = true
 				}
 			case "tab":
-				t.activeTab = (t.activeTab + 1) % len(t.tabs)
+				h.tui.activeTab = (h.tui.activeTab + 1) % len(h.tui.tabs)
 			case "shift+tab":
-				t.activeTab = (t.activeTab - 1 + len(t.tabs)) % len(t.tabs)
+				h.tui.activeTab = (h.tui.activeTab - 1 + len(h.tui.tabs)) % len(h.tui.tabs)
 			case "ctrl+l":
-				t.tabs[t.activeTab].content = []TerminalMessage{}
+				h.tui.tabs[h.tui.activeTab].content = []TerminalMessage{}
 			case "ctrl+c":
 				close(exitChan) // Cerrar el canal para señalizar a todas las goroutines
-				return t, tea.Quit
+				return h, tea.Quit
 			default:
 				// Manejar acciones específicas de la pestaña
 
-				action, exist := t.getAction(t.activeTab, msg.String())
+				action, exist := h.tui.getAction(h.tui.activeTab, msg.String())
 
 				if exist {
 					// Toggle the active state of the action
@@ -167,8 +167,8 @@ func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 					// console action message
-					t.tabs[t.activeTab].content = append(
-						t.tabs[t.activeTab].content,
+					h.tui.tabs[h.tui.activeTab].content = append(
+						h.tui.tabs[h.tui.activeTab].content,
 						TerminalMessage{
 							Type:    OkMsg,
 							Content: fmt.Sprintf("%s %s", action.message, status),
@@ -189,8 +189,8 @@ func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					if err != nil {
 						// execution result message
-						t.tabs[t.activeTab].content = append(
-							t.tabs[t.activeTab].content,
+						h.tui.tabs[h.tui.activeTab].content = append(
+							h.tui.tabs[h.tui.activeTab].content,
 							TerminalMessage{
 								Type:    ErrorMsg,
 								Content: err.Error(),
@@ -201,9 +201,9 @@ func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					// Update the action in the tab's actions list by finding the matching message
 					// and replacing it with the updated action
-					for i, a := range t.tabs[t.activeTab].actions {
+					for i, a := range h.tui.tabs[h.tui.activeTab].actions {
 						if a.message == action.message {
-							t.tabs[t.activeTab].actions[i] = action
+							h.tui.tabs[h.tui.activeTab].actions[i] = action
 							break
 						}
 					}
@@ -212,19 +212,19 @@ func (t *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case channelMsg:
-		t.tabs[t.activeTab].content = append(t.tabs[t.activeTab].content, TerminalMessage(msg))
-		cmds = append(cmds, t.listenToMessages())
+		h.tui.tabs[h.tui.activeTab].content = append(h.tui.tabs[h.tui.activeTab].content, TerminalMessage(msg))
+		cmds = append(cmds, h.tui.listenToMessages())
 
 	case tea.WindowSizeMsg:
-		t.width = msg.Width
-		t.height = msg.Height
+		h.tui.width = msg.Width
+		h.tui.height = msg.Height
 
 	case tickMsg:
-		t.currentTime = time.Now().Format("15:04:05")
-		cmds = append(cmds, t.tickEverySecond())
+		h.tui.currentTime = time.Now().Format("15:04:05")
+		cmds = append(cmds, h.tui.tickEverySecond())
 	}
 
-	return t, tea.Batch(cmds...)
+	return h, tea.Batch(cmds...)
 }
 func (t *TextUserInterface) getAction(activeTab int, shortcut string) (TabAction, bool) {
 
@@ -241,12 +241,12 @@ func (t *TextUserInterface) getAction(activeTab int, shortcut string) (TabAction
 // NewTerminal crea una nueva instancia de TextUserInterface
 func (h *handler) NewTextUserInterface() {
 
-	h.terminal = &TextUserInterface{
+	h.tui = &TextUserInterface{
 		tabs: []Tab{
 			{
 				title:   "GODEV",
 				content: []TerminalMessage{},
-				configs: config.GetConfigFields(),
+				configs: h.ch.config.GetConfigFields(),
 				footer:  "↑↓ to navigate | ENTER to edit | ESC to exit edit",
 			},
 			{
@@ -266,8 +266,8 @@ func (h *handler) NewTextUserInterface() {
 						message:      "Web Browser",
 						active:       false,
 						shortCuts:    "w",
-						openHandler:  h.browser.OpenBrowser,
-						closeHandler: h.browser.CloseBrowser,
+						openHandler:  h.OpenBrowser,
+						closeHandler: h.CloseBrowser,
 					},
 				},
 			},
@@ -324,11 +324,11 @@ func (h *handler) NewTextUserInterface() {
 	return
 }
 
-func (t *TextUserInterface) Start(wg *sync.WaitGroup) {
+func (h *handler) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	t.tea = tea.NewProgram(t, tea.WithAltScreen())
-	if _, err := t.tea.Run(); err != nil {
+	h.tui.tea = tea.NewProgram(h, tea.WithAltScreen())
+	if _, err := h.tui.tea.Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		fmt.Println("\nPress any key to exit...")
 		var input string

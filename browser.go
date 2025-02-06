@@ -31,7 +31,7 @@ func (h *handler) NewBrowser() {
 		errChan:   make(chan error),
 	}
 
-	config.Subscribe(h.browser)
+	h.ch.Subscribe(h.browser)
 
 }
 
@@ -44,37 +44,37 @@ func (b *Browser) OnConfigChanged(fieldName string, oldValue, newValue string) {
 	return
 }
 
-func (b *Browser) OpenBrowser() error {
-	if b.isOpen {
+func (h *handler) OpenBrowser() error {
+	if h.browser.isOpen {
 		return errors.New("Browser is already open")
 	}
 
 	// Add listener for exit signal
 	go func() {
 		<-exitChan
-		b.CloseBrowser()
+		h.CloseBrowser()
 	}()
 	// fmt.Println("*** START DEV BROWSER ***")
 	go func() {
-		err := b.CreateBrowserContext()
+		err := h.CreateBrowserContext()
 		if err != nil {
-			b.errChan <- err
+			h.browser.errChan <- err
 			return
 		}
 
-		b.isOpen = true
+		h.browser.isOpen = true
 		var protocol = "http"
 
-		url := protocol + `://localhost:` + config.ServerPort + config.BrowserStartUrl
+		url := protocol + `://localhost:` + h.ch.config.ServerPort + h.ch.config.BrowserStartUrl
 
-		err = chromedp.Run(b.Context, b.sendkeys(url))
+		err = chromedp.Run(h.browser.Context, h.browser.sendkeys(url))
 		if err != nil {
-			b.errChan <- fmt.Errorf("error navigating to %s: %v", config.BrowserStartUrl, err)
+			h.browser.errChan <- fmt.Errorf("error navigating to %s: %v", h.ch.config.BrowserStartUrl, err)
 			return
 		}
 
 		// Verificar carga completa
-		err = chromedp.Run(b.Context, chromedp.ActionFunc(func(ctx context.Context) error {
+		err = chromedp.Run(h.browser.Context, chromedp.ActionFunc(func(ctx context.Context) error {
 			for {
 				var readyState string
 				select {
@@ -88,7 +88,7 @@ func (b *Browser) OpenBrowser() error {
 					}
 
 					if readyState == "complete" {
-						b.readyChan <- true
+						h.browser.readyChan <- true
 						return nil
 					}
 				}
@@ -96,22 +96,22 @@ func (b *Browser) OpenBrowser() error {
 		}))
 
 		if err != nil {
-			b.errChan <- err
+			h.browser.errChan <- err
 		}
 	}()
 
 	// Esperar señal de inicio o error
 	select {
-	case err := <-b.errChan:
+	case err := <-h.browser.errChan:
 		return err
-	case <-b.readyChan:
+	case <-h.browser.readyChan:
 		return nil
 	}
 }
 
-func (b *Browser) CreateBrowserContext() error {
+func (h *handler) CreateBrowserContext() error {
 
-	err := b.setBrowserPositionAndSize(config.BrowserPositionAndSize)
+	err := h.browser.setBrowserPositionAndSize(h.ch.config.BrowserPositionAndSize)
 	if err != nil {
 		return err
 	}
@@ -130,8 +130,8 @@ func (b *Browser) CreateBrowserContext() error {
 		//quitar mensaje: Chrome is being controlled by automated test software
 
 		// chromedp.Flag("--webview-log-js-console-messages", true),
-		chromedp.WindowSize(b.Width, b.Height),
-		chromedp.Flag("window-BrowserPositionAndSize", b.Position),
+		chromedp.WindowSize(h.browser.Width, h.browser.Height),
+		chromedp.Flag("window-BrowserPositionAndSize", h.browser.Position),
 		// chromedp.WindowSize(1530, 870),
 		// chromedp.Flag("window-BrowserPositionAndSize", "1540,0"),
 		chromedp.Flag("use-fake-ui-for-media-stream", true),
@@ -150,18 +150,18 @@ func (b *Browser) CreateBrowserContext() error {
 
 	parentCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
 
-	b.Context, b.CancelFunc = chromedp.NewContext(parentCtx)
+	h.browser.Context, h.browser.CancelFunc = chromedp.NewContext(parentCtx)
 
 	return nil
 }
 
-func (b *Browser) CloseBrowser() error {
-	if !b.isOpen {
+func (h *handler) CloseBrowser() error {
+	if !h.browser.isOpen {
 		return errors.New("Browser is already closed")
 	}
 
 	// Primero cerrar todas las pestañas/contextos
-	if err := chromedp.Run(b.Context, chromedp.Tasks{
+	if err := chromedp.Run(h.browser.Context, chromedp.Tasks{
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			return nil
 		}),
@@ -170,14 +170,14 @@ func (b *Browser) CloseBrowser() error {
 	}
 
 	// Luego cancelar el contexto principal
-	if b.CancelFunc != nil {
-		b.CancelFunc()
-		b.isOpen = false
+	if h.browser.CancelFunc != nil {
+		h.browser.CancelFunc()
+		h.browser.isOpen = false
 	}
 
 	// Limpiar recursos
-	b.Context = nil
-	b.CancelFunc = nil
+	h.browser.Context = nil
+	h.browser.CancelFunc = nil
 
 	return nil
 }

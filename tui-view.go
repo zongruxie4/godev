@@ -77,35 +77,35 @@ var (
 )
 
 // View renderiza la interfaz
-func (t *TextUserInterface) View() string {
-	if t.width < 40 || t.height < 10 {
+func (h *handler) View() string {
+	if h.tui.width < 40 || h.tui.height < 10 {
 		return "TextUserInterface too small. Minimum size: 40x10"
 	}
 
 	headerHeight := 3
 	footerHeight := 3
-	// contentHeight := t.height - footerHeight
-	contentHeight := t.height - headerHeight - footerHeight
-	contentWidth := t.width - 2
+	// contentHeight := h.tui.height - footerHeight
+	contentHeight := h.tui.height - headerHeight - footerHeight
+	contentWidth := h.tui.width - 2
 
 	// Pestañas
-	tabs := t.renderTabs()
+	tabs := h.tui.renderTabs()
 
 	var content string
-	if t.activeTab == 0 {
-		content = t.renderConfigFields()
+	if h.tui.activeTab == 0 {
+		content = h.tui.renderConfigFields()
 	} else {
 		// Contenido de la pestaña activa
 		visibleMessages := contentHeight - 1
 		start := 0
-		activeContent := t.tabs[t.activeTab].content
+		activeContent := h.tui.tabs[h.tui.activeTab].content
 		if len(activeContent) > visibleMessages {
 			start = len(activeContent) - visibleMessages
 		}
 
 		var contentLines []string
 		for i := start; i < len(activeContent); i++ {
-			formattedMsg := t.formatMessage(activeContent[i])
+			formattedMsg := h.tui.formatMessage(activeContent[i])
 			contentLines = append(contentLines, messageStyle.Render(formattedMsg))
 		}
 
@@ -121,7 +121,7 @@ func (t *TextUserInterface) View() string {
 	footer := headerFooterStyle.
 		Width(contentWidth).
 		// Render(t.tabs[t.activeTab].footer)
-		Render(t.renderFooter(t.tabs[t.activeTab]))
+		Render(h.tui.renderFooter(h.tui.tabs[h.tui.activeTab]))
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,

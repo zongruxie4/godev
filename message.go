@@ -10,34 +10,34 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// TerminalMessage representa un mensaje en la terminal
+// TerminalMessage representa un mensaje en la tui
 type TerminalMessage struct {
 	Content string
 	Type    MessageType
 	Time    time.Time
 }
 
-// Msg sends a normal message to the terminal
+// Msg sends a normal message to the tui
 func (h *TextUserInterface) Msg(messages ...any) {
 	h.SendMessage(joinMessages(messages...), NormMsg)
 }
 
-// MsgError sends an error message to the terminal
+// MsgError sends an error message to the tui
 func (h *TextUserInterface) MsgError(messages ...any) {
 	h.SendMessage(joinMessages(messages...), ErrorMsg)
 }
 
-// MsgWarning sends a warning message to the terminal
+// MsgWarning sends a warning message to the tui
 func (h *TextUserInterface) MsgWarning(messages ...any) {
 	h.SendMessage(joinMessages(messages...), WarnMsg)
 }
 
-// MsgInfo sends an informational message to the terminal
+// MsgInfo sends an informational message to the tui
 func (h *TextUserInterface) MsgInfo(messages ...any) {
 	h.SendMessage(joinMessages(messages...), InfoMsg)
 }
 
-// MsgOk sends a success message to the terminal
+// MsgOk sends a success message to the tui
 func (h *TextUserInterface) MsgOk(messages ...any) {
 	h.SendMessage(joinMessages(messages...), OkMsg)
 }
@@ -51,7 +51,7 @@ func joinMessages(messages ...any) (message string) {
 	return
 }
 
-// SendMessage envía un mensaje al terminal
+// SendMessage envía un mensaje al tui
 func (t *TextUserInterface) SendMessage(content string, msgType MessageType) {
 
 	t.messagesChan <- TerminalMessage{
@@ -149,16 +149,16 @@ func detectMessageType(content string) MessageType {
 }
 
 // Write implementa io.Writer para capturar la salida de otros procesos
-func (t *TextUserInterface) Write(p []byte) (n int, err error) {
+func (h *handler) Write(p []byte) (n int, err error) {
 	msg := strings.TrimSpace(string(p))
 	if msg != "" {
 		// Detectar automáticamente el tipo de mensaje
 		msgType := detectMessageType(msg)
-		t.SendMessage(msg, msgType)
+		h.tui.SendMessage(msg, msgType)
 
 		// Si es un error, escribirlo en el archivo de log
 		if msgType == ErrorMsg {
-			logFile, err := os.OpenFile(path.Join(config.OutputDir, config.AppName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			logFile, err := os.OpenFile(path.Join(h.ch.config.OutputDir, h.ch.config.AppName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err == nil {
 				defer logFile.Close()
 				timestamp := time.Now().Format("2006-01-02 15:04:05")

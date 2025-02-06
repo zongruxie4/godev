@@ -27,24 +27,24 @@ func (h *handler) NewProgram() {
 func (h *handler) ProgramStart(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	if len(os.Args) < 2 && !configFileFound {
+	if len(os.Args) < 2 && !h.ch.configFileFound {
 
 		pathMainFile, err := findMainFile()
 		if err != nil {
-			h.terminal.MsgError("findMainFile ", err)
+			h.tui.MsgError("findMainFile ", err)
 			h.showHelpExecProgram()
 			return
 		}
-		config.MainFilePath = pathMainFile
+		h.ch.config.MainFilePath = pathMainFile
 
-		h.terminal.MsgOk("MainFile: " + pathMainFile)
+		h.tui.MsgOk("MainFile: " + pathMainFile)
 
 	}
 
 	// BUILD AND RUN
 	err := h.buildAndRunProgram()
 	if err != nil {
-		h.terminal.MsgError("StartProgram ", err)
+		h.tui.MsgError("StartProgram ", err)
 		return
 	}
 
@@ -55,9 +55,9 @@ func (h *handler) ProgramStart(wg *sync.WaitGroup) {
 func (h *handler) buildAndRunProgram() error {
 	var this = errors.New("buildAndRun")
 
-	h.terminal.Msg(this, config.AppName, "...")
+	h.tui.Msg(this, h.ch.config.AppName, "...")
 
-	os.Remove(config.OutPathApp)
+	os.Remove(h.ch.config.OutPathApp)
 
 	// flags, err := ldflags.Add(
 	// 	h.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
@@ -67,7 +67,7 @@ func (h *handler) buildAndRunProgram() error {
 
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
-	h.program.Cmd = exec.Command("go", "build", "-o", config.OutPathApp, config.MainFilePath)
+	h.program.Cmd = exec.Command("go", "build", "-o", h.ch.config.OutPathApp, h.ch.config.MainFilePath)
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
 	stderr, err := h.program.Cmd.StderrPipe()
@@ -85,18 +85,18 @@ func (h *handler) buildAndRunProgram() error {
 		return err
 	}
 
-	go io.Copy(h.terminal, stderr)
-	go io.Copy(h.terminal, stdout)
+	go io.Copy(h, stderr)
+	go io.Copy(h, stdout)
 
 	return nil
 }
 
 func (h *handler) showHelpExecProgram() {
-	h.terminal.MsgInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
-	h.terminal.MsgInfo(`Parameters:`)
-	h.terminal.MsgInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
-	h.terminal.MsgInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
-	h.terminal.MsgInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
+	h.tui.MsgInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
+	h.tui.MsgInfo(`Parameters:`)
+	h.tui.MsgInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
+	h.tui.MsgInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
+	h.tui.MsgInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
 }
 
 // Construir el comando con argumentos dinámicos
@@ -105,7 +105,7 @@ func (h *handler) showHelpExecProgram() {
 
 func (h *handler) runProgram() error {
 
-	h.program.Cmd = exec.Command(config.OutPathApp)
+	h.program.Cmd = exec.Command(h.ch.config.OutPathApp)
 	// h.Cmd = exec.Command("./"+d.app_path,h.main_file ,h.run_arguments...)
 
 	stderr, err := h.program.Cmd.StderrPipe()
@@ -123,15 +123,15 @@ func (h *handler) runProgram() error {
 		return err
 	}
 
-	go io.Copy(h.terminal, stderr)
-	go io.Copy(h.terminal, stdout)
+	go io.Copy(h, stderr)
+	go io.Copy(h, stdout)
 
 	return nil
 }
 
 func (h *handler) RestartProgram(event_name string) error {
 	var this = errors.New("Restart")
-	h.terminal.MsgWarning(this, "APP...", event_name)
+	h.tui.MsgWarning(this, "APP...", event_name)
 
 	// STOP
 	err := h.StopProgram()
@@ -152,7 +152,7 @@ func (h *handler) RestartProgram(event_name string) error {
 func (h *handler) StopProgram() error {
 	var this = errors.New("StopProgram")
 
-	h.terminal.MsgWarning(this, "PID:", h.program.Cmd.Process.Pid)
+	h.tui.MsgWarning(this, "PID:", h.program.Cmd.Process.Pid)
 
 	err := h.program.Cmd.Process.Kill()
 	if err != nil {
