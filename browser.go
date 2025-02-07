@@ -129,7 +129,8 @@ func (h *handler) OpenBrowser() error {
 	case err := <-h.browser.errChan:
 		return err
 	case <-h.browser.readyChan:
-		return nil
+		// Tomar el foco de la TUI después de abrir el navegador
+		return h.tui.ReturnFocus()
 	}
 }
 
@@ -159,6 +160,7 @@ func (h *handler) CreateBrowserContext() error {
 		// chromedp.WindowSize(1530, 870),
 		// chromedp.Flag("window-position", "1540,0"),
 		chromedp.Flag("use-fake-ui-for-media-stream", true),
+		chromedp.Flag("no-focus-on-load", true),
 		// chromedp.Flag("exclude-switches", "enable-automation"),
 		// chromedp.Flag("disable-blink-features", "AutomationControlled"),
 		// chromedp.NoFirstRun,

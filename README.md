@@ -155,7 +155,8 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [ ] Servidor de desarrollo integrado para servir archivos estáticos y WebAssembly  
 - [x] cerrar navegador al cerrar aplicación 
 - [x] Ejecución navegador Chrome (tecla `w`)  
-- [ ] cambiar el tamaño de la ventana del navegador desde la tui
+- [x] cambiar el tamaño de la ventana del navegador desde la tui
+
 
 ### Hot Reload
 - [ ] Recarga en caliente (Hot Reload):  
@@ -176,6 +177,11 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [ ] Compatibilidad con servidores VPS para despliegue automatizado  
 - [ ] Compatibilidad con Docker para despliegue automatizado  
 - [ ] Integrar ayudante IA
+
+### corregir errores 
+- [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
+
+
 ## Agradecimientos
 Este proyecto no sería posible sin:
 - github.com/fsnotify
