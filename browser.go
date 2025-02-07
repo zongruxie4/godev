@@ -75,7 +75,7 @@ func (h *handler) OpenBrowser() error {
 
 	// Add listener for exit signal
 	go func() {
-		<-exitChan
+		<-h.exitChan
 		h.CloseBrowser()
 	}()
 	// fmt.Println("*** START DEV BROWSER ***")

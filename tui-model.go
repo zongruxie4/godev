@@ -155,7 +155,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+l":
 				h.tui.tabs[h.tui.activeTab].content = []TerminalMessage{}
 			case "ctrl+c":
-				close(exitChan) // Cerrar el canal para señalizar a todas las goroutines
+				close(h.exitChan) // Cerrar el canal para señalizar a todas las goroutines
 				return h, tea.Quit
 			default:
 				// Manejar acciones específicas de la pestaña

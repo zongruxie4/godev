@@ -49,7 +49,7 @@ func (h *handler) ProgramStart(wg *sync.WaitGroup) {
 	}
 
 	// Esperar señal de cierre
-	<-exitChan
+	<-h.exitChan
 }
 
 func (h *handler) buildAndRunProgram() error {

@@ -7,19 +7,19 @@ import (
 )
 
 type handler struct {
-	ch      *ConfigHandler
-	tui     *TextUserInterface
-	watcher *fsnotify.Watcher
-	program *Program
-	browser *Browser
+	ch       *ConfigHandler
+	tui      *TextUserInterface
+	watcher  *fsnotify.Watcher
+	program  *Program
+	browser  *Browser
+	exitChan chan bool // Canal global para señalizar el cierre
 }
-
-// Canal global para señalizar el cierre
-var exitChan = make(chan bool)
 
 func GodevStart() {
 
-	h := &handler{}
+	h := &handler{
+		exitChan: make(chan bool),
+	}
 
 	h.NewConfig()
 

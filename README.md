@@ -157,14 +157,12 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [x] Ejecución navegador Chrome (tecla `w`)  
 - [x] cambiar el tamaño de la ventana del navegador desde la tui
 
-
 ### Hot Reload
 - [ ] Recarga en caliente (Hot Reload):  
 - [x] Detección de cambios en archivos Go, HTML, CSS y JS  
 - [ ] Recarga del navegador automáticamente 
 
 ### Backend
-- [ ] Soporte para backend en Go:  
 - [ ] Detección de cambios en archivos del servidor  
 - [ ] Reinicio automático si hay modificaciones  
 

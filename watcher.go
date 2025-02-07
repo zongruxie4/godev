@@ -37,7 +37,7 @@ func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 	// Wait for exit signal after watching is active
 
 	select {
-	case <-exitChan:
+	case <-h.exitChan:
 		wg.Done()
 		return
 	}
@@ -49,7 +49,7 @@ func (h *handler) watchEvents() {
 	for {
 		select {
 
-		case <-exitChan:
+		case <-h.exitChan:
 			h.watcher.Close()
 			return
 
