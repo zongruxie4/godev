@@ -133,25 +133,39 @@ func (c *Compiler) UpdateFileOnDisk(filePath, extension string) error {
 	if err != nil {
 		return errors.New(e + err.Error())
 	}
-	fh.buf.Reset()
+	//fh.buf.Reset() // No es necesario resetear el buffer
 
-	if fh.startCode != nil {
-		startCode, err := fh.startCode()
+	// if fh.startCode != nil {
+	// 	startCode, err := fh.startCode()
+	// 	if err != nil {
+	// 		return errors.New(e + err.Error())
+	// 	}
+	// 	fh.buf.WriteString(startCode)
+	// }
+
+	// for _, f := range fh.files {
+	// 	fh.buf.Write(f.content)
+	// }
+
+	var buf bytes.Buffer
+
+	if extension == ".js" {
+		startCode, err := c.StartCodeJS()
 		if err != nil {
 			return errors.New(e + err.Error())
 		}
-		fh.buf.WriteString(startCode)
+		buf.WriteString(startCode)
 	}
 
-	for _, f := range fh.files {
-		fh.buf.Write(f.content)
-	}
+	buf.Write(content)
 
-	if err := c.min.Minify(fh.mediatype, &fh.buf, &fh.buf); err != nil {
+	var minifiedBuf bytes.Buffer
+
+	if err := c.min.Minify(fh.mediatype, &minifiedBuf, &buf); err != nil {
 		return errors.New(e + err.Error())
 	}
 
-	if err := FileWrite(path.Join(c.BuildDirectory(), fh.fileOutputName), fh.buf); err != nil {
+	if err := FileWrite(path.Join(c.BuildDirectory(), fh.fileOutputName), minifiedBuf); err != nil {
 		return errors.New(e + err.Error())
 	}
 
