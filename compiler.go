@@ -26,17 +26,16 @@ type Compiler struct {
 }
 
 type CompilerConfig struct {
-	BuildDirectory         func() string         // eg: .web/static
-	Println                func(messages ...any) // eg: fmt.Println
-	WasmProjectTinyGoJsUse func() (bool, bool)   // eg: func() (bool,bool) { return true,true } = wasmProjectTinyGoJsUse()
+	BuildDirectory         func() string                            // eg: .web/static
+	Println                func(messages ...any) (n int, err error) // eg: fmt.Println
+	WasmProjectTinyGoJsUse func() (bool, bool)                      // eg: func() (bool,bool) { return true,true } = wasmProjectTinyGoJsUse()
 }
 
 type fileHandler struct {
 	fileOutputName string                 // eg: main.js,style.css
 	startCode      func() (string, error) // eg: "console.log('hello world')"
 	files          []*File
-	mediatype      string // eg: "text/html"
-	buf            bytes.Buffer
+	mediatype      string // eg: "text/html", "text/css", "image/svg+xml"
 }
 
 type File struct {
@@ -51,18 +50,11 @@ func New(config *CompilerConfig) *Compiler {
 			fileOutputName: "style.css",
 			files:          []*File{},
 			mediatype:      "text/css",
-			buf:            bytes.Buffer{},
 		},
 		jsHandler: &fileHandler{
 			fileOutputName: "main.js",
-			files: []*File{
-				{
-					path:    "strict",
-					content: []byte("'use strict';\n"),
-				},
-			},
-			mediatype: "text/javascript",
-			buf:       bytes.Buffer{},
+			files:          []*File{},
+			mediatype:      "text/javascript",
 		},
 		min: minify.New(),
 	}
@@ -133,39 +125,25 @@ func (c *Compiler) UpdateFileOnDisk(filePath, extension string) error {
 	if err != nil {
 		return errors.New(e + err.Error())
 	}
-	//fh.buf.Reset() // No es necesario resetear el buffer
-
-	// if fh.startCode != nil {
-	// 	startCode, err := fh.startCode()
-	// 	if err != nil {
-	// 		return errors.New(e + err.Error())
-	// 	}
-	// 	fh.buf.WriteString(startCode)
-	// }
-
-	// for _, f := range fh.files {
-	// 	fh.buf.Write(f.content)
-	// }
-
 	var buf bytes.Buffer
 
-	if extension == ".js" {
-		startCode, err := c.StartCodeJS()
+	if fh.startCode != nil {
+		startCode, err := fh.startCode()
 		if err != nil {
 			return errors.New(e + err.Error())
 		}
 		buf.WriteString(startCode)
 	}
 
-	buf.Write(content)
-
-	var minifiedBuf bytes.Buffer
-
-	if err := c.min.Minify(fh.mediatype, &minifiedBuf, &buf); err != nil {
-		return errors.New(e + err.Error())
+	for _, f := range fh.files {
+		var minifiedBuf bytes.Buffer
+		if err := c.min.Minify(fh.mediatype, &minifiedBuf, bytes.NewReader(f.content)); err != nil {
+			return errors.New(e + err.Error())
+		}
+		buf.Write(minifiedBuf.Bytes())
 	}
 
-	if err := FileWrite(path.Join(c.BuildDirectory(), fh.fileOutputName), minifiedBuf); err != nil {
+	if err := FileWrite(path.Join(c.BuildDirectory(), fh.fileOutputName), buf); err != nil {
 		return errors.New(e + err.Error())
 	}
 
@@ -173,7 +151,7 @@ func (c *Compiler) UpdateFileOnDisk(filePath, extension string) error {
 }
 
 func (c *Compiler) StartCodeJS() (out string, err error) {
-	out = "'use strict';\n"
+	out = "'use strict';"
 
 	// load wasm js code
 	wasmType, TinyGoCompiler := c.WasmProjectTinyGoJsUse()
@@ -193,7 +171,7 @@ func (c *Compiler) StartCodeJS() (out string, err error) {
 	//  read wasm js code
 	wasmJs, err := os.ReadFile(wasmExecJsPath)
 	if err != nil {
-		return out, errors.New("Error al leer el archivo wasm_exec.js: " + err.Error())
+		return out, errors.New("Error reading wasm_exec.js file: " + err.Error())
 	}
 
 	out += string(wasmJs)
@@ -205,7 +183,7 @@ func (c *Compiler) getWasmExecJsPathTinyGo() (string, error) {
 
 	path, err := exec.LookPath("tinygo")
 	if err != nil {
-		return "", errors.New("TinyGo no encontrado en el PATH. " + err.Error())
+		return "", errors.New("TinyGo not found in PATH. " + err.Error())
 	}
 	// Obtener el directorio de instalación
 	tinyGoDir := filepath.Dir(path)
@@ -222,7 +200,7 @@ func (c *Compiler) getWasmExecJsPathGo() (string, error) {
 	// Obtener la ruta del directorio de instalación de Go desde la variable de entorno GOROOT
 	path, er := exec.LookPath("go")
 	if er != nil {
-		return "", errors.New("Go no encontrado en el PATH. " + er.Error())
+		return "", errors.New("Go not found in PATH. " + er.Error())
 	}
 
 	// Obtener el directorio de instalación

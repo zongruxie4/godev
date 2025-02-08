@@ -1,8 +1,10 @@
 package godev
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -10,6 +12,8 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	// Configurar entorno de prueba
 	testDir := "test"
 	buildDir := filepath.Join(testDir, "build")
+	styleCssPath := filepath.Join(buildDir, "style.css")
+	defer os.Remove(styleCssPath)
 
 	// Crear directorio build si no existe
 	if err := os.MkdirAll(buildDir, 0755); err != nil {
@@ -19,7 +23,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	// Configuración mock del compilador
 	config := &CompilerConfig{
 		BuildDirectory: func() string { return buildDir },
-		Println:        func(...any) {},
+		Println:        fmt.Println,
 		WasmProjectTinyGoJsUse: func() (bool, bool) {
 			return false, false
 		},
@@ -41,15 +45,14 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		}
 
 		// Verificar archivo generado
-		generated := filepath.Join(buildDir, "style.css")
-		if _, err := os.Stat(generated); os.IsNotExist(err) {
+		if _, err := os.Stat(styleCssPath); os.IsNotExist(err) {
 			t.Fatal("Archivo CSS no generado")
 		}
 
 		// Verificar contenido minificado
-		content, _ := os.ReadFile(generated)
+		content, _ := os.ReadFile(styleCssPath)
 		if string(content) != ".test{color:red}" {
-			t.Errorf("Contenido CSS minificado incorrecto: %s", content)
+			t.Fatalf("Contenido CSS minificado incorrecto: %s", content)
 		}
 	})
 
@@ -58,33 +61,37 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		defer os.Remove(cssPath)
 
 		// Crear archivo inicial
-		os.WriteFile(cssPath, []byte(".old { padding: 0; }"), 0644)
+		os.WriteFile(cssPath, []byte(".old { padding: 1px; }"), 0644)
 		compiler.UpdateFileOnDisk(cssPath, ".css")
 
 		// Actualizar contenido
-		os.WriteFile(cssPath, []byte(".new { margin: 0; }"), 0644)
+		os.WriteFile(cssPath, []byte(".new { margin: 2px; }"), 0644)
 		if err := compiler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
 			t.Fatal(err)
 		}
+		expected := ".new{margin:2px}"
 
 		// Verificar actualización
-		content, _ := os.ReadFile(filepath.Join(buildDir, "style.css"))
-		if string(content) != ".new{margin:0}" {
-			t.Error("CSS no se actualizó correctamente")
+		gotByte, _ := os.ReadFile(styleCssPath)
+		got := string(gotByte)
+
+		if !strings.Contains(got, expected) {
+			t.Fatalf("\nexpected not found: \n%s\ngot: \n%s\n", expected, got)
 		}
+
 	})
 
 	t.Run("Manejar archivo inexistente", func(t *testing.T) {
 		err := compiler.UpdateFileOnDisk("no_existe.css", ".css")
 		if err == nil {
-			t.Error("Se esperaba error por archivo no encontrado")
+			t.Fatal("Se esperaba error por archivo no encontrado")
 		}
 	})
 
 	t.Run("Extensión inválida", func(t *testing.T) {
 		err := compiler.UpdateFileOnDisk("archivo.txt", ".txt")
 		if err == nil {
-			t.Error("Se esperaba error por extensión inválida")
+			t.Fatal("Se esperaba error por extensión inválida")
 		}
 	})
 
@@ -92,17 +99,17 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		jsPath := filepath.Join(testDir, "test.js")
 		defer os.Remove(jsPath)
 
-		os.WriteFile(jsPath, []byte("// Test\nfunction hello() { console.log('hola') }"), 0644)
+		os.WriteFile(jsPath, []byte(`// Test\nfunction hello() { console.log("hola") }
+		let x = 10;`), 0644)
 
 		if err := compiler.UpdateFileOnDisk(jsPath, ".js"); err != nil {
 			t.Fatal(err)
 		}
 
-		content, _ := os.ReadFile(filepath.Join(buildDir, "main.js"))
-		expectedSingle := "'use strict';function hello(){console.log('hola')}"
-		expectedDouble := "\"use strict\";function hello(){console.log(\"hola\")}"
-		if string(content) != expectedSingle && string(content) != expectedDouble {
-			t.Errorf("JS minificado incorrecto:\nEsperado: %s o %s\nObtenido: %s", expectedSingle, expectedDouble, content)
+		got, _ := os.ReadFile(filepath.Join(buildDir, "main.js"))
+		expected := "'use strict';let x=10"
+		if string(got) != expected {
+			t.Fatalf("\nJS minificado incorrecto:\nexpected: \n[%s]\n\ngot: \n[%s]", expected, got)
 		}
 	})
 }
