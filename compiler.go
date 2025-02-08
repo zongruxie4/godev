@@ -23,6 +23,9 @@ type Compiler struct {
 	cssHandler *fileHandler
 	jsHandler  *fileHandler
 	min        *minify.M
+
+	goWasmJsCache     string
+	tinyGoWasmJsCache string
 }
 
 type CompilerConfig struct {
@@ -158,6 +161,14 @@ func (c *Compiler) StartCodeJS() (out string, err error) {
 	if !wasmType {
 		return out, nil
 	}
+
+	// Return appropriate cached content if available
+	if TinyGoCompiler && c.tinyGoWasmJsCache != "" {
+		return out + c.tinyGoWasmJsCache, nil
+	} else if !TinyGoCompiler && c.goWasmJsCache != "" {
+		return out + c.goWasmJsCache, nil
+	}
+
 	var wasmExecJsPath string
 	if TinyGoCompiler {
 		wasmExecJsPath, err = c.getWasmExecJsPathTinyGo()
@@ -174,9 +185,14 @@ func (c *Compiler) StartCodeJS() (out string, err error) {
 		return out, errors.New("Error reading wasm_exec.js file: " + err.Error())
 	}
 
-	out += string(wasmJs)
+	// Store in appropriate cache
+	if TinyGoCompiler {
+		c.tinyGoWasmJsCache = string(wasmJs)
+	} else {
+		c.goWasmJsCache = string(wasmJs)
+	}
 
-	return out, nil
+	return out + string(wasmJs), nil
 }
 
 func (c *Compiler) getWasmExecJsPathTinyGo() (string, error) {
