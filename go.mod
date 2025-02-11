@@ -14,7 +14,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/chromedp/cdproto v0.0.0-20250203011601-a3c71a042730 // indirect
+	github.com/chromedp/cdproto v0.0.0-20250210231439-aea867ea8506 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
@@ -33,7 +33,7 @@ require (
 )
 
 require (
-	github.com/charmbracelet/bubbletea v1.3.0
+	github.com/charmbracelet/bubbletea v1.3.3
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect

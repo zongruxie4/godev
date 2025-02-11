@@ -31,20 +31,20 @@ func (h *handler) ProgramStart(wg *sync.WaitGroup) {
 
 		pathMainFile, err := findMainFile()
 		if err != nil {
-			h.tui.MsgError("findMainFile ", err)
+			h.tui.PrintError("findMainFile ", err)
 			h.showHelpExecProgram()
 			return
 		}
 		h.ch.config.MainFilePath = pathMainFile
 
-		h.tui.MsgOk("MainFile: " + pathMainFile)
+		h.tui.PrintOK("MainFile: " + pathMainFile)
 
 	}
 
 	// BUILD AND RUN
 	err := h.buildAndRunProgram()
 	if err != nil {
-		h.tui.MsgError("StartProgram ", err)
+		h.tui.PrintError("StartProgram ", err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func (h *handler) ProgramStart(wg *sync.WaitGroup) {
 func (h *handler) buildAndRunProgram() error {
 	var this = errors.New("buildAndRun")
 
-	h.tui.Msg(this, h.ch.config.AppName, "...")
+	h.tui.Print(this, h.ch.config.AppName, "...")
 
 	os.Remove(h.ch.config.OutPathApp)
 
@@ -92,11 +92,11 @@ func (h *handler) buildAndRunProgram() error {
 }
 
 func (h *handler) showHelpExecProgram() {
-	h.tui.MsgInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
-	h.tui.MsgInfo(`Parameters:`)
-	h.tui.MsgInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
-	h.tui.MsgInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
-	h.tui.MsgInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
+	h.tui.PrintInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
+	h.tui.PrintInfo(`Parameters:`)
+	h.tui.PrintInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
+	h.tui.PrintInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
+	h.tui.PrintInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
 }
 
 // Construir el comando con argumentos dinámicos
@@ -131,7 +131,7 @@ func (h *handler) runProgram() error {
 
 func (h *handler) RestartProgram(event_name string) error {
 	var this = errors.New("Restart")
-	h.tui.MsgWarning(this, "APP...", event_name)
+	h.tui.PrintWarning(this, "APP...", event_name)
 
 	// STOP
 	err := h.StopProgram()
@@ -152,7 +152,7 @@ func (h *handler) RestartProgram(event_name string) error {
 func (h *handler) StopProgram() error {
 	var this = errors.New("StopProgram")
 
-	h.tui.MsgWarning(this, "PID:", h.program.Cmd.Process.Pid)
+	h.tui.PrintWarning(this, "PID:", h.program.Cmd.Process.Pid)
 
 	err := h.program.Cmd.Process.Kill()
 	if err != nil {

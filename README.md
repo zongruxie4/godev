@@ -23,6 +23,14 @@ Este proyecto está actualmente en desarrollo activo y puede contener caracterí
 
 ## Motivación  
 
+el principal problema que pretende resolver este framework es el facilitar el desarrollo de aplicaciones web de pila completa con Go, utilizando WebAssembly en el frontend y minimizando el uso de JavaScript.
+
+el problema de otras implementaciones de webAssembly y go que desean escribir todo en go inclusive el css, ese enfoque de este framework quiere evitar ya que busca un equilibrio entre javascript y go, dejando el uso de javascript (syscall/js) para el manejo de la interfaz de usuario y el uso de go para la lógica de negocio.
+
+otros proyectos de go en la web generan un único fichero webAssembly en la salida, generando un resultado de un archivo wasm muy grande y difícil de optimizar. el enfoque de este framework es que el desarrollo sea en módulos y estos ser compilados y optimizados por separado ya se a usando el compilador go o tinygo.
+
+en este framework se quiero evitar en lo posible configuraciones interminables para iniciar un proyecto dado que su único lenguaje es go eso lo facilita.
+
 ¿Cansado de configuraciones complejas para desarrollar aplicaciones web? ¿Frustrado por depender de múltiples herramientas para compilar, recargar, desplegar, configurar Docker y VPS?  
 
 **Godev** es una herramienta diseñada para compilar y desplegar proyectos **full stack con Go**, utilizando **WebAssembly en el frontend** y minimizando el uso de JavaScript. Su objetivo es ofrecer un flujo de trabajo integrado, eliminando la necesidad de configuraciones externas y facilitando el desarrollo con **hot reload, automatización de navegador y empaquetado optimizado**.  
@@ -71,26 +79,19 @@ go install -v github.com/cdvelop/godev/cmd/godev@latest
 
 
 ## Uso
-Ejecuta el comando básico:
+Ejecuta desde tu terminal preferida:
 
 godev
 
-Para ayuda y opciones disponibles:
-
-godev
 
 ## Arquitectura
 ![arquitectura godev](docs/godev.arq.svg)
 
 ## Estructura del Proyecto
-
+```md
 miProyecto/
-├── cmd/
-│   └── appName/           # el nombre de esta carpeta sera el nombre del archivo binario
-│       └── main.go        # Punto de entrada principal app servidor
-|
 ├── modules/
-│   ├── modules.go         # Registro e inicialización de módulos
+│   ├── modules.go         # Registro de módulos inicializados en main.server.go, main.wasm.go
 │   │
 │   ├── auth/
 │   │   ├── auth.go        # Estructuras y lógica compartida
@@ -110,25 +111,23 @@ miProyecto/
 │       ├── wasm.go        # UI handlers y lógica frontend
 │       └── handlers.go    # Handlers compartidos
 │
-├── web/                   # Archivos web serán sincronizados en build/
-│   ├── assets/            # Assets globales
-│   │   ├── img/           # Imágenes
-│   │   └── shared/        # Assets compartidos entre módulos
-│   └── wasm/              # Archivos compilados wasm
+├── web/                        # servidor y Archivos web públicos compilados
+│   ├── public/                 # Archivos públicos
+│   │   ├── img/                # Imágenes optimizadas y comprimidas
+│   │   ├── icons.svg           # Iconos SVG
+│   │   ├── style.css           # CSS minificado y concatenado
+│   │   ├── script.js           # JavaScript minificado y concatenado
+│   │   ├── wasm/               # Archivos WebAssembly compilados
+│   │   │   ├── medical.wasm    # módulo medical
+│   │   │   ├── users.wasm      # módulo users
+│   │   │   ├── auth.wasm       # módulo auth
+│   │   │   └── main.wasm       # main compilado de la aplicación principal
+│   │   └── index.html          # HTML principal generado
+│   ├── appName.exe             # Ejecutable del servidor compilado
+│   ├── main.server.go          # Punto de entrada principal servidor
+│   └── main.wasm.go            # Punto de entrada principal WebAssembly
 |
-├── build/                 # Carpeta de salida de compilación por defecto de godev
-│   ├── assets/            # Archivos estáticos optimizados
-│   │   ├── img/           # Imágenes optimizadas y comprimidas
-│   │   ├── styles.css     # CSS minificado y concatenado
-│   │   ├── main.js        # JavaScript minificado y concatenado
-│   │   └── shared/        # Recursos compartidos optimizados
-│   ├── wasm/              # Archivos WebAssembly compilados
-│   ├── index.html         # HTML principal generado
-│   └── appName.exe        # Ejecutable del servidor compilado
-|
-└── go.mod
-
-
+└── go.mod```
 ### Orden de Carga de JavaScript
 1. Archivos raíz que comienzan con mayúsculas
 2. Archivos en la carpeta `js` (alfabéticamente)
@@ -178,7 +177,7 @@ Similar a JavaScript, pero usando la carpeta `css`.
 
 ### corregir errores 
 - [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
-
+- [ ] separate RegisterFiles of WatchFiles
 
 ## Agradecimientos
 Este proyecto no sería posible sin:
@@ -186,13 +185,6 @@ Este proyecto no sería posible sin:
 - github.com/chromedp
 - github.com/tdewolff/minify
 - github.com/fstanis/screenresolution
-- github.com/lxn/win
-- github.com/dustin/go-humanize
-- github.com/mailru/easyjson
-- github.com/gobwas/
-- github.com/orisano/pixelmatch
-- github.com/ledongthuc/pdf
-- github.com/osharian/intern
 
 Para problemas o soporte, por favor visita [GitHub Issues](https://github.com/cdvelop/godev/issues).
 

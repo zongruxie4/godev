@@ -41,8 +41,8 @@ type Config struct {
 	AppName string `yaml:"AppName" label:"App Name" value:"app" editable:"true"`
 	// ej: test/app.go
 	MainFilePath string `yaml:"MainFilePath" label:"Main File Path" value:"cmd/main.go" editable:"true"`
-	// ej: build
-	OutputDir string `yaml:"OutputDir" label:"Output Dir" value:"build" editable:"true"`
+	// ej: dist,build,www default: web
+	OutputDir string `yaml:"OutputDir" label:"Output Dir" value:"web" editable:"true"`
 	// eg : build/app.exe
 	OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
 	// ej: 8080
@@ -51,6 +51,10 @@ type Config struct {
 	BrowserStartUrl string `yaml:"BrowserStartUrl" label:"Browser Home Path" value:"/" editable:"true"`
 	//ej: "1930,0:800,600" (when you have second monitor) default: "0,0:800,600"
 	BrowserPositionAndSize string `yaml:"BrowserPositionAndSize" label:"Browser Position" value:"0,0:800,600" editable:"true"`
+}
+
+func (c *Config) OutPutStaticsDirectory() string {
+	return path.Join(c.OutputDir, "static")
 }
 
 func (h *handler) NewConfig() {
@@ -187,7 +191,7 @@ func (h *handler) GetConfigFields() []ConfigField {
 
 func (h *handler) setNotifyObserver(f *ConfigField) {
 
-	// h.tui.Msg("setNotifyObserver: " + f.name)
+	// h.tui.Print("setNotifyObserver: " + f.name)
 	// log.Println("setNotifyObserver: " + f.name)
 	switch f.name {
 	case "BrowserPositionAndSize":
@@ -257,7 +261,7 @@ func (h *handler) UpdateFieldWithNotification(field *ConfigField, newValue strin
 		return err
 	}
 
-	h.tui.MsgOk("Config updated successfully", field.name)
+	h.tui.PrintOK("Config updated successfully", field.name)
 
 	if field.notifyHandlerChange != nil {
 		err = field.notifyHandlerChange(field.name, oldValue, newValue)

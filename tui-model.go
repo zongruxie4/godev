@@ -26,7 +26,7 @@ type TabAction struct {
 
 type Tab struct {
 	title    string
-	content  []TerminalMessage
+	content  []TerminalPrint
 	selected bool
 	footer   string
 	actions  []TabAction   // Now it's a slice instead of map
@@ -39,19 +39,19 @@ type TextUserInterface struct {
 	activeTab     int
 	activeConfig  int  // Índice del campo de configuración seleccionado
 	editingConfig bool // Si estamos editando un campo
-	messages      []TerminalMessage
+	messages      []TerminalPrint
 	footer        string
 	currentTime   string
 	width         int
 	height        int
-	messagesChan  chan TerminalMessage
+	messagesChan  chan TerminalPrint
 	tea           *tea.Program
 }
 
 // channelMsg es un tipo especial para mensajes del canal
-type channelMsg TerminalMessage
+type channelMsg TerminalPrint
 
-// Msg representa un mensaje de actualización
+// Print representa un mensaje de actualización
 type tickMsg time.Time
 
 // Init inicializa el modelo
@@ -91,7 +91,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if err := h.UpdateFieldWithNotification(currentField, currentField.value); err != nil {
 					h.tui.tabs[BUILD_TAB_INDEX].content = append(
 						h.tui.tabs[BUILD_TAB_INDEX].content,
-						TerminalMessage{
+						TerminalPrint{
 							Type:    ErrorMsg,
 							Content: fmt.Sprintf("Error updating field: %v %v", currentField.name, err),
 							Time:    time.Now(),
@@ -153,7 +153,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "shift+tab":
 				h.tui.activeTab = (h.tui.activeTab - 1 + len(h.tui.tabs)) % len(h.tui.tabs)
 			case "ctrl+l":
-				h.tui.tabs[h.tui.activeTab].content = []TerminalMessage{}
+				h.tui.tabs[h.tui.activeTab].content = []TerminalPrint{}
 			case "ctrl+c":
 				close(h.exitChan) // Cerrar el canal para señalizar a todas las goroutines
 				return h, tea.Quit
@@ -174,7 +174,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// console action message
 					h.tui.tabs[h.tui.activeTab].content = append(
 						h.tui.tabs[h.tui.activeTab].content,
-						TerminalMessage{
+						TerminalPrint{
 							Type:    OkMsg,
 							Content: fmt.Sprintf("%s %s", action.message, status),
 							Time:    time.Now(),
@@ -196,7 +196,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						// execution result message
 						h.tui.tabs[h.tui.activeTab].content = append(
 							h.tui.tabs[h.tui.activeTab].content,
-							TerminalMessage{
+							TerminalPrint{
 								Type:    ErrorMsg,
 								Content: err.Error(),
 								Time:    time.Now(),
@@ -217,7 +217,7 @@ func (h *handler) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case channelMsg:
-		h.tui.tabs[h.tui.activeTab].content = append(h.tui.tabs[h.tui.activeTab].content, TerminalMessage(msg))
+		h.tui.tabs[h.tui.activeTab].content = append(h.tui.tabs[h.tui.activeTab].content, TerminalPrint(msg))
 		cmds = append(cmds, h.tui.listenToMessages())
 
 	case tea.WindowSizeMsg:
@@ -250,13 +250,13 @@ func (h *handler) NewTextUserInterface() {
 		tabs: []Tab{
 			{
 				title:   "GODEV",
-				content: []TerminalMessage{},
+				content: []TerminalPrint{},
 				configs: h.GetConfigFields(),
 				footer:  "↑↓ to navigate | ENTER to edit | ESC to exit edit",
 			},
 			{
 				title:   "BUILD",
-				content: []TerminalMessage{},
+				content: []TerminalPrint{},
 				actions: []TabAction{
 					{
 						message:   "TinyGo compiler",
@@ -278,7 +278,7 @@ func (h *handler) NewTextUserInterface() {
 			},
 			{
 				title:   "TEST",
-				content: []TerminalMessage{},
+				content: []TerminalPrint{},
 				actions: []TabAction{
 					{
 						message:   "Running tests...",
@@ -293,7 +293,7 @@ func (h *handler) NewTextUserInterface() {
 			},
 			{
 				title:   "DEPLOY",
-				content: []TerminalMessage{},
+				content: []TerminalPrint{},
 				footer:  "'d' Docker | 'v' VPS Setup",
 				actions: []TabAction{
 					{
@@ -318,12 +318,12 @@ func (h *handler) NewTextUserInterface() {
 			},
 			{
 				title:   "HELP",
-				content: []TerminalMessage{},
+				content: []TerminalPrint{},
 				footer:  "Press 'h' for commands list | 'ctrl+c' to Exit",
 			},
 		},
 		activeTab:    BUILD_TAB_INDEX, // Iniciamos en BUILD
-		messagesChan: make(chan TerminalMessage, 100),
+		messagesChan: make(chan TerminalPrint, 100),
 		currentTime:  time.Now().Format("15:04:05"),
 	}
 	return
