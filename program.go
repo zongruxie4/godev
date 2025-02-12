@@ -8,56 +8,63 @@ import (
 	"sync"
 )
 
-var (
-	run_arguments = []string{} // Inicializar sin argumentos
-)
-
-type Program struct {
+type GoCompiler struct {
+	*GoCompilerConfig
 	*exec.Cmd
 }
 
-func (h *handler) NewProgram() {
-
-	h.program = &Program{
-		Cmd: &exec.Cmd{},
-	}
-	return
+type GoCompilerConfig struct {
+	MainFilePath   func() string         //ej: web/main.server.go, cmd/main.go
+	OutPathAppName func() string         // eg: web/miApp.exe, cmd/build/miApp
+	RunArguments   func() []string       // argumentos de arranque eg: -p 10000
+	Print          func(messages ...any) // eg: fmt.Println
+	Writer         io.Writer             // escritor de mensajes de destino eg:io.Writer, os.Stdout
+	ExitChan       chan bool             // Canal global para señalizar el cierre
 }
 
-func (h *handler) ProgramStart(wg *sync.WaitGroup) {
-	defer wg.Done()
+func NewGoCompiler(c *GoCompilerConfig) *GoCompiler {
 
-	if len(os.Args) < 2 && !h.ch.configFileFound {
-
-		pathMainFile, err := findMainFile()
-		if err != nil {
-			h.tui.PrintError("findMainFile ", err)
-			h.showHelpExecProgram()
-			return
-		}
-		h.ch.config.MainFilePath = pathMainFile
-
-		h.tui.PrintOK("MainFile: " + pathMainFile)
-
+	g := &GoCompiler{
+		GoCompilerConfig: c,
+		Cmd:              &exec.Cmd{},
 	}
+
+	return g
+}
+
+// eg: miApp.exe
+func (h *GoCompiler) UnchangeableOutputFileNames() []string {
+
+	fileName, err := GetFileName(h.OutPathAppName())
+	if err != nil {
+		h.Print("GoCompiler UnchangeableOutputFileNames", err)
+		return []string{}
+	}
+
+	return []string{
+		fileName,
+	}
+}
+
+func (h *GoCompiler) Start(wg *sync.WaitGroup) {
+	defer wg.Done()
+	h.Print("GoCompiler Start", h.MainFilePath())
 
 	// BUILD AND RUN
 	err := h.buildAndRunProgram()
 	if err != nil {
-		h.tui.PrintError("StartProgram ", err)
+		h.Print("GoCompiler Start", err)
 		return
 	}
 
 	// Esperar señal de cierre
-	<-h.exitChan
+	<-h.ExitChan
 }
 
-func (h *handler) buildAndRunProgram() error {
+func (h *GoCompiler) buildAndRunProgram() error {
 	var this = errors.New("buildAndRun")
 
-	h.tui.Print(this, h.ch.config.AppName, "...")
-
-	os.Remove(h.ch.config.OutPathApp)
+	os.Remove(h.OutPathAppName())
 
 	// flags, err := ldflags.Add(
 	// 	h.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
@@ -67,71 +74,71 @@ func (h *handler) buildAndRunProgram() error {
 
 	// var ldflags = `-X 'main.version=` + tag + `'`
 
-	h.program.Cmd = exec.Command("go", "build", "-o", h.ch.config.OutPathApp, h.ch.config.MainFilePath)
+	h.Cmd = exec.Command("go", "build", "-o", h.OutPathAppName(), h.MainFilePath())
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
-	stderr, err := h.program.Cmd.StderrPipe()
+	stderr, err := h.Cmd.StderrPipe()
 	if err != nil {
-		return err
+		return errors.Join(this, err)
 	}
 
-	stdout, err := h.program.Cmd.StdoutPipe()
+	stdout, err := h.Cmd.StdoutPipe()
 	if err != nil {
-		return err
+		return errors.Join(this, err)
 	}
 
-	err = h.program.Cmd.Start()
+	err = h.Cmd.Start()
 	if err != nil {
-		return err
+		return errors.Join(this, err)
 	}
 
-	go io.Copy(h, stderr)
-	go io.Copy(h, stdout)
+	go io.Copy(h.Writer, stderr)
+	go io.Copy(h.Writer, stdout)
 
 	return nil
 }
 
-func (h *handler) showHelpExecProgram() {
-	h.tui.PrintInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [WebFilesFolder]`)
-	h.tui.PrintInfo(`Parameters:`)
-	h.tui.PrintInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
-	h.tui.PrintInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
-	h.tui.PrintInfo(`WebFilesFolder    : Output directory eg: dist/build (default: build)`)
+func (h *GoCompiler) showHelpExecProgram() {
+	h.Print(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [WebFilesFolder]`)
+	h.Print(`Parameters:`)
+	h.Print(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
+	h.Print(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
+	h.Print(`WebFilesFolder    : Output directory eg: dist/build (default: build)`)
 }
 
 // Construir el comando con argumentos dinámicos
 // cmdArgs := append([]string{"go", "build", "-o", d.app_path, "main.go"}, os.Args...)
 // d.Cmd = exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
-func (h *handler) runProgram() error {
+func (h *GoCompiler) runProgram() error {
 
-	h.program.Cmd = exec.Command(h.ch.config.OutPathApp)
-	// h.Cmd = exec.Command("./"+d.app_path,h.main_file ,h.run_arguments...)
+	h.Cmd = exec.Command(h.OutPathAppName(), h.RunArguments()...)
+	// h.Cmd = exec.Command("./"+d.app_path,h.main_file ,h.RunArguments...)
 
-	stderr, err := h.program.Cmd.StderrPipe()
+	stderr, err := h.Cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	stdout, err := h.program.Cmd.StdoutPipe()
+	stdout, err := h.Cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
 
-	err = h.program.Cmd.Start()
+	err = h.Cmd.Start()
 	if err != nil {
 		return err
 	}
 
-	go io.Copy(h, stderr)
-	go io.Copy(h, stdout)
+	go io.Copy(h.Writer, stderr)
+	go io.Copy(h.Writer, stdout)
 
 	return nil
 }
 
-func (h *handler) RestartProgram(event_name string) error {
+func (h *GoCompiler) RestartProgram(event_name string) error {
 	var this = errors.New("Restart")
-	h.tui.PrintWarning(this, "APP...", event_name)
+	h.Print(this, "APP...", event_name)
 
 	// STOP
 	err := h.StopProgram()
@@ -149,12 +156,12 @@ func (h *handler) RestartProgram(event_name string) error {
 	return nil
 }
 
-func (h *handler) StopProgram() error {
+func (h *GoCompiler) StopProgram() error {
 	var this = errors.New("StopProgram")
 
-	h.tui.PrintWarning(this, "PID:", h.program.Cmd.Process.Pid)
+	h.Print(this, "PID:", h.Cmd.Process.Pid)
 
-	err := h.program.Cmd.Process.Kill()
+	err := h.Cmd.Process.Kill()
 	if err != nil {
 		return errors.Join(this, err)
 	}

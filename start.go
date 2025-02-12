@@ -13,7 +13,7 @@ type handler struct {
 	assetsCompiler *AssetsCompiler
 	wasmCompiler   *WasmCompiler
 	watcher        *fsnotify.Watcher
-	program        *Program
+	goCompiler     *GoCompiler
 	browser        *Browser
 	exitChan       chan bool // Canal global para señalizar el cierre
 }
@@ -26,7 +26,6 @@ func GodevStart() {
 
 	h.NewConfig()
 	h.NewTextUserInterface()
-	h.NewProgram()
 	h.AddCompilers()
 	h.NewWatcher()
 	defer h.watcher.Close()
@@ -52,7 +51,7 @@ func GodevStart() {
 	}
 
 	// Iniciar el programa
-	go h.ProgramStart(&wg)
+	go h.goCompiler.Start(&wg)
 
 	// Iniciar el watcher de archivos
 	go h.FileWatcherStart(&wg)
@@ -65,6 +64,23 @@ func (h *handler) AddCompilers() {
 
 	const publicWebFolder = "public"
 
+	//GO
+	h.goCompiler = NewGoCompiler(&GoCompilerConfig{
+		MainFilePath: func() string {
+			return path.Join(h.ch.config.WebFilesFolder, "main.server.go")
+		},
+		OutPathAppName: func() string {
+			return path.Join(h.ch.config.WebFilesFolder, h.ch.config.AppName)
+		},
+		RunArguments: func() []string {
+			return []string{}
+		},
+		Print:    h.tui.Print,
+		Writer:   h,
+		ExitChan: h.exitChan,
+	})
+
+	//WASM
 	h.wasmCompiler = NewWasmCompiler(&WasmConfig{
 		WebFilesFolder: func() (string, string) {
 			return h.ch.config.WebFilesFolder, publicWebFolder
@@ -72,6 +88,7 @@ func (h *handler) AddCompilers() {
 		Print: h.tui.Print,
 	})
 
+	//ASSETS
 	h.assetsCompiler = NewAssetsCompiler(&AssetsConfig{
 		WebFilesFolder: func() string {
 			return path.Join(h.ch.config.WebFilesFolder, publicWebFolder)

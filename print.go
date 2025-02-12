@@ -17,9 +17,18 @@ type TerminalPrint struct {
 	Time    time.Time
 }
 
-// Print sends a normal message to the tui
+// Print sends a normal message or error to the tui
 func (h *TextUserInterface) Print(messages ...any) {
-	h.SendMessage(joinMessages(messages...), NormMsg)
+	msgType := NormMsg
+
+	for _, msg := range messages {
+		if _, isError := msg.(error); isError {
+			msgType = ErrorMsg
+			break
+		}
+	}
+
+	h.SendMessage(joinMessages(messages...), msgType)
 }
 
 // PrintError sends an error message to the tui

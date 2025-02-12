@@ -334,7 +334,7 @@ func (h *handler) Start(wg *sync.WaitGroup) {
 
 	h.tui.tea = tea.NewProgram(h, tea.WithAltScreen())
 	if _, err := h.tui.tea.Run(); err != nil {
-		fmt.Println("Error running program:", err)
+		fmt.Println("Error running goCompiler:", err)
 		fmt.Println("\nPress any key to exit...")
 		var input string
 		fmt.Scanln(&input)

@@ -200,6 +200,10 @@ func (h *handler) Contain(path string) bool {
 			no_add_to_watch[file] = true
 		}
 
+		// ignorar archivos generados por go compiler
+		for _, file := range h.goCompiler.UnchangeableOutputFileNames() {
+			no_add_to_watch[file] = true
+		}
 	}
 
 	for value := range no_add_to_watch {
