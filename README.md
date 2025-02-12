@@ -88,30 +88,38 @@ godev
 ![arquitectura godev](docs/godev.arq.svg)
 
 ## Estructura del Proyecto
+
+dentro del directorio modules al modificar y guardar archivos go con prefijo: 
+- **b.** (backend) el servidor se reiniciara y el navegador se recargará
+- **f.** (frontend) se compilara a webAssembly y recargará el navegador
+
+si el archivo no tiene prefijo se reiniciara el servidor, se compilara a webAssembly y 
+se recargará el navegador
+
 ```md
 miProyecto/
 ├── modules/
-│   ├── modules.go         # Registro de módulos inicializados en main.server.go, main.wasm.go
+│   ├── modules.go          # Registro de módulos en main.server.go, main.wasm.go
 │   │
 │   ├── auth/
-│   │   ├── auth.go        # Estructuras y lógica compartida
-│   │   ├── back.api.go    # API endpoints (// go: build !wasm)
-│   │   ├── wasm.go        # Package main para compilación wasm
-│   │   └── handlers.go    # Handlers compartidos
+│   │   ├── auth.go         # Estructuras y lógica compartida
+│   │   ├── b.back.api.go   # API endpoints (// go: build !wasm)
+│   │   ├── f.wasm.go       # Package main para compilación wasm
+│   │   └── handlers.go     # Handlers compartidos
 │   │
 │   ├── users/
-│   │   ├── user.go        # Definición de estructuras y modelos
-│   │   ├── back.api.go    # API endpoints
-│   │   ├── wasm.go        # Compilación wasm (// go: build wasm)
-│   │   └── events.go      # Definición de eventos pub/sub
+│   │   ├── user.go         # Definición de estructuras y modelos
+│   │   ├── b.api.go        # API endpoints
+│   │   ├── f.wasm.go       # Compilación wasm (// go: build wasm)
+│   │   └── f.events.go     # Definición de eventos pub/sub
 │   │
 │   └── medical/
-│       ├── patient.go     # Modelo de paciente
-│       ├── back.api.go    # API endpoints
-│       ├── wasm.go        # UI handlers y lógica frontend
-│       └── handlers.go    # Handlers compartidos
+│       ├── b.api.go        # API endpoints
+│       ├── f.wasm.go       # UI handlers y lógica frontend
+│       ├── patient.go      # Modelo de paciente
+│       └── handlers.go     # Handlers compartidos
 │
-├── web/                        # servidor y Archivos web públicos compilados
+├── web/                        # servidor y Archivos web
 │   ├── public/                 # Archivos públicos
 │   │   ├── img/                # Imágenes optimizadas y comprimidas
 │   │   ├── icons.svg           # Iconos SVG
@@ -124,10 +132,11 @@ miProyecto/
 │   │   │   └── main.wasm       # main compilado de la aplicación principal
 │   │   └── index.html          # HTML principal generado
 │   ├── appName.exe             # Ejecutable del servidor compilado
-│   ├── main.server.go          # Punto de entrada principal servidor
-│   └── main.wasm.go            # Punto de entrada principal WebAssembly
+│   ├── main.server.go          # si existe el proyecto ya tiene servidor principal
+│   └── main.wasm.go            # si existe el proyecto es WebAssembly
 |
 └── go.mod```
+
 ### Orden de Carga de JavaScript
 1. Archivos raíz que comienzan con mayúsculas
 2. Archivos en la carpeta `js` (alfabéticamente)

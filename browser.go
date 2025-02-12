@@ -216,11 +216,11 @@ func (b Browser) sendkeys(host string) chromedp.Tasks {
 }
 
 func (b *Browser) Reload() (err error) {
-	if b.Context != nil {
+	if b.Context != nil && b.isOpen {
 		// fmt.Println("Recargando Navegador")
 		err = chromedp.Run(b.Context, chromedp.Reload())
 		if err != nil {
-			return errors.New("Reload error al recargar Pagina " + err.Error())
+			return errors.New("Reload Browser " + err.Error())
 		}
 	}
 	return

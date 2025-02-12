@@ -92,11 +92,11 @@ func (h *handler) buildAndRunProgram() error {
 }
 
 func (h *handler) showHelpExecProgram() {
-	h.tui.PrintInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [OutputDir]`)
+	h.tui.PrintInfo(`Usage for build app without config file eg: godev <MainFilePath> [AppName] [WebFilesFolder]`)
 	h.tui.PrintInfo(`Parameters:`)
 	h.tui.PrintInfo(`MainFilePath : Path to main file eg: backend/main.go, server.go (default: cmd/main.go)`)
 	h.tui.PrintInfo(`AppName      : Name of output executable eg: miAppName, server (default: app)`)
-	h.tui.PrintInfo(`OutputDir    : Output directory eg: dist/build (default: build)`)
+	h.tui.PrintInfo(`WebFilesFolder    : Output directory eg: dist/build (default: build)`)
 }
 
 // Construir el comando con argumentos dinámicos

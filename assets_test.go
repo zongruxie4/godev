@@ -22,7 +22,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 	// Configuración mock del compilador
 	config := &AssetsConfig{
-		BuildDirectory: func() string { return buildDir },
+		WebFilesFolder: func() string { return buildDir },
 		Print: func(messages ...any) {
 			fmt.Println(messages...)
 		},
@@ -34,7 +34,6 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 	t.Run("Crear nuevo archivo CSS", func(t *testing.T) {
 		cssPath := filepath.Join(testDir, "test.css")
-		defer os.Remove(cssPath)
 
 		// Crear archivo CSS de prueba
 		if err := os.WriteFile(cssPath, []byte(".test { color: red; }"), 0644); err != nil {
@@ -60,7 +59,6 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 	t.Run("Actualizar archivo CSS existente", func(t *testing.T) {
 		cssPath := filepath.Join(testDir, "existing.css")
-		defer os.Remove(cssPath)
 
 		// Crear archivo inicial
 		os.WriteFile(cssPath, []byte(".old { padding: 1px; }"), 0644)

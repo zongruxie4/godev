@@ -92,3 +92,17 @@ func FileWrite(pathFile string, data bytes.Buffer) error {
 
 	return nil
 }
+
+// GetFileName returns the filename from a path
+func GetFileName(path string) (string, error) {
+	if path == "" {
+		return "", errors.New("GetFileName empty path")
+	}
+
+	fileName := filepath.Base(path)
+	if fileName == "." || fileName == string(filepath.Separator) {
+		return "", errors.New("GetFileName invalid path")
+	}
+
+	return fileName, nil
+}

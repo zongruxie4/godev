@@ -3,24 +3,53 @@ package godev
 import (
 	"errors"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
 type WasmCompiler struct {
 	*WasmConfig
+	wasmProjectType    bool
+	tinyGoCompiler     bool
+	mainWasmOutputFile string // eg: main.wasm
+	mainGoInputFile    string // eg: main.wasm.go
 }
 
 type WasmConfig struct {
-	BuildDirectory func() string         // eg: web/public/wasm
+	// root folder and subfolder eg: "web","public"
+	WebFilesFolder func() (string, string)
 	Print          func(messages ...any) // eg: fmt.Println
 }
 
-func NewWasmCompiler(wc *WasmConfig) *WasmCompiler {
-	return &WasmCompiler{
-		WasmConfig: wc,
+func NewWasmCompiler(c *WasmConfig) *WasmCompiler {
+
+	w := &WasmCompiler{
+		WasmConfig:         c,
+		mainWasmOutputFile: "main.wasm",
+		mainGoInputFile:    "main.wasm.go",
 	}
 
+	return w
+}
+
+// ej: web/public/wasm/main.wasm
+func (w *WasmCompiler) OutputPathMainFileWasm() string {
+	return path.Join(w.wasmFilesOutputDirectory(), w.mainWasmOutputFile)
+}
+
+// eg: web/public/wasm
+func (w *WasmCompiler) wasmFilesOutputDirectory() string {
+	rootFolder, subfolder := w.WebFilesFolder()
+	return path.Join(rootFolder, subfolder, "wasm")
+}
+
+// eg: main.wasm
+func (w *WasmCompiler) UnchangeableOutputFileNames() []string {
+	return []string{
+		w.mainWasmOutputFile,
+		// add wasm name modules here
+	}
 }
 
 func (w *WasmCompiler) WasmProjectTinyGoJsUse() (bool, bool) {

@@ -1,11 +1,11 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.9 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.9">
   <diagram name="Page-1" id="Pj7A8H-gOEHrlLpcWpIl">
-    <mxGraphModel dx="863" dy="987" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1275" dy="999" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="TmXhNo_nuO7R1ckwOBzY-1" value="GoDev Start" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="380" y="-271" width="177" height="54" as="geometry" />
+          <mxGeometry x="255" y="-396" width="177" height="54" as="geometry" />
         </mxCell>
         <mxCell id="TmXhNo_nuO7R1ckwOBzY-2" value="¿Existe archivo WASM?" style="rhombus;strokeWidth=2;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="357" y="124" width="211" height="211" as="geometry" />
@@ -161,11 +161,35 @@
         <mxCell id="TmXhNo_nuO7R1ckwOBzY-32" value="GoFileChange(filePath string)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="93" y="613" width="201" height="68" as="geometry" />
         </mxCell>
-        <mxCell id="TmXhNo_nuO7R1ckwOBzY-33" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="58" y="191" width="120" height="60" as="geometry" />
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-38" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;entryX=0.456;entryY=0.006;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="TmXhNo_nuO7R1ckwOBzY-33" target="TmXhNo_nuO7R1ckwOBzY-39">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="243.66668701171875" y="-106.33332316080725" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-40" value="SI" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" vertex="1" connectable="0" parent="TmXhNo_nuO7R1ckwOBzY-38">
+          <mxGeometry x="0.1483" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-33" value="existe? web/main.wasm.go" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="124" y="-237" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="TmXhNo_nuO7R1ckwOBzY-34" value="cargar modulos wasm&lt;div&gt;./modules&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="372" y="-157" width="120" height="60" as="geometry" />
+          <mxGeometry x="486.5" y="-249" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-35" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-11" y="-112" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-36" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.45;entryY=0.072;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=12;startSize=8;endSize=8;" edge="1" parent="1" source="TmXhNo_nuO7R1ckwOBzY-33" target="TmXhNo_nuO7R1ckwOBzY-35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-37" value="NO" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" vertex="1" connectable="0" parent="TmXhNo_nuO7R1ckwOBzY-36">
+          <mxGeometry x="-0.086" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TmXhNo_nuO7R1ckwOBzY-39" value="proyecto webassebly" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="251" y="-125" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

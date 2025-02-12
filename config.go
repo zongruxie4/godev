@@ -41,8 +41,8 @@ type Config struct {
 	AppName string `yaml:"AppName" label:"App Name" value:"app" editable:"true"`
 	// ej: test/app.go
 	MainFilePath string `yaml:"MainFilePath" label:"Main File Path" value:"cmd/main.go" editable:"true"`
-	// ej: dist,build,www default: web
-	OutputDir string `yaml:"OutputDir" label:"Output Dir" value:"web" editable:"true"`
+	// ej: build default: web
+	WebFilesFolder string `yaml:"WebFilesFolder" label:"Web Files Directory" value:"web" editable:"false"`
 	// eg : build/app.exe
 	OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
 	// ej: 8080
@@ -54,7 +54,7 @@ type Config struct {
 }
 
 func (c *Config) OutPutStaticsDirectory() string {
-	return path.Join(c.OutputDir, "static")
+	return path.Join(c.WebFilesFolder, "static")
 }
 
 func (h *handler) NewConfig() {
@@ -97,7 +97,7 @@ func (h *handler) NewConfig() {
 	}
 
 	// 5 Crear el directorio de salida si no existe
-	if err := os.MkdirAll(h.ch.config.OutputDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(h.ch.config.WebFilesFolder, os.ModePerm); err != nil {
 		h.ch.configErrors = append(h.ch.configErrors, errors.New("Could not create output directory: "+err.Error()))
 	}
 
@@ -121,7 +121,7 @@ func (c *Config) LoadConfigFromParams() error {
 		exe_ext = ".exe"
 	}
 
-	c.OutPathApp = path.Join(c.OutputDir, c.AppName+exe_ext)
+	c.OutPathApp = path.Join(c.WebFilesFolder, c.AppName+exe_ext)
 
 	return nil
 }

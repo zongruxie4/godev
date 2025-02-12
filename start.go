@@ -63,18 +63,18 @@ func GodevStart() {
 
 func (h *handler) AddCompilers() {
 
-	const outputFromPublicWebFiles = "public"
+	const publicWebFolder = "public"
 
 	h.wasmCompiler = NewWasmCompiler(&WasmConfig{
-		BuildDirectory: func() string {
-			return path.Join(h.ch.config.OutputDir, outputFromPublicWebFiles, "wasm")
+		WebFilesFolder: func() (string, string) {
+			return h.ch.config.WebFilesFolder, publicWebFolder
 		},
 		Print: h.tui.Print,
 	})
 
 	h.assetsCompiler = NewAssetsCompiler(&AssetsConfig{
-		BuildDirectory: func() string {
-			return path.Join(h.ch.config.OutputDir)
+		WebFilesFolder: func() string {
+			return path.Join(h.ch.config.WebFilesFolder, publicWebFolder)
 		},
 		Print:                  h.tui.Print,
 		WasmProjectTinyGoJsUse: h.wasmCompiler.WasmProjectTinyGoJsUse,

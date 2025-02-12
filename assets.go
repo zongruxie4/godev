@@ -26,7 +26,7 @@ type AssetsCompiler struct {
 }
 
 type AssetsConfig struct {
-	BuildDirectory         func() string         // eg: web/static, web/public, web/assets
+	WebFilesFolder         func() string         // eg: web/static, web/public, web/assets
 	Print                  func(messages ...any) // eg: fmt.Println
 	WasmProjectTinyGoJsUse func() (bool, bool)   // eg: func() (bool,bool) { return true,true } = wasmProjectTinyGoJsUse()
 }
@@ -111,7 +111,7 @@ func (c *AssetsCompiler) UpdateFileOnDisk(filePath, extension string) error {
 		return nil
 	}
 
-	c.Print("Compiling", extension, "...", filePath)
+	c.Print("Asset Compiling", extension, "...", filePath)
 
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
@@ -143,11 +143,18 @@ func (c *AssetsCompiler) UpdateFileOnDisk(filePath, extension string) error {
 		buf.Write(minifiedBuf.Bytes())
 	}
 
-	if err := FileWrite(path.Join(c.BuildDirectory(), fh.fileOutputName), buf); err != nil {
+	if err := FileWrite(path.Join(c.WebFilesFolder(), fh.fileOutputName), buf); err != nil {
 		return errors.New(e + err.Error())
 	}
 
 	return nil
+}
+
+func (c *AssetsCompiler) UnchangeableOutputFileNames() []string {
+	return []string{
+		c.cssHandler.fileOutputName,
+		c.jsHandler.fileOutputName,
+	}
 }
 
 func (c *AssetsCompiler) StartCodeJS() (out string, err error) {

@@ -158,7 +158,7 @@ func (h *handler) Write(p []byte) (n int, err error) {
 
 		// Si es un error, escribirlo en el archivo de log
 		if msgType == ErrorMsg {
-			logFile, err := os.OpenFile(path.Join(h.ch.config.OutputDir, h.ch.config.AppName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			logFile, err := os.OpenFile(path.Join(h.ch.config.WebFilesFolder, h.ch.config.AppName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err == nil {
 				defer logFile.Close()
 				timestamp := time.Now().Format("2006-01-02 15:04:05")

@@ -46,6 +46,14 @@ func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 func (h *handler) watchEvents() {
 	lastActions := make(map[string]time.Time)
 
+	reloadBrowserTimer := time.NewTimer(0)
+	reloadBrowserTimer.Stop()
+
+	restarTimer := time.NewTimer(0)
+	restarTimer.Stop()
+
+	var wait = 50 * time.Millisecond
+
 	for {
 		select {
 
@@ -61,6 +69,9 @@ func (h *handler) watchEvents() {
 
 			// Aplicar debouncing para evitar múltiples eventos
 			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 1*time.Second {
+
+				// Restablece el temporizador de recarga de navegador
+				reloadBrowserTimer.Stop()
 
 				// Verificar si es un nuevo directorio para agregarlo al watcher
 				if info, err := os.Stat(event.Name); err == nil && !h.Contain(event.Name) {
@@ -82,29 +93,34 @@ func (h *handler) watchEvents() {
 
 						switch extension {
 						case ".html":
-							h.tui.PrintOK("HTML File")
+							// h.tui.PrintOK("HTML File")
 							// err = w.HTML.UpdateFileOnDisk(event)
 
 							// if err == nil {
 							// 	resetWaitingTime = true
 							// }
-						case ".css":
-							h.tui.PrintOK("CSS File")
-							// err = w.CSS.UpdateFileOnDisk(event)
-							// if err == nil {
-							// 	resetWaitingTime = true
-							// }
-						case ".js":
-							h.tui.PrintOK("JS File")
-							// err = w.JS.UpdateFileOnDisk(event)
-							// if err == nil {
-							// 	resetWaitingTime = true
-							// }
+						case ".css", ".js":
+							err = h.assetsCompiler.UpdateFileOnDisk(event.Name, extension)
+							if err == nil {
+								reloadBrowserTimer.Reset(wait)
+							}
 
 						case ".go":
+							var goFileName string
+							goFileName, err = GetFileName(event.Name)
+							if err == nil {
+								h.tui.Print("Go File:", goFileName)
+							}
 
 							h.tui.PrintOK("Go File")
 
+						default:
+							h.tui.PrintWarning("Watch Unknown file type:", extension)
+
+						}
+
+						if err != nil {
+							h.tui.PrintError("Watch updating file:", err)
 						}
 
 					}
@@ -117,6 +133,13 @@ func (h *handler) watchEvents() {
 			if !ok {
 				h.tui.PrintError("h.watcher.Errors:", err)
 				return
+			}
+
+		case <-reloadBrowserTimer.C:
+			// El temporizador de recarga ha expirado, ejecuta reload del navegador
+			err := h.browser.Reload()
+			if err != nil {
+				h.tui.PrintError("Watch:", err)
 			}
 		}
 	}
@@ -151,6 +174,8 @@ func (h *handler) RegisterFiles() {
 	}
 }
 
+var no_add_to_watch map[string]bool
+
 func (h *handler) Contain(path string) bool {
 
 	// Ignorar archivos temporales o hidden
@@ -158,9 +183,26 @@ func (h *handler) Contain(path string) bool {
 		return true
 	}
 
-	var no_add_to_watch = []string{h.ch.config.OutputDir, ".git", ".vscode"}
+	if no_add_to_watch == nil {
+		no_add_to_watch := map[string]bool{
+			".git":    true,
+			".vscode": true,
+			".exe":    true,
+		}
 
-	for _, value := range no_add_to_watch {
+		// ignorar archivos generados por el compilador de assets como script.js, style.css
+		for _, file := range h.assetsCompiler.UnchangeableOutputFileNames() {
+			no_add_to_watch[file] = true
+		}
+
+		// ignorar archivos generados por wasm compiler
+		for _, file := range h.wasmCompiler.UnchangeableOutputFileNames() {
+			no_add_to_watch[file] = true
+		}
+
+	}
+
+	for value := range no_add_to_watch {
 		if strings.Contains(path, value) {
 			return true
 		}
