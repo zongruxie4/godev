@@ -39,8 +39,8 @@ type ConfigField struct {
 type Config struct {
 	// ej: app
 	AppName string `yaml:"AppName" label:"App Name" value:"app" editable:"true"`
-	// ej: test/app.go
-	MainFilePath string `yaml:"MainFilePath" label:"Main File Path" value:"cmd/main.go" editable:"true"`
+	// ej: web/main.server.go
+	MainFilePath string `yaml:"MainFilePath" label:"Main File Path" value:"web/main.server.go" editable:"true"`
 	// ej: build default: web
 	WebFilesFolder string `yaml:"WebFilesFolder" label:"Web Files Directory" value:"web" editable:"false"`
 	// eg : build/app.exe
