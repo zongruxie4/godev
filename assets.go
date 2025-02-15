@@ -15,7 +15,7 @@ import (
 	"github.com/tdewolff/minify/v2/svg"
 )
 
-type AssetsCompiler struct {
+type AssetsHandler struct {
 	*AssetsConfig
 	cssHandler *fileHandler
 	jsHandler  *fileHandler
@@ -43,8 +43,8 @@ type File struct {
 	content []byte
 }
 
-func NewAssetsCompiler(config *AssetsConfig) *AssetsCompiler {
-	c := &AssetsCompiler{
+func NewAssetsCompiler(config *AssetsConfig) *AssetsHandler {
+	c := &AssetsHandler{
 		AssetsConfig: config,
 		cssHandler: &fileHandler{
 			fileOutputName: "style.css",
@@ -61,6 +61,7 @@ func NewAssetsCompiler(config *AssetsConfig) *AssetsCompiler {
 
 	c.min.AddFunc("text/html", html.Minify)
 	c.min.AddFunc("text/css", css.Minify)
+	// c.min.AddFunc("text/javascript", js.Minify)
 	c.min.AddFuncRegexp(regexp.MustCompile("^(application|text)/(x-)?(java|ecma)script$"), js.Minify)
 	c.min.AddFunc("image/svg+xml", svg.Minify)
 
@@ -69,7 +70,7 @@ func NewAssetsCompiler(config *AssetsConfig) *AssetsCompiler {
 	return c
 }
 
-func (c *AssetsCompiler) UpdateFileContentInMemory(filePath, extension string, content []byte) (*fileHandler, error) {
+func (c *AssetsHandler) UpdateFileContentInMemory(filePath, extension string, content []byte) (*fileHandler, error) {
 	file := &File{
 		path:    filePath,
 		content: content,
@@ -96,7 +97,7 @@ func (c *AssetsCompiler) UpdateFileContentInMemory(filePath, extension string, c
 	return nil, errors.New("UpdateFileContentInMemory extension: " + extension + " not found " + filePath)
 }
 
-func (c *AssetsCompiler) findFileIndex(files []*File, filePath string) int {
+func (c *AssetsHandler) findFileIndex(files []*File, filePath string) int {
 	for i, f := range files {
 		if f.path == filePath {
 			return i
@@ -105,7 +106,7 @@ func (c *AssetsCompiler) findFileIndex(files []*File, filePath string) int {
 	return -1
 }
 
-func (c *AssetsCompiler) UpdateFileOnDisk(filePath, extension string) error {
+func (c *AssetsHandler) UpdateFileOnDisk(filePath, extension string) error {
 	var e = "UpdateFileOnDisk " + extension + " "
 	if filePath == "" {
 		return nil
@@ -136,28 +137,29 @@ func (c *AssetsCompiler) UpdateFileOnDisk(filePath, extension string) error {
 	}
 
 	for _, f := range fh.files {
-		var minifiedBuf bytes.Buffer
-		if err := c.min.Minify(fh.mediatype, &minifiedBuf, bytes.NewReader(f.content)); err != nil {
-			return errors.New(e + err.Error())
-		}
-		buf.Write(minifiedBuf.Bytes())
+		buf.Write(f.content)
+	}
+	var minifiedBuf bytes.Buffer
+
+	if err := c.min.Minify(fh.mediatype, &minifiedBuf, &buf); err != nil {
+		return errors.New(e + err.Error())
 	}
 
-	if err := FileWrite(path.Join(c.WebFilesFolder(), fh.fileOutputName), buf); err != nil {
+	if err := FileWrite(path.Join(c.WebFilesFolder(), fh.fileOutputName), minifiedBuf); err != nil {
 		return errors.New(e + err.Error())
 	}
 
 	return nil
 }
 
-func (c *AssetsCompiler) UnchangeableOutputFileNames() []string {
+func (c *AssetsHandler) UnchangeableOutputFileNames() []string {
 	return []string{
 		c.cssHandler.fileOutputName,
 		c.jsHandler.fileOutputName,
 	}
 }
 
-func (c *AssetsCompiler) StartCodeJS() (out string, err error) {
+func (c *AssetsHandler) StartCodeJS() (out string, err error) {
 	out = "'use strict';"
 
 	// load wasm js code

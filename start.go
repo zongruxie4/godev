@@ -8,14 +8,15 @@ import (
 )
 
 type handler struct {
-	ch             *ConfigHandler
-	tui            *TextUserInterface
-	assetsCompiler *AssetsCompiler
-	wasmCompiler   *WasmCompiler
-	watcher        *fsnotify.Watcher
-	goCompiler     *GoCompiler
-	browser        *Browser
-	exitChan       chan bool // Canal global para señalizar el cierre
+	ch            *ConfigHandler
+	tui           *TextUserInterface
+	serverHandler *ServerHandler
+	assetsHandler *AssetsHandler
+	wasmHandler   *WasmHandler
+	watcher       *fsnotify.Watcher
+	goCompiler    *GoCompiler
+	browser       *Browser
+	exitChan      chan bool // Canal global para señalizar el cierre
 }
 
 func GodevStart() {
@@ -26,7 +27,7 @@ func GodevStart() {
 
 	h.NewConfig()
 	h.NewTextUserInterface()
-	h.AddCompilers()
+	h.AddHandlers()
 	h.NewWatcher()
 	defer h.watcher.Close()
 
@@ -50,8 +51,8 @@ func GodevStart() {
 		}
 	}
 
-	// Iniciar el programa
-	go h.goCompiler.Start(&wg)
+	// Iniciar servidor
+	go h.serverHandler.Start(&wg)
 
 	// Iniciar el watcher de archivos
 	go h.FileWatcherStart(&wg)
@@ -60,41 +61,51 @@ func GodevStart() {
 	wg.Wait()
 }
 
-func (h *handler) AddCompilers() {
+func (h *handler) AddHandlers() {
+	const (
+		serverFileName = "main.server.go"
+	)
 
-	const publicWebFolder = "public"
-
-	//GO
+	//GO COMPILER
 	h.goCompiler = NewGoCompiler(&GoCompilerConfig{
 		MainFilePath: func() string {
-			return path.Join(h.ch.config.WebFilesFolder, "main.server.go")
+			return path.Join(h.ch.config.WebFilesFolder, serverFileName)
 		},
-		OutPathAppName: func() string {
-			return path.Join(h.ch.config.WebFilesFolder, h.ch.config.AppName)
+		AppName: func() string {
+			return h.ch.config.AppName
 		},
 		RunArguments: func() []string {
 			return []string{}
 		},
+		OutFolder: func() string {
+			return h.ch.config.WebFilesFolder
+		},
 		Print:    h.tui.Print,
-		Writer:   h,
 		ExitChan: h.exitChan,
 	})
 
 	//WASM
-	h.wasmCompiler = NewWasmCompiler(&WasmConfig{
+	h.wasmHandler = NewWasmCompiler(&WasmConfig{
 		WebFilesFolder: func() (string, string) {
-			return h.ch.config.WebFilesFolder, publicWebFolder
+			return h.ch.config.WebFilesFolder, h.ch.config.PublicFolder()
 		},
 		Print: h.tui.Print,
 	})
 
 	//ASSETS
-	h.assetsCompiler = NewAssetsCompiler(&AssetsConfig{
-		WebFilesFolder: func() string {
-			return path.Join(h.ch.config.WebFilesFolder, publicWebFolder)
-		},
+	h.assetsHandler = NewAssetsCompiler(&AssetsConfig{
+		WebFilesFolder:         h.ch.config.OutPutStaticsDirectory,
 		Print:                  h.tui.Print,
-		WasmProjectTinyGoJsUse: h.wasmCompiler.WasmProjectTinyGoJsUse,
+		WasmProjectTinyGoJsUse: h.wasmHandler.WasmProjectTinyGoJsUse,
 	})
 
+	//SERVER
+	h.serverHandler = NewServerHandler(&ServerConfig{
+		RootFolder:   h.ch.config.WebFilesFolder,
+		MainFile:     serverFileName,
+		PublicFolder: h.ch.config.PublicFolder(),
+		AppPort:      h.ch.config.ServerPort,
+		Print:        h.tui.Print,
+		ExitChan:     h.exitChan,
+	})
 }

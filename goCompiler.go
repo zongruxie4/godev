@@ -5,44 +5,57 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
+	"runtime"
+	"strings"
 	"sync"
 )
 
 type GoCompiler struct {
 	*GoCompilerConfig
 	*exec.Cmd
+
+	outFileName     string // eg win: miApp.exe, unix: miApp
+	outTempFileName string // eg win: miApp_temp.exe, unix: miApp_temp
 }
 
 type GoCompilerConfig struct {
-	MainFilePath   func() string         //ej: web/main.server.go, cmd/main.go
-	OutPathAppName func() string         // eg: web/miApp.exe, cmd/build/miApp
-	RunArguments   func() []string       // argumentos de arranque eg: -p 10000
-	Print          func(messages ...any) // eg: fmt.Println
-	Writer         io.Writer             // escritor de mensajes de destino eg:io.Writer, os.Stdout
-	ExitChan       chan bool             // Canal global para señalizar el cierre
+	MainFilePath func() string   //ej: web/main.server.go, cmd/main.go
+	AppName      func() string   // eg: miApp, miFirsWebApp
+	RunArguments func() []string // argumentos de arranque eg: -p 10000
+	//for dynamic ldflags eg: LDFlags: func() []string {
+	//     return []string{
+	//         `-X 'main.version=v1.0.0'`,
+	//         `-X 'main.key=value'`,
+	//     }
+	LDFlags   func() []string
+	OutFolder func() string         // eg: build, dist web
+	Print     func(messages ...any) // eg: fmt.Println
+	ExitChan  chan bool             // Canal global para señalizar el cierre
 }
 
 func NewGoCompiler(c *GoCompilerConfig) *GoCompiler {
 
+	var exe_ext = ""
+	if runtime.GOOS == "windows" {
+		exe_ext = ".exe"
+	}
+
 	g := &GoCompiler{
 		GoCompilerConfig: c,
 		Cmd:              &exec.Cmd{},
+		outFileName:      c.AppName() + exe_ext,
+		outTempFileName:  c.AppName() + "_temp" + exe_ext,
 	}
 
 	return g
 }
 
-// eg: miApp.exe
+// eg: miApp.exe, miApp_temp.exe
 func (h *GoCompiler) UnchangeableOutputFileNames() []string {
-
-	fileName, err := GetFileName(h.OutPathAppName())
-	if err != nil {
-		h.Print("GoCompiler UnchangeableOutputFileNames", err)
-		return []string{}
-	}
-
 	return []string{
-		fileName,
+		h.outFileName,
+		h.outTempFileName,
 	}
 }
 
@@ -50,8 +63,15 @@ func (h *GoCompiler) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 	h.Print("GoCompiler Start", h.MainFilePath())
 
-	// BUILD AND RUN
-	err := h.buildAndRunProgram()
+	// BUILD
+	err := h.BuildProgram()
+	if err != nil {
+		h.Print("GoCompiler Start", err)
+		return
+	}
+
+	// RUN
+	err = h.RunProgram()
 	if err != nil {
 		h.Print("GoCompiler Start", err)
 		return
@@ -61,20 +81,23 @@ func (h *GoCompiler) Start(wg *sync.WaitGroup) {
 	<-h.ExitChan
 }
 
-func (h *GoCompiler) buildAndRunProgram() error {
-	var this = errors.New("buildAndRun")
+func (h *GoCompiler) BuildProgram() error {
+	var this = errors.New("BuildProgram")
 
-	os.Remove(h.OutPathAppName())
+	buildArgs := []string{"build"}
 
-	// flags, err := ldflags.Add(
-	// 	h.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
-	// 	h.TwoKeys.GetTwoPublicKeysWasmClientAndGoServer(),
-	// // sessionbackend.AddPrivateSecretKeySigning(),
-	// )
+	// Add multiple ldflags if provided
+	if h.LDFlags != nil {
+		flags := h.LDFlags()
+		if len(flags) > 0 {
+			ldflags := "-ldflags=" + strings.Join(flags, " ")
+			buildArgs = append(buildArgs, ldflags)
+		}
+	}
 
-	// var ldflags = `-X 'main.version=` + tag + `'`
+	buildArgs = append(buildArgs, "-o", path.Join(h.OutFolder(), h.outTempFileName), h.MainFilePath())
 
-	h.Cmd = exec.Command("go", "build", "-o", h.OutPathAppName(), h.MainFilePath())
+	h.Cmd = exec.Command("go", buildArgs...)
 	// d.Cmd = exec.Command("go", "build", "-o", d.app_path, "main.go" )
 
 	stderr, err := h.Cmd.StderrPipe()
@@ -92,8 +115,24 @@ func (h *GoCompiler) buildAndRunProgram() error {
 		return errors.Join(this, err)
 	}
 
-	go io.Copy(h.Writer, stderr)
-	go io.Copy(h.Writer, stdout)
+	go io.Copy(h, stderr)
+	go io.Copy(h, stdout)
+
+	// Wait for build to complete
+	if err := h.Cmd.Wait(); err != nil {
+		return errors.Join(this, err)
+	}
+
+	// Only rename files if build was successful
+	os.Remove(path.Join(h.OutFolder(), h.outFileName))
+
+	err = os.Rename(
+		path.Join(h.OutFolder(), h.outTempFileName),
+		path.Join(h.OutFolder(), h.outFileName),
+	)
+	if err != nil {
+		return errors.Join(this, err)
+	}
 
 	return nil
 }
@@ -110,9 +149,9 @@ func (h *GoCompiler) showHelpExecProgram() {
 // cmdArgs := append([]string{"go", "build", "-o", d.app_path, "main.go"}, os.Args...)
 // d.Cmd = exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
-func (h *GoCompiler) runProgram() error {
+func (h *GoCompiler) RunProgram() error {
 
-	h.Cmd = exec.Command(h.OutPathAppName(), h.RunArguments()...)
+	h.Cmd = exec.Command(h.outFileName, h.RunArguments()...)
 	// h.Cmd = exec.Command("./"+d.app_path,h.main_file ,h.RunArguments...)
 
 	stderr, err := h.Cmd.StderrPipe()
@@ -130,8 +169,34 @@ func (h *GoCompiler) runProgram() error {
 		return err
 	}
 
-	go io.Copy(h.Writer, stderr)
-	go io.Copy(h.Writer, stdout)
+	// Using context for cancellation
+	done := make(chan struct{})
+
+	go io.Copy(h, stderr)
+	go io.Copy(h, stdout)
+
+	// Monitor application state
+	go func() {
+		select {
+		case <-h.ExitChan:
+			h.Print("Received exit signal, stopping application...")
+			h.StopProgram()
+			close(done)
+		case <-done:
+			h.Print("Application closed")
+		}
+	}()
+
+	// Wait for application completion
+	go func() {
+		err := h.Cmd.Wait()
+		if err != nil {
+			h.Print("Application closed with error:", err)
+		} else {
+			h.Print("Application closed successfully")
+		}
+		close(done)
+	}()
 
 	return nil
 }
@@ -147,8 +212,14 @@ func (h *GoCompiler) RestartProgram(event_name string) error {
 
 	}
 
-	// BUILD AND RUN
-	err = h.buildAndRunProgram()
+	// BUILD
+	err = h.BuildProgram()
+	if err != nil {
+		return errors.Join(this, err)
+	}
+
+	// RUN
+	err = h.RunProgram()
 	if err != nil {
 		return errors.Join(this, err)
 	}
@@ -167,4 +238,26 @@ func (h *GoCompiler) StopProgram() error {
 	}
 
 	return nil
+}
+
+// Write implementa io.Writer para capturar la salida
+func (h *GoCompiler) Write(p []byte) (n int, err error) {
+	msg := strings.TrimSpace(string(p))
+
+	if msg != "" {
+		// Detectar automáticamente el tipo de mensaje
+		msgType := detectMessageType(msg)
+
+		// Si es un error
+		if msgType == ErrorMsg {
+			h.Print(errors.New(msg))
+			return len(p), nil
+		} else {
+			// Si es un mensaje normal
+			h.Print(msg)
+			return len(p), nil
+		}
+	}
+
+	return len(p), nil
 }

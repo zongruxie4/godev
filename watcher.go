@@ -57,16 +57,13 @@ func (h *handler) watchEvents() {
 	for {
 		select {
 
-		case <-h.exitChan:
-			h.watcher.Close()
-			return
-
 		case event, ok := <-h.watcher.Events:
 			if !ok {
 				h.tui.PrintError("Error h.watcher.Events")
 				return
 			}
 
+			h.tui.PrintWarning("DEBUG Event:", event.Name, event.Op)
 			// Aplicar debouncing para evitar múltiples eventos
 			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 1*time.Second {
 
@@ -100,19 +97,36 @@ func (h *handler) watchEvents() {
 							// 	resetWaitingTime = true
 							// }
 						case ".css", ".js":
-							err = h.assetsCompiler.UpdateFileOnDisk(event.Name, extension)
+							err = h.assetsHandler.UpdateFileOnDisk(event.Name, extension)
 							if err == nil {
-								reloadBrowserTimer.Reset(wait)
+
 							}
 
 						case ".go":
 							var goFileName string
 							goFileName, err = GetFileName(event.Name)
 							if err == nil {
-								h.tui.Print("Go File:", goFileName)
-							}
 
-							h.tui.PrintOK("Go File")
+								isFrontend, isBackend := IsFileType(goFileName)
+
+								if isFrontend { // compilar a wasm y recargar el navegador
+									h.tui.Print("Go File IsFrontend")
+									err = h.wasmHandler.UpdateFileOnDisk(goFileName, event.Name)
+
+								} else if isBackend { // compilar servidor y recargar el navegador
+									h.tui.Print("Go File IsBackend")
+									err = h.serverHandler.UpdateFileOnDisk(goFileName, event.Name)
+
+								} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
+									h.tui.Print("Go File Shared")
+									err = h.wasmHandler.UpdateFileOnDisk(goFileName, event.Name)
+									if err == nil {
+										err = h.serverHandler.UpdateFileOnDisk(goFileName, event.Name)
+									}
+
+								}
+
+							}
 
 						default:
 							h.tui.PrintWarning("Watch Unknown file type:", extension)
@@ -121,6 +135,8 @@ func (h *handler) watchEvents() {
 
 						if err != nil {
 							h.tui.PrintError("Watch updating file:", err)
+						} else {
+							reloadBrowserTimer.Reset(wait)
 						}
 
 					}
@@ -141,6 +157,10 @@ func (h *handler) watchEvents() {
 			if err != nil {
 				h.tui.PrintError("Watch:", err)
 			}
+
+		case <-h.exitChan:
+			h.watcher.Close()
+			return
 		}
 	}
 }
@@ -191,12 +211,12 @@ func (h *handler) Contain(path string) bool {
 		}
 
 		// ignorar archivos generados por el compilador de assets como script.js, style.css
-		for _, file := range h.assetsCompiler.UnchangeableOutputFileNames() {
+		for _, file := range h.assetsHandler.UnchangeableOutputFileNames() {
 			no_add_to_watch[file] = true
 		}
 
 		// ignorar archivos generados por wasm compiler
-		for _, file := range h.wasmCompiler.UnchangeableOutputFileNames() {
+		for _, file := range h.wasmHandler.UnchangeableOutputFileNames() {
 			no_add_to_watch[file] = true
 		}
 

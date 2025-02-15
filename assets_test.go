@@ -30,7 +30,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 			return false, false
 		},
 	}
-	assetsCompiler := NewAssetsCompiler(config)
+	assetsHandler := NewAssetsCompiler(config)
 
 	t.Run("Crear nuevo archivo CSS", func(t *testing.T) {
 		cssPath := filepath.Join(testDir, "test.css")
@@ -41,7 +41,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		}
 
 		// Ejecutar función bajo prueba
-		if err := assetsCompiler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
+		if err := assetsHandler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
 			t.Fatalf("Error inesperado: %v", err)
 		}
 
@@ -62,11 +62,11 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 		// Crear archivo inicial
 		os.WriteFile(cssPath, []byte(".old { padding: 1px; }"), 0644)
-		assetsCompiler.UpdateFileOnDisk(cssPath, ".css")
+		assetsHandler.UpdateFileOnDisk(cssPath, ".css")
 
 		// Actualizar contenido
 		os.WriteFile(cssPath, []byte(".new { margin: 2px; }"), 0644)
-		if err := assetsCompiler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
+		if err := assetsHandler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
 			t.Fatal(err)
 		}
 		expected := ".new{margin:2px}"
@@ -82,14 +82,14 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Manejar archivo inexistente", func(t *testing.T) {
-		err := assetsCompiler.UpdateFileOnDisk("no_existe.css", ".css")
+		err := assetsHandler.UpdateFileOnDisk("no_existe.css", ".css")
 		if err == nil {
 			t.Fatal("Se esperaba error por archivo no encontrado")
 		}
 	})
 
 	t.Run("Extensión inválida", func(t *testing.T) {
-		err := assetsCompiler.UpdateFileOnDisk("archivo.txt", ".txt")
+		err := assetsHandler.UpdateFileOnDisk("archivo.txt", ".txt")
 		if err == nil {
 			t.Fatal("Se esperaba error por extensión inválida")
 		}
@@ -97,19 +97,27 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 	t.Run("Crear archivo JS básico", func(t *testing.T) {
 		jsPath := filepath.Join(testDir, "test.js")
+		jsPath2 := filepath.Join(testDir, "test2.js")
 		defer os.Remove(jsPath)
+		defer os.Remove(jsPath2)
 
 		os.WriteFile(jsPath, []byte(`// Test\nfunction hello() { console.log("hola") }
 		let x = 10;`), 0644)
+		os.WriteFile(jsPath2, []byte(`// Test2\nfunction bye() { console.log("adios") }
+		let y = 20;`), 0644)
 
-		if err := assetsCompiler.UpdateFileOnDisk(jsPath, ".js"); err != nil {
+		if err := assetsHandler.UpdateFileOnDisk(jsPath, ".js"); err != nil {
+			t.Fatal(err)
+		}
+		if err := assetsHandler.UpdateFileOnDisk(jsPath2, ".js"); err != nil {
 			t.Fatal(err)
 		}
 
 		got, _ := os.ReadFile(filepath.Join(buildDir, "main.js"))
-		expected := "'use strict';let x=10"
+		expected := `"use strict";let x=10,y=20`
 		if string(got) != expected {
 			t.Fatalf("\nJS minificado incorrecto:\nexpected: \n[%s]\n\ngot: \n[%s]", expected, got)
 		}
+
 	})
 }

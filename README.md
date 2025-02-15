@@ -188,6 +188,9 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
 - [ ] separate RegisterFiles of WatchFiles
 
+### uses case
+- [ ] cuando se ejecuta el archivo servidor main.server.go y este tiene errores si este modifica en vivo, tiene que arrancar.
+
 ## Agradecimientos
 Este proyecto no sería posible sin:
 - github.com/fsnotify

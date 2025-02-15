@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -44,7 +43,7 @@ type Config struct {
 	// ej: build default: web
 	WebFilesFolder string `yaml:"WebFilesFolder" label:"Web Files Directory" value:"web" editable:"false"`
 	// eg : build/app.exe
-	OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
+	// OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
 	// ej: 8080
 	ServerPort string `yaml:"ServerPort" label:"Server Port" value:"8080" editable:"true"`
 	// ej: "/index.html", "/login", default: "/"
@@ -53,8 +52,14 @@ type Config struct {
 	BrowserPositionAndSize string `yaml:"BrowserPositionAndSize" label:"Browser Position" value:"0,0:800,600" editable:"true"`
 }
 
-func (c *Config) OutPutStaticsDirectory() string {
-	return path.Join(c.WebFilesFolder, "static")
+// web/public
+func (c Config) OutPutStaticsDirectory() string {
+	return path.Join(c.WebFilesFolder, c.PublicFolder())
+}
+
+// public
+func (c Config) PublicFolder() string {
+	return "public"
 }
 
 func (h *handler) NewConfig() {
@@ -116,12 +121,12 @@ func (c *Config) LoadConfigFromParams() error {
 		return errors.New("Main file not found: " + c.MainFilePath)
 	}
 
-	var exe_ext = ""
-	if runtime.GOOS == "windows" {
-		exe_ext = ".exe"
-	}
+	// var exe_ext = ""
+	// if runtime.GOOS == "windows" {
+	// 	exe_ext = ".exe"
+	// }
 
-	c.OutPathApp = path.Join(c.WebFilesFolder, c.AppName+exe_ext)
+	// c.OutPathApp = path.Join(c.WebFilesFolder, c.AppName+exe_ext)
 
 	return nil
 }
