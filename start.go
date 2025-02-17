@@ -1,7 +1,6 @@
 package godev
 
 import (
-	"path"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -14,7 +13,6 @@ type handler struct {
 	assetsHandler *AssetsHandler
 	wasmHandler   *WasmHandler
 	watcher       *fsnotify.Watcher
-	goCompiler    *GoCompiler
 	browser       *Browser
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
@@ -32,12 +30,7 @@ func GodevStart() {
 	defer h.watcher.Close()
 
 	h.NewBrowser()
-	// if watcher, err := fsnotify.NewWatcher(); err != nil {
-	// 	configErrors = append(configErrors, err)
-	// } else {
-	// 	h.watcher = watcher
-	// 	defer h.watcher.Close()
-	// }
+
 	var wg sync.WaitGroup
 	wg.Add(3)
 
@@ -62,26 +55,19 @@ func GodevStart() {
 }
 
 func (h *handler) AddHandlers() {
-	const (
-		serverFileName = "main.server.go"
-	)
 
-	//GO COMPILER
-	h.goCompiler = NewGoCompiler(&GoCompilerConfig{
-		MainFilePath: func() string {
-			return path.Join(h.ch.config.WebFilesFolder, serverFileName)
-		},
-		AppName: func() string {
-			return h.ch.config.AppName
-		},
-		RunArguments: func() []string {
-			return []string{}
-		},
-		OutFolder: func() string {
-			return h.ch.config.WebFilesFolder
-		},
-		Print:    h.tui.Print,
-		ExitChan: h.exitChan,
+	// LDFlags      func() []string // eg: []string{"-X 'main.version=v1.0.0'","-X 'main.buildDate=2023-01-01'"}
+
+	//SERVER
+	h.serverHandler = NewServerHandler(&ServerConfig{
+		RootFolder:                  h.ch.config.WebFilesFolder,
+		MainFileWithoutExtension:    "main.server",
+		ArgumentsForCompilingServer: nil,
+		ArgumentsToRunServer:        nil,
+		PublicFolder:                h.ch.config.PublicFolder(),
+		AppPort:                     h.ch.config.ServerPort,
+		Print:                       h.tui.Print,
+		ExitChan:                    h.exitChan,
 	})
 
 	//WASM
@@ -99,13 +85,4 @@ func (h *handler) AddHandlers() {
 		WasmProjectTinyGoJsUse: h.wasmHandler.WasmProjectTinyGoJsUse,
 	})
 
-	//SERVER
-	h.serverHandler = NewServerHandler(&ServerConfig{
-		RootFolder:   h.ch.config.WebFilesFolder,
-		MainFile:     serverFileName,
-		PublicFolder: h.ch.config.PublicFolder(),
-		AppPort:      h.ch.config.ServerPort,
-		Print:        h.tui.Print,
-		ExitChan:     h.exitChan,
-	})
 }

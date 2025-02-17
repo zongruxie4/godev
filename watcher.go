@@ -98,9 +98,6 @@ func (h *handler) watchEvents() {
 							// }
 						case ".css", ".js":
 							err = h.assetsHandler.UpdateFileOnDisk(event.Name, extension)
-							if err == nil {
-
-							}
 
 						case ".go":
 							var goFileName string
@@ -220,8 +217,8 @@ func (h *handler) Contain(path string) bool {
 			no_add_to_watch[file] = true
 		}
 
-		// ignorar archivos generados por go compiler
-		for _, file := range h.goCompiler.UnchangeableOutputFileNames() {
+		// ignorar archivos generados por server handler
+		for _, file := range h.serverHandler.UnchangeableOutputFileNames() {
 			no_add_to_watch[file] = true
 		}
 	}

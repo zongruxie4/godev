@@ -120,6 +120,9 @@ miProyecto/
 │       └── handlers.go     # Handlers compartidos
 │
 ├── web/                        # servidor y Archivos web
+│   ├── theme/                  # Archivos de tema
+│   │   ├── css/                # Archivos CSS sin procesar
+│   │   └── js/                 # Archivos JavaScript sin procesar
 │   ├── public/                 # Archivos públicos
 │   │   ├── img/                # Imágenes optimizadas y comprimidas
 │   │   ├── icons.svg           # Iconos SVG
@@ -131,10 +134,9 @@ miProyecto/
 │   │   │   ├── auth.wasm       # módulo auth
 │   │   │   └── main.wasm       # main compilado de la aplicación principal
 │   │   └── index.html          # HTML principal generado
-│   ├── appName.exe             # Ejecutable del servidor compilado
+│   ├── main.server.exe         # Ejecutable del servidor compilado
 │   ├── main.server.go          # si existe el proyecto ya tiene servidor principal
-│   └── main.wasm.go            # si existe el proyecto es WebAssembly
-|
+│   └── main.wasm.go            # si existe el proyecto es WebAssembly|
 └── go.mod```
 
 ### Orden de Carga de JavaScript
