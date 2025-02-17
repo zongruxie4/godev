@@ -2,8 +2,6 @@ package godev
 
 import (
 	"sync"
-
-	"github.com/fsnotify/fsnotify"
 )
 
 type handler struct {
@@ -12,7 +10,7 @@ type handler struct {
 	serverHandler *ServerHandler
 	assetsHandler *AssetsHandler
 	wasmHandler   *WasmHandler
-	watcher       *fsnotify.Watcher
+	watcher       *WatchHandler
 	browser       *Browser
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
@@ -26,8 +24,6 @@ func GodevStart() {
 	h.NewConfig()
 	h.NewTextUserInterface()
 	h.AddHandlers()
-	h.NewWatcher()
-	defer h.watcher.Close()
 
 	h.NewBrowser()
 
@@ -48,7 +44,7 @@ func GodevStart() {
 	go h.serverHandler.Start(&wg)
 
 	// Iniciar el watcher de archivos
-	go h.FileWatcherStart(&wg)
+	go h.watcher.FileWatcherStart(&wg)
 
 	// Esperar a que todas las goroutines terminen
 	wg.Wait()
@@ -83,6 +79,31 @@ func (h *handler) AddHandlers() {
 		WebFilesFolder:         h.ch.config.OutPutStaticsDirectory,
 		Print:                  h.tui.Print,
 		WasmProjectTinyGoJsUse: h.wasmHandler.WasmProjectTinyGoJsUse,
+	})
+
+	// WATCHER
+	h.watcher = NewWatchHandler(&WatchConfig{
+		AppRootDir:                 h.ch.appRootDir,
+		AssetsFileUpdateFileOnDisk: h.assetsHandler.NewFileEvent,
+		GoFilesUpdateFileOnDisk:    h.serverHandler.NewFileEvent,
+		WasmFilesUpdateFileOnDisk:  h.wasmHandler.NewFileEvent,
+		BrowserReload:              h.browser.Reload,
+		Print:                      h.tui.Print,
+		ExitChan:                   h.exitChan,
+		UnobservedFiles: func() []string {
+
+			uf := []string{
+				".git",
+				".gitignore",
+				".vscode",
+				".exe",
+			}
+
+			uf = append(uf, h.assetsHandler.UnobservedFiles()...)
+			uf = append(uf, h.wasmHandler.UnobservedFiles()...)
+			uf = append(uf, h.serverHandler.UnobservedFiles()...)
+			return uf
+		},
 	})
 
 }

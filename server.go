@@ -82,31 +82,36 @@ func (h *ServerHandler) Start(wg *sync.WaitGroup) {
 	}
 }
 
-func (h *ServerHandler) UpdateFileOnDisk(fileName, filePath string) error {
+// event: create,write,remove,rename
+func (h *ServerHandler) NewFileEvent(fileName, filePath, event string) error {
 
-	this := errors.New("UpdateFileOnDisk")
+	if event == "write" {
 
-	if fileName == h.mainFileExternalServer { // servidor externo fue modificado ejecutar
-		// estoy ejecutando el servidor interno?
-		if h.internalServerRun {
-			err := h.StopInternalServer() // cerrar el servidor interno
+		this := errors.New("NewFileEvent")
+
+		if fileName == h.mainFileExternalServer { // servidor externo fue modificado ejecutar
+			// estoy ejecutando el servidor interno?
+			if h.internalServerRun {
+				err := h.StopInternalServer() // cerrar el servidor interno
+				if err != nil {
+					return errors.Join(this, err)
+				}
+			}
+
+			err := h.StartExternalServer() // ejecutar el servidor externo
 			if err != nil {
 				return errors.Join(this, err)
 			}
-		}
 
-		err := h.StartExternalServer() // ejecutar el servidor externo
-		if err != nil {
-			return errors.Join(this, err)
-		}
+		} else { // archivo go compartido fue modificado
 
-	} else { // archivo go compartido fue modificado
-
-		if !h.internalServerRun { // si estoy ejecutando el servidor externo
-			err := h.RestartExternalServer()
-			if err != nil {
-				return errors.Join(this, err)
+			if !h.internalServerRun { // si estoy ejecutando el servidor externo
+				err := h.RestartExternalServer()
+				if err != nil {
+					return errors.Join(this, err)
+				}
 			}
+
 		}
 
 	}
@@ -213,6 +218,6 @@ func (h *ServerHandler) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func (h *ServerHandler) UnchangeableOutputFileNames() []string {
-	return h.goCompiler.UnchangeableOutputFileNames()
+func (h *ServerHandler) UnobservedFiles() []string {
+	return h.goCompiler.UnobservedFiles()
 }

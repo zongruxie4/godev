@@ -37,7 +37,7 @@ func NewGoCompiler(c *GoCompilerConfig) *GoCompiler {
 }
 
 // eg: main.exe, main_temp.exe
-func (h *GoCompiler) UnchangeableOutputFileNames() []string {
+func (h *GoCompiler) UnobservedFiles() []string {
 	return []string{
 		h.outFileName,
 		h.outTempFileName,

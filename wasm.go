@@ -33,8 +33,9 @@ func NewWasmCompiler(c *WasmConfig) *WasmHandler {
 	return w
 }
 
-func (h *WasmHandler) UpdateFileOnDisk(fileName, filePath string) error {
-	const this = "UpdateFileOnDisk "
+// event: create, remove, write, rename
+func (h *WasmHandler) NewFileEvent(fileName, filePath, event string) error {
+	const this = "NewFileEvent "
 
 	if filePath != "" {
 		h.Print("Compiling WASM..." + filePath)
@@ -110,7 +111,7 @@ func (w *WasmHandler) wasmFilesOutputDirectory() string {
 }
 
 // eg: main.wasm
-func (w *WasmHandler) UnchangeableOutputFileNames() []string {
+func (w *WasmHandler) UnobservedFiles() []string {
 	return []string{
 		w.mainOutputFile,
 		// add wasm name modules here

@@ -34,6 +34,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 	t.Run("Crear nuevo archivo CSS", func(t *testing.T) {
 		cssPath := filepath.Join(testDir, "test.css")
+		event := "create"
 
 		// Crear archivo CSS de prueba
 		if err := os.WriteFile(cssPath, []byte(".test { color: red; }"), 0644); err != nil {
@@ -41,7 +42,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		}
 
 		// Ejecutar función bajo prueba
-		if err := assetsHandler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
+		if err := assetsHandler.NewFileEvent(cssPath, ".css", event); err != nil {
 			t.Fatalf("Error inesperado: %v", err)
 		}
 
@@ -62,11 +63,11 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 		// Crear archivo inicial
 		os.WriteFile(cssPath, []byte(".old { padding: 1px; }"), 0644)
-		assetsHandler.UpdateFileOnDisk(cssPath, ".css")
+		assetsHandler.NewFileEvent(cssPath, ".css", "create")
 
 		// Actualizar contenido
 		os.WriteFile(cssPath, []byte(".new { margin: 2px; }"), 0644)
-		if err := assetsHandler.UpdateFileOnDisk(cssPath, ".css"); err != nil {
+		if err := assetsHandler.NewFileEvent(cssPath, ".css", "write"); err != nil {
 			t.Fatal(err)
 		}
 		expected := ".new{margin:2px}"
@@ -82,14 +83,14 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Manejar archivo inexistente", func(t *testing.T) {
-		err := assetsHandler.UpdateFileOnDisk("no_existe.css", ".css")
+		err := assetsHandler.NewFileEvent("no_existe.css", ".css", "write")
 		if err == nil {
 			t.Fatal("Se esperaba error por archivo no encontrado")
 		}
 	})
 
 	t.Run("Extensión inválida", func(t *testing.T) {
-		err := assetsHandler.UpdateFileOnDisk("archivo.txt", ".txt")
+		err := assetsHandler.NewFileEvent("archivo.txt", ".txt", "write")
 		if err == nil {
 			t.Fatal("Se esperaba error por extensión inválida")
 		}
@@ -106,10 +107,10 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		os.WriteFile(jsPath2, []byte(`// Test2\nfunction bye() { console.log("adios") }
 		let y = 20;`), 0644)
 
-		if err := assetsHandler.UpdateFileOnDisk(jsPath, ".js"); err != nil {
+		if err := assetsHandler.NewFileEvent(jsPath, ".js", "create"); err != nil {
 			t.Fatal(err)
 		}
-		if err := assetsHandler.UpdateFileOnDisk(jsPath2, ".js"); err != nil {
+		if err := assetsHandler.NewFileEvent(jsPath2, ".js", "write"); err != nil {
 			t.Fatal(err)
 		}
 

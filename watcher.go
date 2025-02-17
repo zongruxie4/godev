@@ -2,7 +2,6 @@ package godev
 
 import (
 	"errors"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,20 +11,42 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (h *handler) NewWatcher() {
+type WatchConfig struct {
+	AppRootDir string // eg: "home/user/myNewApp"
 
-	if watcher, err := fsnotify.NewWatcher(); err != nil {
-		log.Fatal(errors.New("Error New Watcher: " + err.Error()))
-	} else {
-		h.watcher = watcher
+	AssetsFileUpdateFileOnDisk func(filePath, extension, event string) error // when change assets files eg: css, js, html, png, jpg, svg, etc event: create, remove, write, rename
+	GoFilesUpdateFileOnDisk    func(filePath, extension, event string) error // when change go files to backend or any destination
+	WasmFilesUpdateFileOnDisk  func(filePath, extension, event string) error // when change go files to webAssembly destination
+
+	BrowserReload func() error // when change frontend files reload browser
+
+	Print           func(messages ...any) // eg: fmt.Println
+	ExitChan        chan bool             // global channel to signal the exit
+	UnobservedFiles func() []string       // files that are not observed by the watcher eg: ".git", ".gitignore", ".vscode",  "examples",
+}
+
+type WatchHandler struct {
+	*WatchConfig
+	watcher         *fsnotify.Watcher
+	no_add_to_watch map[string]bool
+}
+
+func NewWatchHandler(c *WatchConfig) *WatchHandler {
+
+	return &WatchHandler{
+		WatchConfig: c,
 	}
 }
 
-func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
+func (h *WatchHandler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	if h.watcher == nil {
-		h.tui.PrintError("No file watcher found")
-		return
+		if watcher, err := fsnotify.NewWatcher(); err != nil {
+			h.Print("Error New Watcher: " + err.Error())
+			return
+		} else {
+			h.watcher = watcher
+		}
 	}
 
 	// Start watching in the main routine
@@ -33,17 +54,18 @@ func (h *handler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	h.RegisterFiles()
 
-	h.tui.PrintOK("Listening for File Changes ... ")
+	h.Print("Listening for File Changes ...")
 	// Wait for exit signal after watching is active
 
 	select {
-	case <-h.exitChan:
+	case <-h.ExitChan:
+		h.watcher.Close()
 		wg.Done()
 		return
 	}
 }
 
-func (h *handler) watchEvents() {
+func (h *WatchHandler) watchEvents() {
 	lastActions := make(map[string]time.Time)
 
 	reloadBrowserTimer := time.NewTimer(0)
@@ -59,11 +81,11 @@ func (h *handler) watchEvents() {
 
 		case event, ok := <-h.watcher.Events:
 			if !ok {
-				h.tui.PrintError("Error h.watcher.Events")
+				h.Print("Error h.watcher.Events")
 				return
 			}
 
-			h.tui.PrintWarning("DEBUG Event:", event.Name, event.Op)
+			// h.Print("DEBUG Event:", event.Name, event.Op)
 			// Aplicar debouncing para evitar múltiples eventos
 			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 1*time.Second {
 
@@ -73,31 +95,28 @@ func (h *handler) watchEvents() {
 				// Verificar si es un nuevo directorio para agregarlo al watcher
 				if info, err := os.Stat(event.Name); err == nil && !h.Contain(event.Name) {
 
+					// create, write, rename, remove
+					eventType := strings.ToLower(event.Op.String())
+
 					switch event.Op.String() {
 					case "CREATE":
 						h.watcher.Add(event.Name)
-						h.tui.Print("New directory created:", event.Name)
+						h.Print("New directory created:", event.Name)
 					case "REMOVE":
 						h.watcher.Remove(event.Name)
-						h.tui.Print("Directory removed:", event.Name)
+						h.Print("Directory removed:", event.Name)
 					}
 
 					if !info.IsDir() {
-						h.tui.Print("Event type:", event.Op.String(), "File changed:", event.Name)
+						h.Print("Event type:", event.Op.String(), "File changed:", event.Name)
 
 						extension := filepath.Ext(event.Name)
 						// fmt.Println("extension:", extension, "File Event:", event)
 
 						switch extension {
-						case ".html":
-							// h.tui.PrintOK("HTML File")
-							// err = w.HTML.UpdateFileOnDisk(event)
 
-							// if err == nil {
-							// 	resetWaitingTime = true
-							// }
-						case ".css", ".js":
-							err = h.assetsHandler.UpdateFileOnDisk(event.Name, extension)
+						case ".css", ".js", ".html":
+							err = h.AssetsFileUpdateFileOnDisk(event.Name, extension, eventType)
 
 						case ".go":
 							var goFileName string
@@ -107,18 +126,18 @@ func (h *handler) watchEvents() {
 								isFrontend, isBackend := IsFileType(goFileName)
 
 								if isFrontend { // compilar a wasm y recargar el navegador
-									h.tui.Print("Go File IsFrontend")
-									err = h.wasmHandler.UpdateFileOnDisk(goFileName, event.Name)
+									// h.Print("Go File IsFrontend")
+									err = h.WasmFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
 
 								} else if isBackend { // compilar servidor y recargar el navegador
-									h.tui.Print("Go File IsBackend")
-									err = h.serverHandler.UpdateFileOnDisk(goFileName, event.Name)
+									// h.Print("Go File IsBackend")
+									err = h.GoFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
 
 								} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
-									h.tui.Print("Go File Shared")
-									err = h.wasmHandler.UpdateFileOnDisk(goFileName, event.Name)
+									// h.Print("Go File Shared")
+									err = h.WasmFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
 									if err == nil {
-										err = h.serverHandler.UpdateFileOnDisk(goFileName, event.Name)
+										err = h.GoFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
 									}
 
 								}
@@ -126,12 +145,11 @@ func (h *handler) watchEvents() {
 							}
 
 						default:
-							h.tui.PrintWarning("Watch Unknown file type:", extension)
-
+							err = errors.New("Watch Unknown file type: " + extension)
 						}
 
 						if err != nil {
-							h.tui.PrintError("Watch updating file:", err)
+							h.Print("Watch updating file:", err)
 						} else {
 							reloadBrowserTimer.Reset(wait)
 						}
@@ -144,86 +162,71 @@ func (h *handler) watchEvents() {
 			}
 		case err, ok := <-h.watcher.Errors:
 			if !ok {
-				h.tui.PrintError("h.watcher.Errors:", err)
+				h.Print("h.watcher.Errors:", err)
 				return
 			}
 
 		case <-reloadBrowserTimer.C:
 			// El temporizador de recarga ha expirado, ejecuta reload del navegador
-			err := h.browser.Reload()
+			err := h.BrowserReload()
 			if err != nil {
-				h.tui.PrintError("Watch:", err)
+				h.Print("Watch:", err)
 			}
 
-		case <-h.exitChan:
+		case <-h.ExitChan:
 			h.watcher.Close()
 			return
 		}
 	}
 }
 
-func (h *handler) RegisterFiles() {
-	h.tui.PrintOK("RegisterFiles APP ROOT DIR: " + h.ch.appRootDir)
+func (h *WatchHandler) RegisterFiles() {
+	h.Print("RegisterFiles APP ROOT DIR: " + h.AppRootDir)
 
 	reg := make(map[string]struct{})
 
-	err := filepath.Walk(h.ch.appRootDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(h.AppRootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			h.tui.PrintError("Error accessing path:", path, err)
+			h.Print("accessing path:", path, err)
 			return nil
 		}
 
 		if info.IsDir() && !h.Contain(path) {
 			if _, exists := reg[path]; !exists {
 				if err := h.watcher.Add(path); err != nil {
-					h.tui.PrintError("Error adding watch path:", path, err)
+					h.Print("Error adding watch path:", path, err)
 					return nil
 				}
 				reg[path] = struct{}{}
-				h.tui.Print("Watch path added:", path)
+				h.Print("Watch path added:", path)
 			}
 		}
 		return nil
 	})
 
 	if err != nil {
-		h.tui.PrintError("Error walking directory:", err)
+		h.Print("Walking directory:", err)
 	}
 }
 
-var no_add_to_watch map[string]bool
+func (h *WatchHandler) Contain(path string) bool {
 
-func (h *handler) Contain(path string) bool {
-
-	// Ignorar archivos temporales o hidden
+	// ignore hidden files
 	if strings.HasPrefix(filepath.Base(path), ".") {
 		return true
 	}
 
-	if no_add_to_watch == nil {
-		no_add_to_watch := map[string]bool{
-			".git":    true,
-			".vscode": true,
-			".exe":    true,
+	if h.no_add_to_watch == nil {
+		h.no_add_to_watch = map[string]bool{}
+
+		// add files to ignore
+		for _, file := range h.UnobservedFiles() {
+			h.no_add_to_watch[file] = true
 		}
 
-		// ignorar archivos generados por el compilador de assets como script.js, style.css
-		for _, file := range h.assetsHandler.UnchangeableOutputFileNames() {
-			no_add_to_watch[file] = true
-		}
-
-		// ignorar archivos generados por wasm compiler
-		for _, file := range h.wasmHandler.UnchangeableOutputFileNames() {
-			no_add_to_watch[file] = true
-		}
-
-		// ignorar archivos generados por server handler
-		for _, file := range h.serverHandler.UnchangeableOutputFileNames() {
-			no_add_to_watch[file] = true
-		}
 	}
 
-	for value := range no_add_to_watch {
+	for value := range h.no_add_to_watch {
 		if strings.Contains(path, value) {
 			return true
 		}

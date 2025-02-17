@@ -26,6 +26,7 @@ type AssetsHandler struct {
 }
 
 type AssetsConfig struct {
+	ThemeFolder            func() string         // eg: web/theme
 	WebFilesFolder         func() string         // eg: web/static, web/public, web/assets
 	Print                  func(messages ...any) // eg: fmt.Println
 	WasmProjectTinyGoJsUse func() (bool, bool)   // eg: func() (bool,bool) { return true,true } = wasmProjectTinyGoJsUse()
@@ -70,7 +71,7 @@ func NewAssetsCompiler(config *AssetsConfig) *AssetsHandler {
 	return c
 }
 
-func (c *AssetsHandler) UpdateFileContentInMemory(filePath, extension string, content []byte) (*fileHandler, error) {
+func (c *AssetsHandler) UpdateFileContentInMemory(filePath, extension, event string, content []byte) (*fileHandler, error) {
 	file := &File{
 		path:    filePath,
 		content: content,
@@ -78,18 +79,30 @@ func (c *AssetsHandler) UpdateFileContentInMemory(filePath, extension string, co
 
 	switch extension {
 	case ".css":
-		if idx := c.findFileIndex(c.cssHandler.files, filePath); idx != -1 {
-			c.cssHandler.files[idx] = file
+		if event == "remove" {
+			if idx := c.findFileIndex(c.cssHandler.files, filePath); idx != -1 {
+				c.cssHandler.files = append(c.cssHandler.files[:idx], c.cssHandler.files[idx+1:]...)
+			}
 		} else {
-			c.cssHandler.files = append(c.cssHandler.files, file)
+			if idx := c.findFileIndex(c.cssHandler.files, filePath); idx != -1 {
+				c.cssHandler.files[idx] = file
+			} else {
+				c.cssHandler.files = append(c.cssHandler.files, file)
+			}
 		}
 		return c.cssHandler, nil
 
 	case ".js":
-		if idx := c.findFileIndex(c.jsHandler.files, filePath); idx != -1 {
-			c.jsHandler.files[idx] = file
+		if event == "remove" {
+			if idx := c.findFileIndex(c.jsHandler.files, filePath); idx != -1 {
+				c.jsHandler.files = append(c.jsHandler.files[:idx], c.jsHandler.files[idx+1:]...)
+			}
 		} else {
-			c.jsHandler.files = append(c.jsHandler.files, file)
+			if idx := c.findFileIndex(c.jsHandler.files, filePath); idx != -1 {
+				c.jsHandler.files[idx] = file
+			} else {
+				c.jsHandler.files = append(c.jsHandler.files, file)
+			}
 		}
 		return c.jsHandler, nil
 	}
@@ -106,13 +119,14 @@ func (c *AssetsHandler) findFileIndex(files []*File, filePath string) int {
 	return -1
 }
 
-func (c *AssetsHandler) UpdateFileOnDisk(filePath, extension string) error {
-	var e = "UpdateFileOnDisk " + extension + " "
+// event: create, remove, write, rename
+func (c *AssetsHandler) NewFileEvent(filePath, extension, event string) error {
+	var e = "NewFileEvent " + extension + " " + event
 	if filePath == "" {
 		return nil
 	}
 
-	c.Print("Asset Compiling", extension, "...", filePath)
+	c.Print("Asset", event, extension, "...", filePath)
 
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
@@ -122,10 +136,11 @@ func (c *AssetsHandler) UpdateFileOnDisk(filePath, extension string) error {
 		return errors.New(e + err.Error())
 	}
 
-	fh, err := c.UpdateFileContentInMemory(filePath, extension, content)
+	fh, err := c.UpdateFileContentInMemory(filePath, extension, event, content)
 	if err != nil {
 		return errors.New(e + err.Error())
 	}
+
 	var buf bytes.Buffer
 
 	if fh.startCode != nil {
@@ -152,7 +167,7 @@ func (c *AssetsHandler) UpdateFileOnDisk(filePath, extension string) error {
 	return nil
 }
 
-func (c *AssetsHandler) UnchangeableOutputFileNames() []string {
+func (c *AssetsHandler) UnobservedFiles() []string {
 	return []string{
 		c.cssHandler.fileOutputName,
 		c.jsHandler.fileOutputName,
