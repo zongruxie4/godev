@@ -11,12 +11,24 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+// when change go files to webAssembly destination
+type FileTypeGO interface {
+	GoFileIsType(fileName string) (isFrontend, isBackend bool)
+}
+
+// event: create, remove, write, rename
+type FileEvent interface {
+	NewFileEvent(fileName, extension, filePath, event string) error
+}
+
 type WatchConfig struct {
 	AppRootDir string // eg: "home/user/myNewApp"
 
-	AssetsFileUpdateFileOnDisk func(filePath, extension, event string) error // when change assets files eg: css, js, html, png, jpg, svg, etc event: create, remove, write, rename
-	GoFilesUpdateFileOnDisk    func(filePath, extension, event string) error // when change go files to backend or any destination
-	WasmFilesUpdateFileOnDisk  func(filePath, extension, event string) error // when change go files to webAssembly destination
+	FileEventAssets FileEvent // when change assets files eg: css, js, html, png, jpg, svg, etc event: create, remove, write, rename
+	FileEventGO     FileEvent // when change go files to backend or any destination
+	FileEventWASM   FileEvent // when change go files to webAssembly destination
+
+	FileTypeGO // when change go files to webAssembly destination
 
 	BrowserReload func() error // when change frontend files reload browser
 
@@ -93,22 +105,14 @@ func (h *WatchHandler) watchEvents() {
 				reloadBrowserTimer.Stop()
 
 				// Verificar si es un nuevo directorio para agregarlo al watcher
-				if info, err := os.Stat(event.Name); err == nil && !h.Contain(event.Name) {
+				if info, err := os.Stat(event.Name); err == nil && !h.Contain(event.Name) && !info.IsDir() {
 
 					// create, write, rename, remove
 					eventType := strings.ToLower(event.Op.String())
+					// h.Print("Event type:", event.Op.String(), "File changed:", event.Name)
 
-					switch event.Op.String() {
-					case "CREATE":
-						h.watcher.Add(event.Name)
-						h.Print("New directory created:", event.Name)
-					case "REMOVE":
-						h.watcher.Remove(event.Name)
-						h.Print("Directory removed:", event.Name)
-					}
-
-					if !info.IsDir() {
-						h.Print("Event type:", event.Op.String(), "File changed:", event.Name)
+					fileName, err := GetFileName(event.Name)
+					if err == nil {
 
 						extension := filepath.Ext(event.Name)
 						// fmt.Println("extension:", extension, "File Event:", event)
@@ -116,44 +120,37 @@ func (h *WatchHandler) watchEvents() {
 						switch extension {
 
 						case ".css", ".js", ".html":
-							err = h.AssetsFileUpdateFileOnDisk(event.Name, extension, eventType)
+							err = h.FileEventAssets.NewFileEvent(fileName, extension, event.Name, eventType)
 
 						case ".go":
-							var goFileName string
-							goFileName, err = GetFileName(event.Name)
-							if err == nil {
 
-								isFrontend, isBackend := IsFileType(goFileName)
+							isFrontend, isBackend := h.GoFileIsType(fileName)
 
-								if isFrontend { // compilar a wasm y recargar el navegador
-									// h.Print("Go File IsFrontend")
-									err = h.WasmFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
+							if isFrontend { // compilar a wasm y recargar el navegador
+								// h.Print("Go File IsFrontend")
+								err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
 
-								} else if isBackend { // compilar servidor y recargar el navegador
-									// h.Print("Go File IsBackend")
-									err = h.GoFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
+							} else if isBackend { // compilar servidor y recargar el navegador
+								// h.Print("Go File IsBackend")
+								err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
 
-								} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
-									// h.Print("Go File Shared")
-									err = h.WasmFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
-									if err == nil {
-										err = h.GoFilesUpdateFileOnDisk(goFileName, event.Name, eventType)
-									}
-
+							} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
+								// h.Print("Go File Shared")
+								err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
+								if err == nil {
+									err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
 								}
-
 							}
 
 						default:
 							err = errors.New("Watch Unknown file type: " + extension)
 						}
+					}
 
-						if err != nil {
-							h.Print("Watch updating file:", err)
-						} else {
-							reloadBrowserTimer.Reset(wait)
-						}
-
+					if err != nil {
+						h.Print("Watch updating file:", err)
+					} else {
+						reloadBrowserTimer.Reset(wait)
 					}
 
 					lastActions[event.Name] = time.Now()

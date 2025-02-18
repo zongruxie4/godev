@@ -34,7 +34,7 @@ func NewWasmCompiler(c *WasmConfig) *WasmHandler {
 }
 
 // event: create, remove, write, rename
-func (h *WasmHandler) NewFileEvent(fileName, filePath, event string) error {
+func (h *WasmHandler) NewFileEvent(fileName, extension, filePath, event string) error {
 	const this = "NewFileEvent "
 
 	if filePath != "" {

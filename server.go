@@ -83,7 +83,7 @@ func (h *ServerHandler) Start(wg *sync.WaitGroup) {
 }
 
 // event: create,write,remove,rename
-func (h *ServerHandler) NewFileEvent(fileName, filePath, event string) error {
+func (h *ServerHandler) NewFileEvent(fileName, extension, filePath, event string) error {
 
 	if event == "write" {
 

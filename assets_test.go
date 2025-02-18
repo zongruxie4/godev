@@ -33,7 +33,8 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	assetsHandler := NewAssetsCompiler(config)
 
 	t.Run("Crear nuevo archivo CSS", func(t *testing.T) {
-		cssPath := filepath.Join(testDir, "test.css")
+		fileName := "test.css"
+		cssPath := filepath.Join(testDir, fileName)
 		event := "create"
 
 		// Crear archivo CSS de prueba
@@ -42,7 +43,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		}
 
 		// Ejecutar función bajo prueba
-		if err := assetsHandler.NewFileEvent(cssPath, ".css", event); err != nil {
+		if err := assetsHandler.NewFileEvent(fileName, ".css", cssPath, event); err != nil {
 			t.Fatalf("Error inesperado: %v", err)
 		}
 
@@ -59,15 +60,16 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Actualizar archivo CSS existente", func(t *testing.T) {
-		cssPath := filepath.Join(testDir, "existing.css")
+		fileName := "existing.css"
+		cssPath := filepath.Join(testDir, fileName)
 
 		// Crear archivo inicial
 		os.WriteFile(cssPath, []byte(".old { padding: 1px; }"), 0644)
-		assetsHandler.NewFileEvent(cssPath, ".css", "create")
+		assetsHandler.NewFileEvent(fileName, ".css", cssPath, "create")
 
 		// Actualizar contenido
 		os.WriteFile(cssPath, []byte(".new { margin: 2px; }"), 0644)
-		if err := assetsHandler.NewFileEvent(cssPath, ".css", "write"); err != nil {
+		if err := assetsHandler.NewFileEvent(fileName, ".css", cssPath, "write"); err != nil {
 			t.Fatal(err)
 		}
 		expected := ".new{margin:2px}"
@@ -83,22 +85,27 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Manejar archivo inexistente", func(t *testing.T) {
-		err := assetsHandler.NewFileEvent("no_existe.css", ".css", "write")
+		fileName := "no_existe.css"
+		err := assetsHandler.NewFileEvent(fileName, ".css", "", "write")
 		if err == nil {
 			t.Fatal("Se esperaba error por archivo no encontrado")
 		}
 	})
 
 	t.Run("Extensión inválida", func(t *testing.T) {
-		err := assetsHandler.NewFileEvent("archivo.txt", ".txt", "write")
+		fileName := "archivo.txt"
+		filePath := filepath.Join(testDir, fileName)
+		err := assetsHandler.NewFileEvent(fileName, ".txt", filePath, "write")
 		if err == nil {
 			t.Fatal("Se esperaba error por extensión inválida")
 		}
 	})
 
 	t.Run("Crear archivo JS básico", func(t *testing.T) {
-		jsPath := filepath.Join(testDir, "test.js")
-		jsPath2 := filepath.Join(testDir, "test2.js")
+		fileName1 := "test.js"
+		fileName2 := "test2.js"
+		jsPath := filepath.Join(testDir, fileName1)
+		jsPath2 := filepath.Join(testDir, fileName2)
 		defer os.Remove(jsPath)
 		defer os.Remove(jsPath2)
 
@@ -107,10 +114,10 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		os.WriteFile(jsPath2, []byte(`// Test2\nfunction bye() { console.log("adios") }
 		let y = 20;`), 0644)
 
-		if err := assetsHandler.NewFileEvent(jsPath, ".js", "create"); err != nil {
+		if err := assetsHandler.NewFileEvent(fileName1, ".js", jsPath, "create"); err != nil {
 			t.Fatal(err)
 		}
-		if err := assetsHandler.NewFileEvent(jsPath2, ".js", "write"); err != nil {
+		if err := assetsHandler.NewFileEvent(fileName2, ".js", jsPath2, "write"); err != nil {
 			t.Fatal(err)
 		}
 

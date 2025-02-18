@@ -23,9 +23,8 @@ func GodevStart() {
 
 	h.NewConfig()
 	h.NewTextUserInterface()
-	h.AddHandlers()
-
 	h.NewBrowser()
+	h.AddHandlers()
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -83,13 +82,24 @@ func (h *handler) AddHandlers() {
 
 	// WATCHER
 	h.watcher = NewWatchHandler(&WatchConfig{
-		AppRootDir:                 h.ch.appRootDir,
-		AssetsFileUpdateFileOnDisk: h.assetsHandler.NewFileEvent,
-		GoFilesUpdateFileOnDisk:    h.serverHandler.NewFileEvent,
-		WasmFilesUpdateFileOnDisk:  h.wasmHandler.NewFileEvent,
-		BrowserReload:              h.browser.Reload,
-		Print:                      h.tui.Print,
-		ExitChan:                   h.exitChan,
+		AppRootDir:      h.ch.appRootDir,
+		FileEventAssets: h.assetsHandler,
+		FileEventGO:     h.serverHandler,
+		FileEventWASM:   h.wasmHandler,
+		FileTypeGO: GoFileType{
+			FrontendPrefix: []string{"f."},
+			FrontendFiles: []string{
+				h.wasmHandler.mainOutputFile,
+			},
+			BackendPrefix: []string{"b."},
+			BackendFiles: []string{
+				h.serverHandler.mainFileExternalServer,
+			},
+		},
+		BrowserReload: h.browser.Reload,
+
+		Print:    h.tui.Print,
+		ExitChan: h.exitChan,
 		UnobservedFiles: func() []string {
 
 			uf := []string{

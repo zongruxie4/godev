@@ -120,10 +120,10 @@ func (c *AssetsHandler) findFileIndex(files []*File, filePath string) int {
 }
 
 // event: create, remove, write, rename
-func (c *AssetsHandler) NewFileEvent(filePath, extension, event string) error {
+func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string) error {
 	var e = "NewFileEvent " + extension + " " + event
 	if filePath == "" {
-		return nil
+		return errors.New(e + "filePath is empty")
 	}
 
 	c.Print("Asset", event, extension, "...", filePath)
