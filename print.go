@@ -20,15 +20,34 @@ type TerminalPrint struct {
 // Print sends a normal message or error to the tui
 func (h *TextUserInterface) Print(messages ...any) {
 	msgType := NormMsg
+	newMessages := make([]any, 0, len(messages))
 
 	for _, msg := range messages {
+		if str, isString := msg.(string); isString {
+
+			switch strings.ToLower(str) {
+			case "error":
+				msgType = ErrorMsg
+				continue
+			case "warning", "debug":
+				msgType = WarnMsg
+				continue
+			case "info":
+				msgType = InfoMsg
+				continue
+			case "ok":
+				msgType = OkMsg
+				continue
+			}
+		}
 		if _, isError := msg.(error); isError {
 			msgType = ErrorMsg
-			break
 		}
+
+		newMessages = append(newMessages, msg)
 	}
 
-	h.SendMessage(joinMessages(messages...), msgType)
+	h.SendMessage(joinMessages(newMessages...), msgType)
 }
 
 // PrintError sends an error message to the tui
@@ -149,12 +168,14 @@ func detectMessageType(content string) MessageType {
 
 	// Detectar mensajes informativos
 	if strings.Contains(lowerContent, "info") ||
+		strings.Contains(lowerContent, " ...") ||
 		strings.Contains(lowerContent, "starting") ||
-		strings.Contains(lowerContent, "initializing") {
+		strings.Contains(lowerContent, "initializing") ||
+		strings.Contains(lowerContent, "success") {
 		return InfoMsg
 	}
 
-	return OkMsg
+	return NormMsg
 }
 
 // Write implementa io.Writer para capturar la salida de otros procesos

@@ -139,26 +139,18 @@ miProyecto/
 │   └── main.wasm.go            # si existe el proyecto es WebAssembly|
 └── go.mod```
 
-### Orden de Carga de JavaScript
-1. Archivos raíz que comienzan con mayúsculas
-2. Archivos en la carpeta `js` (alfabéticamente)
-3. Archivos en la carpeta `jsTest`
 
-### Orden de Carga de CSS
-Similar a JavaScript, pero usando la carpeta `css`.
 
 ## Configuración
 - Puerto predeterminado: 8080 (http)
-- HTTPS se usa cuando el puerto contiene "44" (ej., 4433)
-- Los directorios de módulos se pueden configurar en `godev.yml`
 
 ## 📌 Hoja de Ruta  
 
 ### ✅ MVP (Versión Mínima Viable)  
 ### Frontend
 - [ ] Compilación y empaquetado básico:  
-- [ ] Unificación y minificación de archivos CSS y JavaScript en `build/`  
-- [ ] Generación automática de `build/index.html` si este no existe  
+- [ ] Unificación y minificación de archivos CSS y JavaScript  
+- [ ] Generación automática de `web/public/index.html` si este no existe  
 - [ ] Soporte para Go en frontend con WebAssembly
 
 ### Servidor de Desarrollo
@@ -168,12 +160,13 @@ Similar a JavaScript, pero usando la carpeta `css`.
 - [x] cambiar el tamaño de la ventana del navegador desde la tui
 
 ### Hot Reload
-- [ ] Recarga en caliente (Hot Reload):  
 - [x] Detección de cambios en archivos Go, HTML, CSS y JS  
-- [ ] Recarga del navegador automáticamente 
+- [x] diferenciación en la detección de cambios en archivos go frontend para webAssembly y servidor backend 
+- [ ] Recarga en caliente (Hot Reload):  
+- [ ] Recarga del navegador automáticamente
 
 ### Backend
-- [ ] Detección de cambios en archivos del servidor  
+- [x] Detección de cambios en archivos del servidor  
 - [ ] Reinicio automático si hay modificaciones  
 
 ### Configuración
@@ -183,15 +176,19 @@ Similar a JavaScript, pero usando la carpeta `css`.
 ### 🚀 Mejoras Futuras  
 - [ ] Modo producción: Generación de artefactos optimizados y listos para deploy  
 - [ ] Compatibilidad con servidores VPS para despliegue automatizado  
-- [ ] Compatibilidad con Docker para despliegue automatizado  
+- [ ] Compatibilidad con Docker para despliegue automatizado
+- [ ] Integración de git  
 - [ ] Integrar ayudante IA
 
 ### corregir errores 
+- [x] separate RegisterFiles of WatchFiles
 - [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
-- [ ] separate RegisterFiles of WatchFiles
+- [ ] cargar assets de la carpeta theme primero en el manejador assets
+- [ ] al cerrar navegador por el usuario, actualizar la tui y estado del manejador
+ del browser
 
 ### uses case
-- [ ] cuando se ejecuta el archivo servidor main.server.go y este tiene errores si este modifica en vivo, tiene que arrancar.
+- [x] cuando se ejecuta el archivo servidor main.server.go y este tiene errores si este modifica en vivo, tiene que arrancar.
 
 ## Agradecimientos
 Este proyecto no sería posible sin:

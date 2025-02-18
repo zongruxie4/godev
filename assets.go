@@ -20,16 +20,13 @@ type AssetsHandler struct {
 	cssHandler *fileHandler
 	jsHandler  *fileHandler
 	min        *minify.M
-
-	goWasmJsCache     string
-	tinyGoWasmJsCache string
 }
 
 type AssetsConfig struct {
-	ThemeFolder            func() string         // eg: web/theme
-	WebFilesFolder         func() string         // eg: web/static, web/public, web/assets
-	Print                  func(messages ...any) // eg: fmt.Println
-	WasmProjectTinyGoJsUse func() (bool, bool)   // eg: func() (bool,bool) { return true,true } = wasmProjectTinyGoJsUse()
+	ThemeFolder               func() string          // eg: web/theme
+	WebFilesFolder            func() string          // eg: web/static, web/public, web/assets
+	Print                     func(messages ...any)  // eg: fmt.Println
+	JavascriptForInitializing func() (string, error) // javascript code to initialize the wasm or other handlers
 }
 
 type fileHandler struct {
@@ -177,41 +174,11 @@ func (c *AssetsHandler) UnobservedFiles() []string {
 func (c *AssetsHandler) StartCodeJS() (out string, err error) {
 	out = "'use strict';"
 
-	// load wasm js code
-	wasmType, TinyGoCompiler := c.WasmProjectTinyGoJsUse()
-	if !wasmType {
-		return out, nil
-	}
-
-	// Return appropriate cached content if available
-	if TinyGoCompiler && c.tinyGoWasmJsCache != "" {
-		return out + c.tinyGoWasmJsCache, nil
-	} else if !TinyGoCompiler && c.goWasmJsCache != "" {
-		return out + c.goWasmJsCache, nil
-	}
-
-	var wasmExecJsPath string
-	if TinyGoCompiler {
-		wasmExecJsPath, err = getWasmExecJsPathTinyGo()
-	} else {
-		wasmExecJsPath, err = getWasmExecJsPathGo()
-	}
+	js, err := c.JavascriptForInitializing()
 	if err != nil {
-		return out, err
+		return
 	}
+	out += js
 
-	//  read wasm js code
-	wasmJs, err := os.ReadFile(wasmExecJsPath)
-	if err != nil {
-		return out, errors.New("Error reading wasm_exec.js file: " + err.Error())
-	}
-
-	// Store in appropriate cache
-	if TinyGoCompiler {
-		c.tinyGoWasmJsCache = string(wasmJs)
-	} else {
-		c.goWasmJsCache = string(wasmJs)
-	}
-
-	return out + string(wasmJs), nil
+	return
 }

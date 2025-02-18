@@ -14,6 +14,9 @@ type WasmHandler struct {
 	tinyGoCompiler bool
 	mainInputFile  string // eg: main.wasm.go
 	mainOutputFile string // eg: main.wasm
+
+	goWasmJsCache     string
+	tinyGoWasmJsCache string
 }
 
 type WasmConfig struct {
@@ -123,7 +126,50 @@ func (w *WasmHandler) WasmProjectTinyGoJsUse() (bool, bool) {
 	return false, false
 }
 
-func getWasmExecJsPathTinyGo() (string, error) {
+func (h *WasmHandler) JavascriptForInitializing() (js string, err error) {
+
+	// load wasm js code
+	wasmType, TinyGoCompiler := h.WasmProjectTinyGoJsUse()
+	if !wasmType {
+		return
+	}
+
+	// Return appropriate cached content if available
+	if TinyGoCompiler && h.tinyGoWasmJsCache != "" {
+		return h.tinyGoWasmJsCache, nil
+	} else if !TinyGoCompiler && h.goWasmJsCache != "" {
+		return h.goWasmJsCache, nil
+	}
+
+	var wasmExecJsPath string
+	if TinyGoCompiler {
+		wasmExecJsPath, err = h.getWasmExecJsPathTinyGo()
+	} else {
+		wasmExecJsPath, err = h.getWasmExecJsPathGo()
+	}
+	if err != nil {
+		return "", err
+	}
+
+	//  read wasm js code
+	wasmJs, err := os.ReadFile(wasmExecJsPath)
+	if err != nil {
+		return "", errors.New("reading wasm_exec.js file: " + err.Error())
+	}
+
+	stringWasmJs := string(wasmJs)
+
+	// Store in appropriate cache
+	if TinyGoCompiler {
+		h.tinyGoWasmJsCache = stringWasmJs
+	} else {
+		h.goWasmJsCache = stringWasmJs
+	}
+
+	return stringWasmJs, nil
+}
+
+func (w *WasmHandler) getWasmExecJsPathTinyGo() (string, error) {
 	path, err := exec.LookPath("tinygo")
 	if err != nil {
 		return "", errors.New("TinyGo not found in PATH. " + err.Error())
@@ -136,7 +182,7 @@ func getWasmExecJsPathTinyGo() (string, error) {
 	return filepath.Join(tinyGoDir, "targets", "wasm_exec.js"), nil
 }
 
-func getWasmExecJsPathGo() (string, error) {
+func (w *WasmHandler) getWasmExecJsPathGo() (string, error) {
 	// Get Go installation directory path from GOROOT environment variable
 	path, er := exec.LookPath("go")
 	if er != nil {

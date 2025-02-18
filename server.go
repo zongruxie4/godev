@@ -2,11 +2,12 @@ package godev
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
 	"runtime"
-	"strings"
 	"sync"
 )
 
@@ -20,14 +21,14 @@ type ServerHandler struct {
 }
 
 type ServerConfig struct {
-	RootFolder                  string                // eg: web
-	MainFileWithoutExtension    string                // eg: main.server
-	ArgumentsForCompilingServer func() []string       // eg: []string{"-X 'main.version=v1.0.0'"}
-	ArgumentsToRunServer        func() []string       // eg: []string{"dev" }
-	PublicFolder                string                // eg: public
-	AppPort                     string                // eg : 8080
-	Print                       func(messages ...any) // eg: fmt.Println
-	ExitChan                    chan bool             // Canal global para señalizar el cierre
+	RootFolder                  string          // eg: web
+	MainFileWithoutExtension    string          // eg: main.server
+	ArgumentsForCompilingServer func() []string // eg: []string{"-X 'main.version=v1.0.0'"}
+	ArgumentsToRunServer        func() []string // eg: []string{"dev" }
+	PublicFolder                string          // eg: public
+	AppPort                     string          // eg : 8080
+	Writer                      io.Writer       // For logging output
+	ExitChan                    chan bool       // Canal global para señalizar el cierre
 }
 
 func NewServerHandler(c *ServerConfig) *ServerHandler {
@@ -51,14 +52,14 @@ func NewServerHandler(c *ServerConfig) *ServerHandler {
 		Extension:          exe_ext,
 		CompilingArguments: c.ArgumentsForCompilingServer,
 		OutFolder:          c.RootFolder,
-		Writer:             sh,
+		Writer:             c.Writer,
 	})
 
 	sh.goRun = NewGoRun(&GoRunConfig{
 		ExecProgramPath: path.Join(c.RootFolder, sh.goCompiler.outFileName),
 		RunArguments:    c.ArgumentsToRunServer,
 		ExitChan:        c.ExitChan,
-		Writer:          sh,
+		Writer:          c.Writer,
 	})
 
 	return sh
@@ -68,7 +69,7 @@ func NewServerHandler(c *ServerConfig) *ServerHandler {
 func (h *ServerHandler) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	h.Print("Server Start...")
+	fmt.Fprintln(h.Writer, "Server Start ...")
 
 	if _, err := os.Stat(h.goCompiler.MainFilePath); os.IsNotExist(err) {
 		// ejecutar el servidor interno de archivos estáticos
@@ -77,43 +78,49 @@ func (h *ServerHandler) Start(wg *sync.WaitGroup) {
 		// construir y ejecutar el servidor externo
 		err := h.StartExternalServer()
 		if err != nil {
-			h.Print("starting external server:", err)
+			fmt.Fprintln(h.Writer, "starting external server:", err)
 		}
 	}
 }
 
 // event: create,write,remove,rename
 func (h *ServerHandler) NewFileEvent(fileName, extension, filePath, event string) error {
-
 	if event == "write" {
+		// Case 1: External server file was modified
+		if fileName == h.mainFileExternalServer {
+			fmt.Fprintln(h.Writer, "External server modified, restarting ...")
 
-		this := errors.New("NewFileEvent")
-
-		if fileName == h.mainFileExternalServer { // servidor externo fue modificado ejecutar
-			// estoy ejecutando el servidor interno?
+			// Stop internal server if running to avoid port conflicts
 			if h.internalServerRun {
-				err := h.StopInternalServer() // cerrar el servidor interno
-				if err != nil {
-					return errors.Join(this, err)
+				if err := h.StopInternalServer(); err != nil {
+					return fmt.Errorf("stopping internal server: %w", err)
 				}
 			}
 
-			err := h.StartExternalServer() // ejecutar el servidor externo
-			if err != nil {
-				return errors.Join(this, err)
-			}
-
-		} else { // archivo go compartido fue modificado
-
-			if !h.internalServerRun { // si estoy ejecutando el servidor externo
-				err := h.RestartExternalServer()
-				if err != nil {
-					return errors.Join(this, err)
-				}
-			}
-
+			// Restart external server with new changes
+			return h.RestartExternalServer()
 		}
 
+		// Case 2: Shared Go file was modified
+		if !h.internalServerRun {
+			fmt.Fprintln(h.Writer, "Shared Go file modified, restarting external server ...")
+			return h.RestartExternalServer()
+		}
+	}
+
+	// Case 3: External server file was created for first time
+	if event == "create" && fileName == h.mainFileExternalServer {
+		fmt.Fprintln(h.Writer, "New external server detected")
+
+		// Stop internal server if running
+		if h.internalServerRun {
+			if err := h.StopInternalServer(); err != nil {
+				return fmt.Errorf("stopping internal server: %w", err)
+			}
+		}
+
+		// Start the new external server
+		return h.StartExternalServer()
 	}
 
 	return nil
@@ -132,13 +139,13 @@ func (h *ServerHandler) StartInternalServerFiles() {
 		Handler: fs,
 	}
 
-	h.Print("Godev Server Files:", publicFolder, "Running port:", h.AppPort)
+	fmt.Fprintln(h.Writer, "Godev Server Files:", publicFolder, "Running port:", h.AppPort)
 	// Iniciar el servidor en una goroutine
 	h.internalServerRun = true
 
 	go func() {
 		if err := h.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			h.Print("Internal Server Files error:", err)
+			fmt.Fprintln(h.Writer, "Internal Server Files error:", err)
 		}
 	}()
 }
@@ -168,7 +175,7 @@ func (h *ServerHandler) StartExternalServer() error {
 func (h *ServerHandler) StopInternalServer() error {
 	if h.server != nil {
 		h.internalServerRun = false
-		h.Print("Internal Server Stop")
+		// fmt.Fprintln(h.Writer,"Internal Server Stop")
 		return h.server.Close()
 	}
 	return nil
@@ -185,37 +192,28 @@ func (h *ServerHandler) RestartInternalServer() error {
 }
 
 func (h *ServerHandler) RestartExternalServer() error {
-	var this = errors.New("Restart")
-	h.Print("Restart ...")
+	var this = errors.New("Restart External Server")
 
 	// STOP
 	err := h.goRun.StopProgram()
 	if err != nil {
-		return errors.Join(this, err)
+		return errors.Join(this, errors.New("StopProgram"), err)
 
 	}
 
 	// COMPILE
 	err = h.goCompiler.CompileProgram()
 	if err != nil {
-		return errors.Join(this, err)
+		return errors.Join(this, errors.New("CompileProgram"), err)
 	}
 
 	// RUN
 	err = h.goRun.RunProgram()
 	if err != nil {
-		return errors.Join(this, err)
+		return errors.Join(this, errors.New("RunProgram"), err)
 	}
 
 	return nil
-}
-
-func (h *ServerHandler) Write(p []byte) (n int, err error) {
-	msg := strings.TrimSpace(string(p))
-	if msg != "" {
-		h.Print(msg)
-	}
-	return len(p), nil
 }
 
 func (h *ServerHandler) UnobservedFiles() []string {

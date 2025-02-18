@@ -16,14 +16,14 @@ type GoRunConfig struct {
 type GoRun struct {
 	*GoRunConfig
 	Cmd       *exec.Cmd
-	isRunning bool
+	IsRunning bool
 }
 
 func NewGoRun(c *GoRunConfig) *GoRun {
 	return &GoRun{
 		GoRunConfig: c,
 		Cmd:         &exec.Cmd{},
-		isRunning:   false,
+		IsRunning:   false,
 	}
 }
 
@@ -51,7 +51,7 @@ func (h *GoRun) RunProgram() error {
 	if err != nil {
 		return err
 	}
-	h.isRunning = true
+	h.IsRunning = true
 
 	done := make(chan struct{})
 
@@ -72,9 +72,9 @@ func (h *GoRun) RunProgram() error {
 	go func() {
 		err := h.Cmd.Wait()
 		if err != nil {
-			fmt.Fprintf(h.Writer, "Application: %v closed with error: %v\n", h.ExecProgramPath, err)
+			fmt.Fprintf(h.Writer, "App: %v closed with error: %v\n", h.ExecProgramPath, err)
 		} else {
-			fmt.Fprintf(h.Writer, "Application: %v closed successfully\n", h.ExecProgramPath)
+			fmt.Fprintf(h.Writer, "App: %v closed successfully\n", h.ExecProgramPath)
 		}
 		close(done)
 	}()
@@ -83,10 +83,17 @@ func (h *GoRun) RunProgram() error {
 }
 
 func (h *GoRun) StopProgram() error {
-
-	if !h.isRunning {
+	if !h.IsRunning || h.Cmd.Process == nil {
+		h.IsRunning = false
 		return nil
 	}
-	h.isRunning = false
+
+	// First try to find if process exists
+	if h.Cmd.ProcessState != nil && h.Cmd.ProcessState.Exited() {
+		h.IsRunning = false
+		return nil
+	}
+
+	h.IsRunning = false
 	return h.Cmd.Process.Kill()
 }

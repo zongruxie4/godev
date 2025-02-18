@@ -26,8 +26,8 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		Print: func(messages ...any) {
 			fmt.Println(messages...)
 		},
-		WasmProjectTinyGoJsUse: func() (bool, bool) {
-			return false, false
+		JavascriptForInitializing: func() (string, error) {
+			return "function init() { return 'test' };", nil
 		},
 	}
 	assetsHandler := NewAssetsCompiler(config)
@@ -122,7 +122,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		}
 
 		got, _ := os.ReadFile(filepath.Join(buildDir, "main.js"))
-		expected := `"use strict";let x=10,y=20`
+		expected := `"use strict";function init(){return"test"}let x=10,y=20`
 		if string(got) != expected {
 			t.Fatalf("\nJS minificado incorrecto:\nexpected: \n[%s]\n\ngot: \n[%s]", expected, got)
 		}

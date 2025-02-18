@@ -1,6 +1,7 @@
 package godev
 
 import (
+	"path"
 	"sync"
 )
 
@@ -61,7 +62,7 @@ func (h *handler) AddHandlers() {
 		ArgumentsToRunServer:        nil,
 		PublicFolder:                h.ch.config.PublicFolder(),
 		AppPort:                     h.ch.config.ServerPort,
-		Print:                       h.tui.Print,
+		Writer:                      h,
 		ExitChan:                    h.exitChan,
 	})
 
@@ -75,9 +76,14 @@ func (h *handler) AddHandlers() {
 
 	//ASSETS
 	h.assetsHandler = NewAssetsCompiler(&AssetsConfig{
-		WebFilesFolder:         h.ch.config.OutPutStaticsDirectory,
-		Print:                  h.tui.Print,
-		WasmProjectTinyGoJsUse: h.wasmHandler.WasmProjectTinyGoJsUse,
+		ThemeFolder: func() string {
+			return path.Join(h.ch.config.WebFilesFolder, "theme")
+		},
+		WebFilesFolder: h.ch.config.OutPutStaticsDirectory,
+		Print:          h.tui.Print,
+		JavascriptForInitializing: func() (string, error) {
+			return h.wasmHandler.JavascriptForInitializing()
+		},
 	})
 
 	// WATCHER
@@ -98,7 +104,7 @@ func (h *handler) AddHandlers() {
 		},
 		BrowserReload: h.browser.Reload,
 
-		Print:    h.tui.Print,
+		Writer:   h,
 		ExitChan: h.exitChan,
 		UnobservedFiles: func() []string {
 
@@ -107,6 +113,8 @@ func (h *handler) AddHandlers() {
 				".gitignore",
 				".vscode",
 				".exe",
+				".log",
+				"_test.go",
 			}
 
 			uf = append(uf, h.assetsHandler.UnobservedFiles()...)
