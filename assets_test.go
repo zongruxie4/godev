@@ -10,19 +10,24 @@ import (
 
 func TestUpdateFileOnDisk(t *testing.T) {
 	// Configurar entorno de prueba
-	testDir := "test"
-	buildDir := filepath.Join(testDir, "build")
-	styleCssPath := filepath.Join(buildDir, "style.css")
-	defer os.Remove(styleCssPath)
+	rootDir := "test"
+	webDir := filepath.Join(rootDir, "assetTestApp")
+	// defer os.RemoveAll(webDir)
 
-	// Crear directorio build si no existe
-	if err := os.MkdirAll(buildDir, 0755); err != nil {
-		t.Fatalf("Error creando directorio de build: %v", err)
+	publicDir := filepath.Join(webDir, "public")
+	themeDir := filepath.Join(webDir, "theme")
+
+	// Crear directorios si no existen
+	for _, dir := range []string{webDir, publicDir, themeDir} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatalf("Error creando directorio de build: %v", err)
+		}
 	}
 
 	// Configuración mock del compilador
 	config := &AssetsConfig{
-		WebFilesFolder: func() string { return buildDir },
+		ThemeFolder:    func() string { return themeDir },
+		WebFilesFolder: func() string { return publicDir },
 		Print: func(messages ...any) {
 			fmt.Println(messages...)
 		},
@@ -31,11 +36,54 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		},
 	}
 	assetsHandler := NewAssetsCompiler(config)
+	styleCssPath := filepath.Join(publicDir, assetsHandler.cssHandler.fileOutputName)
+	mainJsPath := filepath.Join(publicDir, assetsHandler.jsHandler.fileOutputName)
 
-	t.Run("Crear nuevo archivo CSS", func(t *testing.T) {
+	t.Run("Verify writeOnDisk behavior", func(t *testing.T) {
+		assetsHandler.cssHandler.ClearMemoryFiles()
+		os.Remove(styleCssPath)
+		fileName := "write_test.css"
+		cssPath := filepath.Join(themeDir, fileName)
+		defer os.Remove(cssPath)
+
+		// Create initial file with create event
+		os.WriteFile(cssPath, []byte(".create { color: blue; }"), 0644)
+		if err := assetsHandler.NewFileEvent(fileName, ".css", cssPath, "create"); err != nil {
+			t.Fatal(err)
+		}
+
+		// Verify file is not written on create event
+		content, err := os.ReadFile(styleCssPath)
+		if err == nil || string(content) != "" {
+			t.Fatal(" expected file not written on create event")
+		}
+
+		// Update file with write event
+		os.WriteFile(cssPath, []byte(".write { color: green; }"), 0644)
+		if err := assetsHandler.NewFileEvent(fileName, ".css", cssPath, "write"); err != nil {
+			t.Fatal(err)
+		}
+
+		// Verify file is written after write event
+		content, err = os.ReadFile(styleCssPath)
+		if err != nil {
+			t.Fatal("File should exist after write event")
+		}
+
+		expected := ".write{color:green}"
+		if string(content) != expected {
+			t.Fatalf("\nexpected: %s\ngot: %s", expected, string(content))
+		}
+
+	})
+
+	t.Run("DISABLED_Crear nuevo archivo CSS", func(t *testing.T) {
+		assetsHandler.cssHandler.ClearMemoryFiles()
 		fileName := "test.css"
-		cssPath := filepath.Join(testDir, fileName)
-		event := "create"
+		cssPath := filepath.Join(themeDir, fileName)
+		defer os.Remove(styleCssPath)
+		defer os.Remove(cssPath)
+		event := "write"
 
 		// Crear archivo CSS de prueba
 		if err := os.WriteFile(cssPath, []byte(".test { color: red; }"), 0644); err != nil {
@@ -55,13 +103,16 @@ func TestUpdateFileOnDisk(t *testing.T) {
 		// Verificar contenido minificado
 		content, _ := os.ReadFile(styleCssPath)
 		if string(content) != ".test{color:red}" {
-			t.Fatalf("Contenido CSS minificado incorrecto: %s", content)
+			t.Fatalf("Contenido CSS minificado incorrecto: [%s]", content)
 		}
 	})
 
 	t.Run("Actualizar archivo CSS existente", func(t *testing.T) {
+		assetsHandler.cssHandler.ClearMemoryFiles()
 		fileName := "existing.css"
-		cssPath := filepath.Join(testDir, fileName)
+		cssPath := filepath.Join(themeDir, fileName)
+		defer os.Remove(styleCssPath)
+		defer os.Remove(cssPath)
 
 		// Crear archivo inicial
 		os.WriteFile(cssPath, []byte(".old { padding: 1px; }"), 0644)
@@ -85,6 +136,7 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Manejar archivo inexistente", func(t *testing.T) {
+		defer os.Remove(styleCssPath)
 		fileName := "no_existe.css"
 		err := assetsHandler.NewFileEvent(fileName, ".css", "", "write")
 		if err == nil {
@@ -93,8 +145,9 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Extensión inválida", func(t *testing.T) {
+		defer os.Remove(styleCssPath)
 		fileName := "archivo.txt"
-		filePath := filepath.Join(testDir, fileName)
+		filePath := filepath.Join(themeDir, fileName)
 		err := assetsHandler.NewFileEvent(fileName, ".txt", filePath, "write")
 		if err == nil {
 			t.Fatal("Se esperaba error por extensión inválida")
@@ -102,12 +155,15 @@ func TestUpdateFileOnDisk(t *testing.T) {
 	})
 
 	t.Run("Crear archivo JS básico", func(t *testing.T) {
+		assetsHandler.jsHandler.ClearMemoryFiles()
+
 		fileName1 := "test.js"
 		fileName2 := "test2.js"
-		jsPath := filepath.Join(testDir, fileName1)
-		jsPath2 := filepath.Join(testDir, fileName2)
+		jsPath := filepath.Join(themeDir, fileName1)
+		jsPath2 := filepath.Join(themeDir, fileName2)
 		defer os.Remove(jsPath)
 		defer os.Remove(jsPath2)
+		defer os.Remove(mainJsPath)
 
 		os.WriteFile(jsPath, []byte(`// Test\nfunction hello() { console.log("hola") }
 		let x = 10;`), 0644)
@@ -121,11 +177,12 @@ func TestUpdateFileOnDisk(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		got, _ := os.ReadFile(filepath.Join(buildDir, "main.js"))
+		got, _ := os.ReadFile(filepath.Join(publicDir, assetsHandler.jsHandler.fileOutputName))
 		expected := `"use strict";function init(){return"test"}let x=10,y=20`
 		if string(got) != expected {
 			t.Fatalf("\nJS minificado incorrecto:\nexpected: \n[%s]\n\ngot: \n[%s]", expected, got)
 		}
 
 	})
+
 }

@@ -20,6 +20,8 @@ type AssetsHandler struct {
 	cssHandler *fileHandler
 	jsHandler  *fileHandler
 	min        *minify.M
+
+	writeOnDisk bool // Indica si se debe escribir en disco
 }
 
 type AssetsConfig struct {
@@ -76,38 +78,33 @@ func (c *AssetsHandler) UpdateFileContentInMemory(filePath, extension, event str
 
 	switch extension {
 	case ".css":
-		if event == "remove" {
-			if idx := c.findFileIndex(c.cssHandler.files, filePath); idx != -1 {
-				c.cssHandler.files = append(c.cssHandler.files[:idx], c.cssHandler.files[idx+1:]...)
-			}
-		} else {
-			if idx := c.findFileIndex(c.cssHandler.files, filePath); idx != -1 {
-				c.cssHandler.files[idx] = file
-			} else {
-				c.cssHandler.files = append(c.cssHandler.files, file)
-			}
-		}
+		c.updateAsset(filePath, event, c.cssHandler, file)
 		return c.cssHandler, nil
 
 	case ".js":
-		if event == "remove" {
-			if idx := c.findFileIndex(c.jsHandler.files, filePath); idx != -1 {
-				c.jsHandler.files = append(c.jsHandler.files[:idx], c.jsHandler.files[idx+1:]...)
-			}
-		} else {
-			if idx := c.findFileIndex(c.jsHandler.files, filePath); idx != -1 {
-				c.jsHandler.files[idx] = file
-			} else {
-				c.jsHandler.files = append(c.jsHandler.files, file)
-			}
-		}
+		c.updateAsset(filePath, event, c.jsHandler, file)
 		return c.jsHandler, nil
 	}
 
 	return nil, errors.New("UpdateFileContentInMemory extension: " + extension + " not found " + filePath)
 }
 
-func (c *AssetsHandler) findFileIndex(files []*File, filePath string) int {
+// assetHandlerFiles ej &jsHandler, &cssHandler
+func (c AssetsHandler) updateAsset(filePath, event string, assetHandler *fileHandler, newFile *File) {
+	if event == "remove" {
+		if idx := c.findFileIndex(assetHandler.files, filePath); idx != -1 {
+			assetHandler.files = append(assetHandler.files[:idx], assetHandler.files[idx+1:]...)
+		}
+	} else {
+		if idx := c.findFileIndex(assetHandler.files, filePath); idx != -1 {
+			assetHandler.files[idx] = newFile
+		} else {
+			assetHandler.files = append(assetHandler.files, newFile)
+		}
+	}
+}
+
+func (c AssetsHandler) findFileIndex(files []*File, filePath string) int {
 	for i, f := range files {
 		if f.path == filePath {
 			return i
@@ -123,11 +120,11 @@ func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string
 		return errors.New(e + "filePath is empty")
 	}
 
-	c.Print("Asset", event, extension, "...", filePath)
+	c.Print("Asset", extension, event, "...", filePath)
 
 	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
 
-	//1- read file content from filePath
+	// read file content from filePath
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return errors.New(e + err.Error())
@@ -137,6 +134,16 @@ func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string
 	if err != nil {
 		return errors.New(e + err.Error())
 	}
+
+	// Enable disk writing on first write event
+	if event == "write" && !c.writeOnDisk {
+		c.writeOnDisk = true
+	}
+
+	if !c.writeOnDisk {
+		return nil
+	}
+	c.Print("debug", "writing "+extension+" to disk...")
 
 	var buf bytes.Buffer
 
@@ -174,11 +181,16 @@ func (c *AssetsHandler) UnobservedFiles() []string {
 func (c *AssetsHandler) StartCodeJS() (out string, err error) {
 	out = "'use strict';"
 
-	js, err := c.JavascriptForInitializing()
+	js, err := c.JavascriptForInitializing() // wasm js code
 	if err != nil {
-		return
+		return "", errors.New("StartCodeJS " + err.Error())
 	}
 	out += js
 
 	return
+}
+
+// clear memory files
+func (f *fileHandler) ClearMemoryFiles() {
+	f.files = []*File{}
 }

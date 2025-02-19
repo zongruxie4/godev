@@ -126,8 +126,8 @@ miProyecto/
 │   ├── public/                 # Archivos públicos
 │   │   ├── img/                # Imágenes optimizadas y comprimidas
 │   │   ├── icons.svg           # Iconos SVG
+│   │   ├── main.js             # JavaScript minificado y concatenado
 │   │   ├── style.css           # CSS minificado y concatenado
-│   │   ├── script.js           # JavaScript minificado y concatenado
 │   │   ├── wasm/               # Archivos WebAssembly compilados
 │   │   │   ├── medical.wasm    # módulo medical
 │   │   │   ├── users.wasm      # módulo users
@@ -148,22 +148,24 @@ miProyecto/
 
 ### ✅ MVP (Versión Mínima Viable)  
 ### Frontend
-- [ ] Compilación y empaquetado básico:  
-- [ ] Unificación y minificación de archivos CSS y JavaScript  
+- [x] Unificación y minificación de archivos CSS y JavaScript 
+- [ ] no compilar automáticamente js,css etc. al iniciar el servidor
+- [ ] cargar assets del directorio `web/theme` primero (assets handler)
 - [ ] Generación automática de `web/public/index.html` si este no existe  
-- [ ] Soporte para Go en frontend con WebAssembly
+- [ ] Compilar iconos svg módulos en sprite único en `web/public/icons.svg`
 
 ### Servidor de Desarrollo
-- [ ] Servidor de desarrollo integrado para servir archivos estáticos y WebAssembly  
+- [ ] Servidor de desarrollo integrado para servir archivos estáticos en `web/public`
+- [ ] https integrado en desarrollo local
 - [x] cerrar navegador al cerrar aplicación 
 - [x] Ejecución navegador Chrome (tecla `w`)  
 - [x] cambiar el tamaño de la ventana del navegador desde la tui
 
 ### Hot Reload
-- [x] Detección de cambios en archivos Go, HTML, CSS y JS  
-- [x] diferenciación en la detección de cambios en archivos go frontend para webAssembly y servidor backend 
-- [ ] Recarga en caliente (Hot Reload):  
-- [ ] Recarga del navegador automáticamente
+- [x] Detección de cambios en archivos HTML, CSS, y JS  
+- [x] detección de cambios en archivos GO frontend para webAssembly y servidor backend
+- [ ] detectar cambios en archivos SVG
+- [ ] Recarga en caliente del navegador (Hot Reload)
 
 ### Backend
 - [x] Detección de cambios en archivos del servidor  
@@ -172,18 +174,19 @@ miProyecto/
 ### Configuración
 - [x] Interfaz TUI mejorada con más opciones de configuración  
 - [x] Soporte para configuración mediante archivo `godev.yml`  
+- [ ] agregar gitignore de forma automática
+- [ ] crear env de forma automática (variables de entorno)
 
 ### 🚀 Mejoras Futuras  
+- [ ] Integración de git  
 - [ ] Modo producción: Generación de artefactos optimizados y listos para deploy  
 - [ ] Compatibilidad con servidores VPS para despliegue automatizado  
 - [ ] Compatibilidad con Docker para despliegue automatizado
-- [ ] Integración de git  
 - [ ] Integrar ayudante IA
 
 ### corregir errores 
 - [x] separate RegisterFiles of WatchFiles
 - [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
-- [ ] cargar assets de la carpeta theme primero en el manejador assets
 - [ ] al cerrar navegador por el usuario, actualizar la tui y estado del manejador
  del browser
 
