@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/tdewolff/minify/v2"
@@ -34,13 +35,14 @@ type AssetsConfig struct {
 type fileHandler struct {
 	fileOutputName string                 // eg: main.js,style.css
 	startCode      func() (string, error) // eg: "console.log('hello world')"
-	files          []*File
-	mediatype      string // eg: "text/html", "text/css", "image/svg+xml"
+	themeFiles     []*File                // files from theme folder
+	moduleFiles    []*File                // files from modules folder
+	mediatype      string                 // eg: "text/html", "text/css", "image/svg+xml"
 }
 
 type File struct {
-	path    string
-	content []byte
+	path    string // eg: modules/module1/file.js
+	content []byte /// eg: "console.log('hello world')"
 }
 
 func NewAssetsCompiler(config *AssetsConfig) *AssetsHandler {
@@ -48,12 +50,14 @@ func NewAssetsCompiler(config *AssetsConfig) *AssetsHandler {
 		AssetsConfig: config,
 		cssHandler: &fileHandler{
 			fileOutputName: "style.css",
-			files:          []*File{},
+			themeFiles:     []*File{},
+			moduleFiles:    []*File{},
 			mediatype:      "text/css",
 		},
 		jsHandler: &fileHandler{
 			fileOutputName: "main.js",
-			files:          []*File{},
+			themeFiles:     []*File{},
+			moduleFiles:    []*File{},
 			mediatype:      "text/javascript",
 		},
 		min: minify.New(),
@@ -91,15 +95,22 @@ func (c *AssetsHandler) UpdateFileContentInMemory(filePath, extension, event str
 
 // assetHandlerFiles ej &jsHandler, &cssHandler
 func (c AssetsHandler) updateAsset(filePath, event string, assetHandler *fileHandler, newFile *File) {
+
+	filesToUpdate := &assetHandler.moduleFiles
+
+	if strings.Contains(filePath, c.ThemeFolder()) {
+		filesToUpdate = &assetHandler.themeFiles
+	}
+
 	if event == "remove" {
-		if idx := c.findFileIndex(assetHandler.files, filePath); idx != -1 {
-			assetHandler.files = append(assetHandler.files[:idx], assetHandler.files[idx+1:]...)
+		if idx := c.findFileIndex(*filesToUpdate, filePath); idx != -1 {
+			*filesToUpdate = append((*filesToUpdate)[:idx], (*filesToUpdate)[idx+1:]...)
 		}
 	} else {
-		if idx := c.findFileIndex(assetHandler.files, filePath); idx != -1 {
-			assetHandler.files[idx] = newFile
+		if idx := c.findFileIndex(*filesToUpdate, filePath); idx != -1 {
+			(*filesToUpdate)[idx] = newFile
 		} else {
-			assetHandler.files = append(assetHandler.files, newFile)
+			*filesToUpdate = append(*filesToUpdate, newFile)
 		}
 	}
 }
@@ -155,7 +166,13 @@ func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string
 		buf.WriteString(startCode)
 	}
 
-	for _, f := range fh.files {
+	// Write theme files
+	for _, f := range fh.themeFiles {
+		buf.Write(f.content)
+	}
+
+	// Write module files
+	for _, f := range fh.moduleFiles {
 		buf.Write(f.content)
 	}
 	var minifiedBuf bytes.Buffer
@@ -192,5 +209,6 @@ func (c *AssetsHandler) StartCodeJS() (out string, err error) {
 
 // clear memory files
 func (f *fileHandler) ClearMemoryFiles() {
-	f.files = []*File{}
+	f.themeFiles = []*File{}
+	f.moduleFiles = []*File{}
 }

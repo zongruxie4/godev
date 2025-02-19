@@ -193,11 +193,27 @@ func (h *WatchHandler) RegisterFiles() {
 		if info.IsDir() && !h.Contain(path) {
 			if _, exists := reg[path]; !exists {
 				if err := h.watcher.Add(path); err != nil {
-					fmt.Fprintln(h.Writer, "Error adding watch path:", path, err)
+					fmt.Fprintln(h.Writer, "Watch RegisterFiles Add watch path:", path, err)
 					return nil
 				}
 				reg[path] = struct{}{}
 				fmt.Fprintln(h.Writer, "Watch path added:", path)
+
+				// MEMORY REGISTER FILES IN HANDLERS
+				fileName, err := GetFileName(path)
+				extension := filepath.Ext(path)
+				if err == nil {
+
+					switch extension {
+					case ".html", ".css", ".js", ".svg":
+						err = h.FileEventAssets.NewFileEvent(fileName, extension, path, "create")
+					}
+				}
+
+				if err != nil {
+					fmt.Fprintln(h.Writer, "Watch RegisterFiles:", extension, err)
+				}
+
 			}
 		}
 		return nil

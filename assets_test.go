@@ -11,8 +11,8 @@ import (
 func TestUpdateFileOnDisk(t *testing.T) {
 	// Configurar entorno de prueba
 	rootDir := "test"
-	webDir := filepath.Join(rootDir, "assetTestApp")
-	// defer os.RemoveAll(webDir)
+	webDir := filepath.Join(rootDir, "assetTest")
+	defer os.RemoveAll(webDir)
 
 	publicDir := filepath.Join(webDir, "public")
 	themeDir := filepath.Join(webDir, "theme")
@@ -77,22 +77,32 @@ func TestUpdateFileOnDisk(t *testing.T) {
 
 	})
 
-	t.Run("DISABLED_Crear nuevo archivo CSS", func(t *testing.T) {
+	t.Run("check archivos theme CSS", func(t *testing.T) {
 		assetsHandler.cssHandler.ClearMemoryFiles()
-		fileName := "test.css"
-		cssPath := filepath.Join(themeDir, fileName)
+		os.Remove(styleCssPath)
 		defer os.Remove(styleCssPath)
-		defer os.Remove(cssPath)
-		event := "write"
 
-		// Crear archivo CSS de prueba
-		if err := os.WriteFile(cssPath, []byte(".test { color: red; }"), 0644); err != nil {
-			t.Fatal(err)
+		sliceFiles := []struct {
+			fileName string
+			path     string
+			content  string
+		}{
+			{"module.css", filepath.Join(webDir, "module.css"), ".test { color: red; }"},
+			{"theme.css", filepath.Join(themeDir, "theme.css"), ":root { --primary: #ffffff; }"},
 		}
 
-		// Ejecutar función bajo prueba
-		if err := assetsHandler.NewFileEvent(fileName, ".css", cssPath, event); err != nil {
-			t.Fatalf("Error inesperado: %v", err)
+		// create files
+		for _, file := range sliceFiles {
+			if err := os.WriteFile(file.path, []byte(file.content), 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// run event
+		for _, file := range sliceFiles {
+			if err := assetsHandler.NewFileEvent(file.fileName, ".css", file.path, "write"); err != nil {
+				t.Fatal(err)
+			}
 		}
 
 		// Verificar archivo generado
@@ -100,10 +110,15 @@ func TestUpdateFileOnDisk(t *testing.T) {
 			t.Fatal("Archivo CSS no generado")
 		}
 
-		// Verificar contenido minificado
+		// Verificar contenido contenido theme debe estar primero
 		content, _ := os.ReadFile(styleCssPath)
-		if string(content) != ".test{color:red}" {
+		if string(content) != ":root{--primary:#ffffff}.test{color:red}" {
 			t.Fatalf("Contenido CSS minificado incorrecto: [%s]", content)
+		}
+
+		// remove files
+		for _, file := range sliceFiles {
+			os.Remove(file.path)
 		}
 	})
 
