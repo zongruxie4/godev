@@ -40,7 +40,7 @@ var (
 		BorderForeground(lipgloss.Color(background)).
 		Padding(0, 1)
 
-	activeTab = lipgloss.NewStyle().
+	activeTabIndex = lipgloss.NewStyle().
 			Border(activeTabBorder, true).
 			Bold(true).
 			Background(lipgloss.Color(background)).
@@ -63,7 +63,7 @@ var (
 			BorderForeground(lipgloss.Color(background)).
 			Padding(0, 1)
 
-	// Estilo para el header y footer
+	// Estilo para el header y SectionFooter
 	headerFooterStyle = lipgloss.NewStyle().
 				Background(lipgloss.Color(background)).
 				Foreground(lipgloss.Color(foreGround)).
@@ -77,86 +77,165 @@ var (
 )
 
 // View renderiza la interfaz
-func (h *handler) View() string {
-	if h.tui.width < 40 || h.tui.height < 10 {
+func (h *TextUserInterface) View() string {
+	if h.width < 40 || h.height < 10 {
 		return "TextUserInterface too small. Minimum size: 40x10"
 	}
 
 	headerHeight := 3
 	footerHeight := 3
-	// contentHeight := h.tui.height - footerHeight
-	contentHeight := h.tui.height - headerHeight - footerHeight
-	contentWidth := h.tui.width - 2
+	contentHeight := h.height - headerHeight - footerHeight
+	contentWidth := h.width - 2
+
+	// Render components
+	tabsSection := h.renderTabs()
+	hasFields := len(h.tabsSection[h.activeTabIndex].sectionFields) > 0
+	contentArea := h.renderContent(contentWidth, contentHeight, hasFields)
+
+	sectionFooter := headerFooterStyle.
+		Width(contentWidth).
+		Render(h.renderFooter(h.tabsSection[h.activeTabIndex]))
+
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
+		tabsSection,
+		contentArea,
+		sectionFooter,
+	)
+}
+
+// renderContent renderiza el área de contenido según si tiene campos o no
+func (h *TextUserInterface) renderContent(contentWidth, contentHeight int, hasFields bool) string {
+	if !hasFields {
+		content := h.renderContentMessages(contentHeight, h.tabsSection[h.activeTabIndex].terminalPrints)
+		return borderStyle.
+			Width(contentWidth).
+			Height(contentHeight).
+			Render(content)
+	}
+
+	// Split layout (30/70)
+	leftWidth := (contentWidth * 30) / 100
+	rightWidth := contentWidth - leftWidth - 1
+
+	// Left form section
+	leftContent := h.renderLeftSectionForm()
+	leftArea := borderStyle.
+		Width(leftWidth).
+		Height(contentHeight).
+		Render(leftContent)
+
+	// Right content section
+	rightContent := ""
+	if h.activeTabIndex > 0 {
+		rightContent = h.renderContentMessages(contentHeight, h.tabsSection[h.activeTabIndex].terminalPrints)
+	}
+
+	rightArea := borderStyle.
+		Width(rightWidth).
+		Height(contentHeight).
+		Render(rightContent)
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, leftArea, rightArea)
+}
+
+// renderContentMessages renderiza los mensajes para una sección de contenido
+func (h *TextUserInterface) renderContentMessages(contentHeight int, messages []TerminalPrint) string {
+	visibleMessages := contentHeight - 1
+	start := 0
+	if len(messages) > visibleMessages {
+		start = len(messages) - visibleMessages
+	}
+
+	var contentLines []string
+	for i := start; i < len(messages); i++ {
+		formattedMsg := h.formatMessage(messages[i])
+		contentLines = append(contentLines, messageStyle.Render(formattedMsg))
+	}
+	return strings.Join(contentLines, "\n")
+}
+
+// View renderiza la interfaz
+func (h *TextUserInterface) ViewOLD() string {
+	if h.width < 40 || h.height < 10 {
+		return "TextUserInterface too small. Minimum size: 40x10"
+	}
+
+	headerHeight := 3
+	footerHeight := 3
+	// contentHeight := h.height - footerHeight
+	contentHeight := h.height - headerHeight - footerHeight
+	contentWidth := h.width - 2
 
 	// Pestañas
-	tabs := h.tui.renderTabs()
+	tabsSection := h.renderTabs()
 
-	var content string
-	if h.tui.activeTab == 0 {
-		content = h.tui.renderConfigFields()
+	var terminalPrints string
+	if h.activeTabIndex == 0 {
+		terminalPrints = h.renderLeftSectionForm()
 	} else {
 		// Contenido de la pestaña activa
 		visibleMessages := contentHeight - 1
 		start := 0
-		activeContent := h.tui.tabs[h.tui.activeTab].content
+		activeContent := h.tabsSection[h.activeTabIndex].terminalPrints
 		if len(activeContent) > visibleMessages {
 			start = len(activeContent) - visibleMessages
 		}
 
 		var contentLines []string
 		for i := start; i < len(activeContent); i++ {
-			formattedMsg := h.tui.formatMessage(activeContent[i])
+			formattedMsg := h.formatMessage(activeContent[i])
 			contentLines = append(contentLines, messageStyle.Render(formattedMsg))
 		}
 
-		content = strings.Join(contentLines, "\n")
+		terminalPrints = strings.Join(contentLines, "\n")
 	}
 
 	contentArea := borderStyle.
 		Width(contentWidth).
 		Height(contentHeight).
-		Render(content)
+		Render(terminalPrints)
 
 	// Footer
-	footer := headerFooterStyle.
+	SectionFooter := headerFooterStyle.
 		Width(contentWidth).
-		// Render(t.tabs[t.activeTab].footer)
-		Render(h.tui.renderFooter(h.tui.tabs[h.tui.activeTab]))
+		// Render(t.tabsSection[t.activeTabIndex].SectionFooter)
+		Render(h.renderFooter(h.tabsSection[h.activeTabIndex]))
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
 		// header,
-		tabs,
+		tabsSection,
 		contentArea,
-		footer,
+		SectionFooter,
 	)
 }
 
 func (t *TextUserInterface) renderTabs() string {
 	var leftTab, centerTabs, rightTab []string
 
-	// Tab izquierdo (GODEV)
+	// TabSection izquierdo (GODEV)
 	leftStyle := tab
-	if t.activeTab == 0 {
-		leftStyle = activeTab
+	if t.activeTabIndex == 0 {
+		leftStyle = activeTabIndex
 	}
-	leftTab = append(leftTab, leftStyle.Render(t.tabs[0].title))
+	leftTab = append(leftTab, leftStyle.Render(t.tabsSection[0].title))
 
 	// Tabs centrales (BUILD, TEST, DEPLOY)
-	for i := 1; i < len(t.tabs)-1; i++ {
+	for i := 1; i < len(t.tabsSection)-1; i++ {
 		style := tab
-		if i == t.activeTab {
-			style = activeTab
+		if i == t.activeTabIndex {
+			style = activeTabIndex
 		}
-		centerTabs = append(centerTabs, style.Render(t.tabs[i].title))
+		centerTabs = append(centerTabs, style.Render(t.tabsSection[i].title))
 	}
 
-	// Tab derecho (HELP)
+	// TabSection derecho (HELP)
 	rightStyle := tab
-	if t.activeTab == len(t.tabs)-1 {
-		rightStyle = activeTab
+	if t.activeTabIndex == len(t.tabsSection)-1 {
+		rightStyle = activeTabIndex
 	}
-	rightTab = append(rightTab, rightStyle.Render(t.tabs[len(t.tabs)-1].title))
+	rightTab = append(rightTab, rightStyle.Render(t.tabsSection[len(t.tabsSection)-1].title))
 
 	// Combinar todo con espaciado apropiado
 	centerSection := lipgloss.JoinHorizontal(lipgloss.Top, centerTabs...)
@@ -178,7 +257,7 @@ func (t *TextUserInterface) renderTabs() string {
 	)
 }
 
-func (t *TextUserInterface) renderConfigFields() string {
+func (t *TextUserInterface) renderLeftSectionForm() string {
 	var lines []string
 
 	style := lipgloss.NewStyle().
@@ -194,12 +273,12 @@ func (t *TextUserInterface) renderConfigFields() string {
 	editingStyle = editingStyle.
 		Foreground(lipgloss.Color(black))
 
-	for i, field := range t.tabs[0].configs {
+	for i, field := range t.tabsSection[0].sectionFields {
 		line := fmt.Sprintf("%s: %s", field.label, field.value)
 
-		if t.activeTab == 0 {
-			if i == t.activeConfig {
-				if t.editingConfig {
+		if t.activeTabIndex == 0 {
+			if i == t.indexActiveEditField {
+				if t.editingFieldValueInSection {
 					cursorPos := field.cursor + len(field.label) + 2
 					line = line[:cursorPos] + "▋" + line[cursorPos:]
 					line = editingStyle.Render(line)
@@ -217,19 +296,19 @@ func (t *TextUserInterface) renderConfigFields() string {
 	return strings.Join(lines, "\n")
 }
 
-func (t *TextUserInterface) renderFooter(tab Tab) string {
+func (t *TextUserInterface) renderFooter(tab TabSection) string {
 
-	if tab.footer != "" {
-		return tab.footer
+	if tab.SectionFooter != "" {
+		return tab.SectionFooter
 	}
 
 	var footerParts []string
-	for _, action := range tab.actions {
-		status := "○" // inactive
-		if action.active {
-			status = "●" // active
-		}
-		footerParts = append(footerParts, fmt.Sprintf("'%s' %s %s", action.shortCuts, action.message, status))
-	}
+	// for _, field := range tab.sectionFields {
+	// 	status := "○" // inactive
+	// 	if field.isOpenedStatus {
+	// 		status = "●" // isOpenedStatus
+	// 	}
+	// 	footerParts = append(footerParts, fmt.Sprintf("'%s' %s %s", field.ShortCut, field.label, status))
+	// }
 	return strings.Join(footerParts, " | ")
 }

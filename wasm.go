@@ -2,6 +2,8 @@ package godev
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -11,7 +13,7 @@ import (
 
 type WasmHandler struct {
 	*WasmConfig
-	tinyGoCompiler bool
+	ModulesFolder  string // default "modules". for test change eg: "test/modules"
 	mainInputFile  string // eg: main.wasm.go
 	mainOutputFile string // eg: main.wasm
 
@@ -20,15 +22,16 @@ type WasmHandler struct {
 }
 
 type WasmConfig struct {
-	// root folder and subfolder eg: "web","public"
+	// root web folder and subfolder eg: "web","public"
 	WebFilesFolder func() (string, string)
-	Print          func(messages ...any) // eg: fmt.Println
+	Writer         io.Writer // For logging output
 }
 
 func NewWasmCompiler(c *WasmConfig) *WasmHandler {
 
 	w := &WasmHandler{
 		WasmConfig:     c,
+		ModulesFolder:  "modules",
 		mainInputFile:  "main.wasm.go",
 		mainOutputFile: "main.wasm",
 	}
@@ -38,44 +41,51 @@ func NewWasmCompiler(c *WasmConfig) *WasmHandler {
 
 // event: create, remove, write, rename
 func (h *WasmHandler) NewFileEvent(fileName, extension, filePath, event string) error {
-	const this = "NewFileEvent "
+	const e = "NewFileEvent Wasm"
 
-	if filePath != "" {
-		h.Print("Compiling WASM..." + filePath)
+	if filePath == "" {
+		return errors.New(e + "filePath is empty")
 	}
 
-	var outputFilePath, inputFilePath string
+	fmt.Fprint(h.Writer, "Wasm", extension, event, "...", filePath)
 
-	if fileName != h.mainInputFile { // el archivo es un modulo wasm independiente
+	var inputFilePath, outputFilePath string
+
+	// verificar si el archivo  es un modulo wasm independiente
+	if fileName != h.mainInputFile {
 
 		moduleName, err := GetModuleName(filePath)
 		if err != nil {
-			return errors.New(this + "GetModuleName: " + err.Error())
+			return errors.New(e + "GetModuleName: " + err.Error())
 		}
-		h.Print("Module Name: " + moduleName)
+		fmt.Fprint(h.Writer, "Module Name: "+moduleName)
+
+		//create main module wasm path eg: modules/users/wasm/users.wasm.go
+		inputFilePath = path.Join(h.ModulesFolder, moduleName, "wasm", moduleName+".wasm.go")
+		outputFilePath = path.Join(h.wasmFilesOutputDirectory(), moduleName+".wasm")
 
 	} else {
-		// el archivo es el main.wasm.go
-		// compilar a wasm
-		outputFilePath = h.OutputPathMainFileWasm()
+		// el fichero es wasm principal main.wasm.go
 		inputFilePath = path.Join(h.wasmFilesOutputDirectory(), h.mainInputFile)
+		outputFilePath = h.OutputPathMainFileWasm()
+	}
+
+	// Check if the ...wasm/moduleName.wasm.go file exists
+	if _, err := os.Stat(inputFilePath); err != nil {
+		// webAssembly not found
+		return nil
+	}
+
+	if event != "write" {
+		return nil
 	}
 
 	var cmd *exec.Cmd
-
-	// log.Println("*** c.e2eWasmTestFolder: ", c.e2eWasmTestFolder)
-
-	// delete last file
-	os.Remove(outputFilePath)
-
 	var flags string
-	// if h.flags != nil {
-	// 	flags = h.Flags()
-	// }
 
 	// log.Println("*** mainInputFile: ", mainInputFile)
 	// Adjust compilation parameters according to configuration
-	if h.tinyGoCompiler {
+	if h.TinyGoCompiler() {
 		// fmt.Println("*** WASM TINYGO COMPILATION ***")
 		cmd = exec.Command("tinygo", "build", "-o", outputFilePath, "-target", "wasm", "--no-debug", "-ldflags", flags, inputFilePath)
 
@@ -167,6 +177,12 @@ func (h *WasmHandler) JavascriptForInitializing() (js string, err error) {
 	}
 
 	return stringWasmJs, nil
+}
+
+// returns if TinyGo compiler should be used
+func (w *WasmHandler) TinyGoCompiler() bool {
+
+	return false
 }
 
 func (w *WasmHandler) getWasmExecJsPathTinyGo() (string, error) {

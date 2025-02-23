@@ -95,29 +95,33 @@ dentro del directorio modules al modificar y guardar archivos go con prefijo:
 
 si el archivo no tiene prefijo se reiniciara el servidor, se compilara a webAssembly y 
 se recargará el navegador
-
 ```md
 miProyecto/
+├── env              # Variables de entorno
+├── .gitignore       # Archivos ignorados por git
 ├── modules/
-│   ├── modules.go          # Registro de módulos en main.server.go, main.wasm.go
+│   ├── modules.go   # Registro de módulos en main.server.go, main.wasm.go
 │   │
 │   ├── auth/
-│   │   ├── auth.go         # Estructuras y lógica compartida
-│   │   ├── b.back.api.go   # API endpoints (// go: build !wasm)
-│   │   ├── f.wasm.go       # Package main para compilación wasm
-│   │   └── handlers.go     # Handlers compartidos
+│   │   ├── auth.go             # Estructuras y lógica compartida
+│   │   ├── b.back.api.go       # API endpoints (// go: build !wasm)
+│   │   ├── handlers.go         # Handlers compartidos
+│   │   └── wasm/
+│   │       └── auth.wasm.go    # modulo wasm (// go: build wasm)
 │   │
 │   ├── users/
-│   │   ├── user.go         # Definición de estructuras y modelos
-│   │   ├── b.api.go        # API endpoints
-│   │   ├── f.wasm.go       # Compilación wasm (// go: build wasm)
-│   │   └── f.events.go     # Definición de eventos pub/sub
+│   │   ├── user.go             # Definición de estructuras y modelos
+│   │   ├── b.api.go            # API endpoints
+│   │   ├── f.events.go         # Definición de eventos pub/sub
+│   │   └── wasm/
+│   │       └── users.wasm.go   # modulo wasm (// go: build wasm)
 │   │
 │   └── medical/
-│       ├── b.api.go        # API endpoints
-│       ├── f.wasm.go       # UI handlers y lógica frontend
-│       ├── patient.go      # Modelo de paciente
-│       └── handlers.go     # Handlers compartidos
+│       ├── b.api.go            # API endpoints
+│       ├── patient.go          # Modelo de paciente
+│       ├── handlers.go         # Handlers compartidos
+│       └── wasm/
+│           └── medical.wasm.go # modulo wasm (// go: build wasm)
 │
 ├── web/                        # servidor y Archivos web
 │   ├── theme/                  # Archivos de tema
@@ -136,8 +140,10 @@ miProyecto/
 │   │   └── index.html          # HTML principal generado
 │   ├── main.server.exe         # Ejecutable del servidor compilado
 │   ├── main.server.go          # si existe el proyecto ya tiene servidor principal
-│   └── main.wasm.go            # si existe el proyecto es WebAssembly|
-└── go.mod```
+│   └── main.wasm.go            # si existe el proyecto es WebAssembly
+|
+└── go.mod
+```
 
 
 
@@ -184,8 +190,10 @@ miProyecto/
 - [ ] Compatibilidad con Docker para despliegue automatizado
 - [ ] Integrar ayudante IA
 
-### corregir errores 
+### pendientes 
 - [x] separate RegisterFiles of WatchFiles
+- [ ] section godev aparece 2 veces en la tui
+- [ ] al presionar esc en los sectionField en el modo edición procurar que el valor del campo anterior se mantenga
 - [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
 - [ ] al cerrar navegador por el usuario, actualizar la tui y estado del manejador
  del browser

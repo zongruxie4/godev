@@ -22,34 +22,21 @@ type ConfigHandler struct {
 	conFileName     string // config file name e.g: godev.yml
 }
 
-// ConfigField representa un campo de configuración editable
-type ConfigField struct {
-	index               int
-	label               string
-	name                string
-	value               string
-	editable            bool
-	selected            bool
-	cursor              int // Posición del cursor
-	validate            func(string) error
-	notifyHandlerChange func(fieldName string, oldValue, newValue string) error
-}
-
 type Config struct {
 	// ej: app
-	AppName string `yaml:"AppName" label:"App Name" value:"app" editable:"true"`
+	AppName string `yaml:"AppName" Label():"App Name" value:"app" Editable():"true"`
 	// ej: web/main.server.go
-	MainFilePath string `yaml:"MainFilePath" label:"Main File Path" value:"web/main.server.go" editable:"true"`
+	MainFilePath string `yaml:"MainFilePath" Label():"Main File Path" value:"web/main.server.go" Editable():"true"`
 	// ej: build default: web
-	WebFilesFolder string `yaml:"WebFilesFolder" label:"Web Files Directory" value:"web" editable:"false"`
+	WebFilesFolder string `yaml:"WebFilesFolder" Label():"Web Files Directory" value:"web" Editable():"false"`
 	// eg : build/app.exe
-	// OutPathApp string `yaml:"OutPathApp" label:"Out Path App" value:"build/app" editable:"true"`
+	// OutPathApp string `yaml:"OutPathApp" Label():"Out Path App" value:"build/app" Editable():"true"`
 	// ej: 8080
-	ServerPort string `yaml:"ServerPort" label:"Server Port" value:"8080" editable:"true"`
+	ServerPort string `yaml:"ServerPort" Label():"Server Port" value:"8080" Editable():"true"`
 	// ej: "/index.html", "/login", default: "/"
-	BrowserStartUrl string `yaml:"BrowserStartUrl" label:"Browser Home Path" value:"/" editable:"true"`
+	BrowserStartUrl string `yaml:"BrowserStartUrl" Label():"Browser Home Path" value:"/" Editable():"true"`
 	//ej: "1930,0:800,600" (when you have second monitor) default: "0,0:800,600"
-	BrowserPositionAndSize string `yaml:"BrowserPositionAndSize" label:"Browser Position" value:"0,0:800,600" editable:"true"`
+	BrowserPositionAndSize string `yaml:"BrowserPositionAndSize" Label():"Browser Position" value:"0,0:800,600" Editable():"true"`
 }
 
 // web/public
@@ -131,10 +118,6 @@ func (c *Config) LoadConfigFromParams() error {
 	return nil
 }
 
-func (cf *ConfigField) SetCursorAtEnd() {
-	cf.cursor = len(cf.value)
-}
-
 func (c *Config) DefaultConfig() {
 	t := reflect.TypeOf(*c)
 	v := reflect.ValueOf(c).Elem()
@@ -162,50 +145,6 @@ func (c *Config) DefaultBrowserConfig() error {
 
 func (c *Config) SetBrowserPosition(position string, width, height int) {
 	c.BrowserPositionAndSize = fmt.Sprintf("%v:%d,%d", position, width, height)
-}
-
-func (h *handler) GetConfigFields() []ConfigField {
-	fields := make([]ConfigField, 0)
-	t := reflect.TypeOf(*h.ch.config)
-	v := reflect.ValueOf(h.ch.config).Elem()
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		label := field.Tag.Get("label")
-		editable := field.Tag.Get("editable") == "true"
-		value := v.Field(i).String()
-		validatorType := field.Tag.Get("validate")
-
-		newField := ConfigField{
-			index:    i,
-			label:    label,
-			name:     field.Name,
-			value:    value,
-			editable: editable,
-			selected: false,
-			cursor:   len(value),
-			validate: getValidationFunc(validatorType),
-		}
-
-		h.setNotifyObserver(&newField)
-
-		fields = append(fields, newField)
-	}
-	return fields
-}
-
-func (h *handler) setNotifyObserver(f *ConfigField) {
-
-	// h.tui.Print("setNotifyObserver: " + f.name)
-	// log.Println("setNotifyObserver: " + f.name)
-	switch f.name {
-	case "BrowserPositionAndSize":
-		f.notifyHandlerChange = h.BrowserPositionAndSizeChanged
-
-	case "BrowserStartUrl":
-		f.notifyHandlerChange = h.BrowserStartUrlChanged
-	}
-
 }
 
 func (ch *ConfigHandler) LoadConfigFromYML() error {
@@ -243,37 +182,33 @@ func (ch *ConfigHandler) SaveConfigToYML() error {
 }
 
 // UpdateFieldWithNotification actualiza un campo y notifica a los observadores
-func (h *handler) UpdateFieldWithNotification(field *ConfigField, newValue string) error {
+func (f *ConfigHandler) UpdateFieldWithNotification(newValue string) error {
 
-	if field == nil {
-		return errors.New("field cannot be nil")
-	}
+	// if err := f.validate(newValue); err != nil {
+	// 	return err
+	// }
 
-	if err := field.validate(newValue); err != nil {
-		return err
-	}
+	// oldValue := f.value
+	// f.value = newValue
 
-	oldValue := field.value
-	field.value = newValue
+	// err := h.ch.UpdateField(f.index, newValue)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err := h.ch.UpdateField(field.index, newValue)
-	if err != nil {
-		return err
-	}
+	// err = h.ch.SaveConfigToYML()
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = h.ch.SaveConfigToYML()
-	if err != nil {
-		return err
-	}
+	// // h.tui.PrintOK("Config updated successfully", f.name)
 
-	h.tui.PrintOK("Config updated successfully", field.name)
-
-	if field.notifyHandlerChange != nil {
-		err = field.notifyHandlerChange(field.name, oldValue, newValue)
-		if err != nil {
-			return err
-		}
-	}
+	// if f.notifyHandlerChange != nil {
+	// 	err = f.notifyHandlerChange(f.name, oldValue, newValue)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

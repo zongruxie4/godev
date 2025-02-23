@@ -23,15 +23,17 @@ func GodevStart() {
 	}
 
 	h.NewConfig()
-	h.NewTextUserInterface()
 	h.NewBrowser()
 	h.AddHandlers()
+
+	h.tui = NewTUI(1, h.exitChan)
+	// h.tui = NewTUI(h.exitChan, h.serverHandler, h.assetsHandler, h.wasmHandler)
 
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	// Iniciar la tui en una goroutine
-	go h.Start(&wg)
+	// Start the tui in a goroutine
+	go h.tui.StartTUI(&wg)
 
 	// Mostrar errores de configuración como warning
 	if len(h.ch.configErrors) != 0 {
@@ -71,7 +73,7 @@ func (h *handler) AddHandlers() {
 		WebFilesFolder: func() (string, string) {
 			return h.ch.config.WebFilesFolder, h.ch.config.PublicFolder()
 		},
-		Print: h.tui.Print,
+		Writer: h,
 	})
 
 	//ASSETS

@@ -10,14 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// TerminalPrint imprime un mensaje en la tui
-type TerminalPrint struct {
-	Content string
-	Type    MessageType
-	Time    time.Time
-}
-
-// Print sends a normal message or error to the tui
+// Print sends a normal Label or error to the tui
 func (h *TextUserInterface) Print(messages ...any) {
 	msgType := NormMsg
 	newMessages := make([]any, 0, len(messages))
@@ -50,30 +43,30 @@ func (h *TextUserInterface) Print(messages ...any) {
 	h.SendMessage(joinMessages(newMessages...), msgType)
 }
 
-// PrintError sends an error message to the tui
+// PrintError sends an error Label to the tui
 func (h *TextUserInterface) PrintError(messages ...any) {
 	h.SendMessage(joinMessages(messages...), ErrorMsg)
 }
 
-// PrintWarning sends a warning message to the tui
+// PrintWarning sends a warning Label to the tui
 func (h *TextUserInterface) PrintWarning(messages ...any) {
 	h.SendMessage(joinMessages(messages...), WarnMsg)
 }
 
-// PrintInfo sends an informational message to the tui
+// PrintInfo sends an informational Label to the tui
 func (h *TextUserInterface) PrintInfo(messages ...any) {
 	h.SendMessage(joinMessages(messages...), InfoMsg)
 }
 
-// PrintOK sends a success message to the tui
+// PrintOK sends a success Label to the tui
 func (h *TextUserInterface) PrintOK(messages ...any) {
 	h.SendMessage(joinMessages(messages...), OkMsg)
 }
 
-func joinMessages(messages ...any) (message string) {
+func joinMessages(messages ...any) (Label string) {
 	var space string
 	for _, m := range messages {
-		message += space + fmt.Sprint(m)
+		Label += space + fmt.Sprint(m)
 		space = " "
 	}
 	return
@@ -184,8 +177,12 @@ func (h *handler) Write(p []byte) (n int, err error) {
 	if msg != "" {
 		// Detectar automáticamente el tipo de mensaje
 		msgType := detectMessageType(msg)
-		h.tui.SendMessage(msg, msgType)
 
+		if h.tui != nil {
+			h.tui.SendMessage(msg, msgType)
+		} else {
+			fmt.Println(msg)
+		}
 		// Si es un error, escribirlo en el archivo de log
 		if msgType == ErrorMsg {
 			logFile, err := os.OpenFile(path.Join(h.ch.config.WebFilesFolder, h.ch.config.AppName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
