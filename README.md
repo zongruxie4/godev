@@ -192,7 +192,7 @@ miProyecto/
 
 ### pendientes 
 - [x] separate RegisterFiles of WatchFiles
-- [ ] section godev aparece 2 veces en la tui
+- [x] section godev aparece 2 veces en la tui
 - [ ] al presionar esc en los sectionField en el modo edición procurar que el valor del campo anterior se mantenga
 - [ ] al cambiar la configuración del navegador que el foco en la tui no se pierda
 - [ ] al cerrar navegador por el usuario, actualizar la tui y estado del manejador

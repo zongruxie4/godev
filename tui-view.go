@@ -221,7 +221,16 @@ func (t *TextUserInterface) renderTabs() string {
 	}
 	leftTab = append(leftTab, leftStyle.Render(t.tabsSection[0].title))
 
-	// Tabs centrales (BUILD, TEST, DEPLOY)
+	// If only one tab exists, return just the left tab with appropriate spacing
+	if len(t.tabsSection) == 1 {
+		return lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			leftTab[0],
+		)
+	}
+
+	// Rest of the existing code for multiple tabs...
+	// Central tabs processing example: (BUILD, TEST, DEPLOY)
 	for i := 1; i < len(t.tabsSection)-1; i++ {
 		style := tab
 		if i == t.activeTabIndex {
@@ -230,21 +239,19 @@ func (t *TextUserInterface) renderTabs() string {
 		centerTabs = append(centerTabs, style.Render(t.tabsSection[i].title))
 	}
 
-	// TabSection derecho (HELP)
+	// Right tab processing (example HELP)
 	rightStyle := tab
 	if t.activeTabIndex == len(t.tabsSection)-1 {
 		rightStyle = activeTabIndex
 	}
 	rightTab = append(rightTab, rightStyle.Render(t.tabsSection[len(t.tabsSection)-1].title))
 
-	// Combinar todo con espaciado apropiado
+	// Combine everything with appropriate spacing
 	centerSection := lipgloss.JoinHorizontal(lipgloss.Top, centerTabs...)
-
 	// Calcular espaciado para centrar la sección central
 	totalWidth := t.width - lipgloss.Width(leftTab[0]) - lipgloss.Width(rightTab[0]) - 4
 	centerWidth := lipgloss.Width(centerSection)
 	padding := (totalWidth - centerWidth) / 2
-
 	spacer := strings.Repeat(" ", padding)
 
 	return lipgloss.JoinHorizontal(

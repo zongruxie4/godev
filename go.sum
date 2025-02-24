@@ -8,8 +8,8 @@ github.com/charmbracelet/x/ansi v0.8.0 h1:9GTq3xq9caJW8ZrBTe0LIe2fvfLR/bYXKTx2ll
 github.com/charmbracelet/x/ansi v0.8.0/go.mod h1:wdYl/ONOLHLIVmQaxbIYEC/cRKOQyjTkowiI4blgS9Q=
 github.com/charmbracelet/x/term v0.2.1 h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=
 github.com/charmbracelet/x/term v0.2.1/go.mod h1:oQ4enTYFV7QN4m0i9mzHrViD7TQKvNEEkHUMCmsxdUg=
-github.com/chromedp/cdproto v0.0.0-20250222051814-50c6cb17f10a h1:EnkQjhmp/MxhDB4KOTssv6xC20aQ9rhFRCfGHTsTqmE=
-github.com/chromedp/cdproto v0.0.0-20250222051814-50c6cb17f10a/go.mod h1:NItd7aLkcfOA/dcMXvl8p1u+lQqioRMq/SqDp71Pb/k=
+github.com/chromedp/cdproto v0.0.0-20250224005500-01948a15fe7c h1:Lzsvq8dMh4b5KTfqPTTLlsV8HS5mYfsykmycUa0fKY4=
+github.com/chromedp/cdproto v0.0.0-20250224005500-01948a15fe7c/go.mod h1:NItd7aLkcfOA/dcMXvl8p1u+lQqioRMq/SqDp71Pb/k=
 github.com/chromedp/chromedp v0.13.0 h1:ydOqt7Y9LkwgutrX5C8bx49D+o63L6WcGUDyIoE0A5M=
 github.com/chromedp/chromedp v0.13.0/go.mod h1:O3nO4Lno7iLoVX+7GdqQkehhKG7DtLf/zFRyJo0AhXY=
 github.com/chromedp/sysutil v1.1.0 h1:PUFNv5EcprjqXZD9nJb9b/c9ibAbxiYo4exNWZyipwM=
@@ -22,8 +22,8 @@ github.com/fsnotify/fsnotify v1.8.0 h1:dAwr6QBTBZIkG8roQaJjGof0pp0EeF+tNV7YBP3F/
 github.com/fsnotify/fsnotify v1.8.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333 h1:bIyCNaDet0wYUhGrWQvRAUKR9qa5cQLzSwdfjUbRXS8=
 github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333/go.mod h1:d2iTCFnmqCbjn2OyUNkUduH9ZPGf+uqRJS3zwqFb3go=
-github.com/go-json-experiment/json v0.0.0-20250213060926-925ba3f173fa h1:Rpu6sKAzIeSWBkrFHD52g8yipagcPbY2Lmm70NL1Gzc=
-github.com/go-json-experiment/json v0.0.0-20250213060926-925ba3f173fa/go.mod h1:TiCD2a1pcmjd7YnhGH0f/zKNcCD06B029pHhzV23c2M=
+github.com/go-json-experiment/json v0.0.0-20250223041408-d3c622f1b874 h1:F8d1AJ6M9UQCavhwmO6ZsrYLfG8zVFWfEfMS2MXPkSY=
+github.com/go-json-experiment/json v0.0.0-20250223041408-d3c622f1b874/go.mod h1:TiCD2a1pcmjd7YnhGH0f/zKNcCD06B029pHhzV23c2M=
 github.com/gobwas/httphead v0.1.0 h1:exrUm0f4YX0L7EBwZHuCF4GDp8aJfVeBrlLQrs6NqWU=
 github.com/gobwas/httphead v0.1.0/go.mod h1:O/RXo79gxV8G+RqlR/otEwx4Q36zl9rqC5u12GKvMCM=
 github.com/gobwas/pool v0.2.1 h1:xfeeEhW7pwmX8nuLVlqbzVc7udMDrwetjEv+TZIz1og=
