@@ -26,7 +26,17 @@ func GodevStart() {
 	h.NewBrowser()
 	h.AddHandlers()
 
-	h.tui = NewTUI(1, h.exitChan)
+	h.tui = NewTUI(&TuiConfig{
+		TabIndexStart: 0,
+		ExitChan:      make(chan bool),
+		Sections:      []tuiSectionAdapter{},
+		Color: &ColorStyle{
+			ForeGround: "#F4F4F4", // #F4F4F4
+			Background: "#000000", // #000000
+			Highlight:  "#FF6600", // #FF6600
+			Lowlight:   "#666666", // #666666
+		},
+	})
 	// h.tui = NewTUI(h.exitChan, h.serverHandler, h.assetsHandler, h.wasmHandler)
 
 	var wg sync.WaitGroup
@@ -127,3 +137,88 @@ func (h *handler) AddHandlers() {
 	})
 
 }
+
+// crea una nueva instancia de TextUserInterface
+
+// tui := &TextUserInterface{
+// 	tabsSection: []TabSection{
+// 		{
+// 			title:          "GODEV",
+// 			tabContents: []TabContent{},
+// 			sectionFields:        GetConfigFields(),
+// 			SectionFooter:  "↑↓ to navigate | ENTER to edit | ESC to exit edit",
+// 		},
+// 		{
+// 			title:          "BUILD",
+// 			tabContents: []TabContent{},
+// 			sectionFields: []SectionField{
+// 				{
+// 					Label:     "TinyGo compiler",
+// 					isOpenedStatus:  false,
+// 					ShortCut: "t",
+// 					FieldValueChange: func() error {
+// 						// TinyGo compilation logic
+// 						return nil
+// 					},
+// 				},
+// 				{
+// 					Label:        "Web Browser",
+// 					isOpenedStatus:     false,
+// 					ShortCut:    "w",
+// 					FieldValueChange:  h.OpenBrowser,
+// 					closeHandler: h.CloseBrowser,
+// 				},
+// 			},
+// 		},
+// 		{
+// 			title:          "TEST",
+// 			tabContents: []TabContent{},
+// 			sectionFields: []SectionField{
+// 				{
+// 					Label:     "Running tests...",
+// 					isOpenedStatus:  false,
+// 					ShortCut: "r",
+// 					FieldValueChange: func() error {
+// 						// Implement test running logic
+// 						return nil
+// 					},
+// 				},
+// 			},
+// 		},
+// 		{
+// 			title:          "DEPLOY",
+// 			tabContents: []TabContent{},
+// 			SectionFooter:  "'d' Docker | 'v' VPS Setup",
+// 			sectionFields: []SectionField{
+// 				{
+// 					Label:     "Generating Dockerfile...",
+// 					isOpenedStatus:  false,
+// 					ShortCut: "d",
+// 					FieldValueChange: func() error {
+// 						// Implement Docker generation logic
+// 						return nil
+// 					},
+// 				},
+// 				{
+// 					Label:     "Configuring VPS...",
+// 					isOpenedStatus:  false,
+// 					ShortCut: "v",
+// 					FieldValueChange: func() error {
+// 						// Implement VPS configuration logic
+// 						return nil
+// 					},
+// 				},
+// 			},
+// 		},
+// 		{
+// 			title:          "HELP",
+// 			tabContents: []TabContent{},
+// 			SectionFooter:  "Press 'h' for commands list | 'ctrl+c' to Exit",
+// 		},
+// 	},
+// 	activeTab:    BUILD_TAB_INDEX, // Iniciamos en BUILD
+// 	tabContentsChan: make(chan TabContent, 100),
+// 	currentTime:  time.Now().Format("15:04:05"),
+// }
+
+// tui.tea = tea.NewProgram(tui, tea.WithAltScreen())

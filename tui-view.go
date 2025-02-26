@@ -7,24 +7,59 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const background = "#FF6600" // orange
-const foreGround = "#F4F4F4" //white
-const black = "#000000"      //black
+type ColorStyle struct {
+	ForeGround string // eg: #F4F4F4
+	Background string // eg: #000000
+	Highlight  string // eg: #FF6600
+	Lowlight   string // eg: #666666
+}
 
-// Estilos para las pestañas
-var (
-	activeTabBorder = lipgloss.Border{
+type TuiStyle struct {
+	*ColorStyle
+
+	activeTabBorder   lipgloss.Border
+	tabBorder         lipgloss.Border
+	contentBorder     lipgloss.Border
+	normalTabStyle    lipgloss.Style
+	activeTabStyle    lipgloss.Style
+	borderStyle       lipgloss.Style
+	headerFooterStyle lipgloss.Style
+	headerTitleStyle  lipgloss.Style
+	footerInfoStyle   lipgloss.Style
+	messageStyle      lipgloss.Style
+}
+
+// eg: colorHighlight #FF6600 colorForeGround  colorBackGround
+func NewTuiStyle(cs *ColorStyle) *TuiStyle {
+	t := &TuiStyle{
+		ColorStyle: cs,
+	}
+
+	// Estilos para las pestañas
+	t.activeTabBorder = lipgloss.Border{
 		Top:         "─",
-		Bottom:      " ",
+		Bottom:      "─",
 		Left:        "│",
 		Right:       "│",
 		TopLeft:     "╭",
 		TopRight:    "╮",
-		BottomLeft:  "┘",
-		BottomRight: "└",
+		BottomLeft:  "└",
+		BottomRight: "┘",
 	}
 
-	tabBorder = lipgloss.Border{
+	t.tabBorder = lipgloss.Border{
+		Top:         "─",
+		Bottom:      "─",
+		Left:        "│",
+		Right:       "│",
+		TopLeft:     "╭",
+		TopRight:    "╮",
+		BottomLeft:  "└",
+		BottomRight: "┘",
+	}
+
+	// El borde del contenido necesita conectarse con las pestañas
+	t.contentBorder = lipgloss.Border{
 		Top:         "─",
 		Bottom:      "─",
 		Left:        "│",
@@ -35,69 +70,82 @@ var (
 		BottomRight: "╯",
 	}
 
-	tab = lipgloss.NewStyle().
-		Border(tabBorder, true).
-		BorderForeground(lipgloss.Color(background)).
-		Padding(0, 1)
+	t.normalTabStyle = lipgloss.NewStyle().
+		Border(t.tabBorder, true).
+		BorderForeground(lipgloss.Color(t.Highlight)).
+		Padding(0)
 
-	activeTabIndex = lipgloss.NewStyle().
-			Border(activeTabBorder, true).
-			Bold(true).
-			Background(lipgloss.Color(background)).
-			Foreground(lipgloss.Color(foreGround)).
-			Padding(0, 1)
+	t.activeTabStyle = lipgloss.NewStyle().
+		Border(t.activeTabBorder, true).
+		BorderForeground(lipgloss.Color(t.Highlight)).
+		Bold(true).
+		Background(lipgloss.Color(t.Highlight)).
+		Foreground(lipgloss.Color(t.ForeGround)).
+		Padding(0)
 
-	tabGap = lipgloss.NewStyle().
-		Border(tabBorder, true).
-		BorderTop(false).
-		BorderLeft(false).
-		BorderRight(false).
-		Padding(0, 1)
-)
+	t.headerTitleStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Right = "├"
+		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+	}()
 
-// Define estilos base
-var (
+	t.footerInfoStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Left = "┤"
+		return t.headerTitleStyle.BorderStyle(b)
+	}()
+
 	// Estilo para el borde principal
-	borderStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color(background)).
-			Padding(0, 1)
+	t.borderStyle = lipgloss.NewStyle().
+		Border(t.contentBorder).
+		BorderForeground(lipgloss.Color(t.Highlight)).
+		Padding(0)
 
 	// Estilo para el header y SectionFooter
-	headerFooterStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color(background)).
-				Foreground(lipgloss.Color(foreGround)).
-				Bold(true).
-				Padding(0, 2)
+	t.headerFooterStyle = lipgloss.NewStyle().
+		Background(lipgloss.Color(t.Highlight)).
+		Foreground(lipgloss.Color(t.ForeGround)).
+		Bold(true)
+		// Padding(0)
 
 	// Estilo para los mensajes
-	messageStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(foreGround)).
-			PaddingLeft(2)
-)
+	t.messageStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color(t.ForeGround)).
+		PaddingLeft(0)
+
+	return t
+}
+
+func (h *TextUserInterface) View() string {
+	if !h.ready {
+		return "\n  Initializing..."
+	}
+	return fmt.Sprintf("%s\n%s\n%s", h.headerView(), h.ContentView(), h.footerView())
+}
 
 // View renderiza la interfaz
-func (h *TextUserInterface) View() string {
-	if h.width < 40 || h.height < 10 {
-		return "TextUserInterface too small. Minimum size: 40x10"
-	}
+func (h *TextUserInterface) ViewOLD() string {
+	// if h.width < 40 || h.height < 10 {
+	// 	return "TextUserInterface too small. Minimum size: 40x10"
+	// }
 
-	headerHeight := 3
-	footerHeight := 3
-	contentHeight := h.height - headerHeight - footerHeight
-	contentWidth := h.width - 2
+	headerHeight := 0 // Reducido de 3 a 2
+	footerHeight := 0
+	contentHeight := h.viewport.Height - headerHeight - footerHeight
+	// contentHeight := h.height - headerHeight - footerHeight
+	contentWidth := h.viewport.Width
 
 	// Render components
-	tabsSection := h.renderTabs()
-	hasFields := len(h.tabsSection[h.activeTabIndex].sectionFields) > 0
+	tabsSection := h.headerView()
+	hasFields := len(h.tabsSection[h.activeTab].sectionFields) > 0
 	contentArea := h.renderContent(contentWidth, contentHeight, hasFields)
 
-	sectionFooter := headerFooterStyle.
+	sectionFooter := h.headerFooterStyle.
 		Width(contentWidth).
-		Render(h.renderFooter(h.tabsSection[h.activeTabIndex]))
+		Render(h.footerView())
 
 	return lipgloss.JoinVertical(
-		lipgloss.Center,
+		lipgloss.Center, // Cambiado de Center a Left para mejor alineación
 		tabsSection,
 		contentArea,
 		sectionFooter,
@@ -107,8 +155,8 @@ func (h *TextUserInterface) View() string {
 // renderContent renderiza el área de contenido según si tiene campos o no
 func (h *TextUserInterface) renderContent(contentWidth, contentHeight int, hasFields bool) string {
 	if !hasFields {
-		content := h.renderContentMessages(contentHeight, h.tabsSection[h.activeTabIndex].terminalPrints)
-		return borderStyle.
+		content := h.ContentView()
+		return h.borderStyle.
 			Width(contentWidth).
 			Height(contentHeight).
 			Render(content)
@@ -120,18 +168,18 @@ func (h *TextUserInterface) renderContent(contentWidth, contentHeight int, hasFi
 
 	// Left form section
 	leftContent := h.renderLeftSectionForm()
-	leftArea := borderStyle.
+	leftArea := h.borderStyle.
 		Width(leftWidth).
 		Height(contentHeight).
 		Render(leftContent)
 
 	// Right content section
 	rightContent := ""
-	if h.activeTabIndex > 0 {
-		rightContent = h.renderContentMessages(contentHeight, h.tabsSection[h.activeTabIndex].terminalPrints)
+	if h.activeTab > 0 {
+		rightContent = h.ContentView()
 	}
 
-	rightArea := borderStyle.
+	rightArea := h.borderStyle.
 		Width(rightWidth).
 		Height(contentHeight).
 		Render(rightContent)
@@ -139,90 +187,45 @@ func (h *TextUserInterface) renderContent(contentWidth, contentHeight int, hasFi
 	return lipgloss.JoinHorizontal(lipgloss.Top, leftArea, rightArea)
 }
 
-// renderContentMessages renderiza los mensajes para una sección de contenido
-func (h *TextUserInterface) renderContentMessages(contentHeight int, messages []TerminalPrint) string {
-	visibleMessages := contentHeight - 1
+// ContentView renderiza los mensajes para una sección de contenido
+func (h *TextUserInterface) ContentView() string {
+	tabContent := h.tabsSection[h.activeTab].tabContents
+	contentHeight := len(tabContent)
+	visibleMessages := contentHeight
 	start := 0
-	if len(messages) > visibleMessages {
-		start = len(messages) - visibleMessages
+	if len(tabContent) > visibleMessages {
+		start = len(tabContent) - visibleMessages
 	}
 
 	var contentLines []string
-	for i := start; i < len(messages); i++ {
-		formattedMsg := h.formatMessage(messages[i])
-		contentLines = append(contentLines, messageStyle.Render(formattedMsg))
+	for i := start; i < len(tabContent); i++ {
+		formattedMsg := h.formatMessage(tabContent[i])
+		contentLines = append(contentLines, h.messageStyle.Render(formattedMsg))
 	}
 	return strings.Join(contentLines, "\n")
 }
 
-// View renderiza la interfaz
-func (h *TextUserInterface) ViewOLD() string {
-	if h.width < 40 || h.height < 10 {
-		return "TextUserInterface too small. Minimum size: 40x10"
-	}
+func (h *TextUserInterface) headerView() string {
 
-	headerHeight := 3
-	footerHeight := 3
-	// contentHeight := h.height - footerHeight
-	contentHeight := h.height - headerHeight - footerHeight
-	contentWidth := h.width - 2
+	tab := h.tabsSection[h.activeTab]
 
-	// Pestañas
-	tabsSection := h.renderTabs()
-
-	var terminalPrints string
-	if h.activeTabIndex == 0 {
-		terminalPrints = h.renderLeftSectionForm()
-	} else {
-		// Contenido de la pestaña activa
-		visibleMessages := contentHeight - 1
-		start := 0
-		activeContent := h.tabsSection[h.activeTabIndex].terminalPrints
-		if len(activeContent) > visibleMessages {
-			start = len(activeContent) - visibleMessages
-		}
-
-		var contentLines []string
-		for i := start; i < len(activeContent); i++ {
-			formattedMsg := h.formatMessage(activeContent[i])
-			contentLines = append(contentLines, messageStyle.Render(formattedMsg))
-		}
-
-		terminalPrints = strings.Join(contentLines, "\n")
-	}
-
-	contentArea := borderStyle.
-		Width(contentWidth).
-		Height(contentHeight).
-		Render(terminalPrints)
-
-	// Footer
-	SectionFooter := headerFooterStyle.
-		Width(contentWidth).
-		// Render(t.tabsSection[t.activeTabIndex].SectionFooter)
-		Render(h.renderFooter(h.tabsSection[h.activeTabIndex]))
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		// header,
-		tabsSection,
-		contentArea,
-		SectionFooter,
-	)
+	title := h.headerTitleStyle.Render(tab.title)
+	line := strings.Repeat("─", max(0, h.viewport.Width-lipgloss.Width(title)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
-func (t *TextUserInterface) renderTabs() string {
+func (h *TextUserInterface) headerViewOLD() string {
 	var leftTab, centerTabs, rightTab []string
 
 	// TabSection izquierdo (GODEV)
-	leftStyle := tab
-	if t.activeTabIndex == 0 {
-		leftStyle = activeTabIndex
+	leftStyle := h.normalTabStyle
+	if h.activeTab == 0 {
+		leftStyle = h.activeTabStyle
 	}
-	leftTab = append(leftTab, leftStyle.Render(t.tabsSection[0].title))
+	leftTab = append(leftTab, leftStyle.Render(h.tabsSection[0].title))
 
 	// If only one tab exists, return just the left tab with appropriate spacing
-	if len(t.tabsSection) == 1 {
+	if len(h.tabsSection) == 1 {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			leftTab[0],
@@ -231,25 +234,25 @@ func (t *TextUserInterface) renderTabs() string {
 
 	// Rest of the existing code for multiple tabs...
 	// Central tabs processing example: (BUILD, TEST, DEPLOY)
-	for i := 1; i < len(t.tabsSection)-1; i++ {
-		style := tab
-		if i == t.activeTabIndex {
-			style = activeTabIndex
+	for i := 1; i < len(h.tabsSection)-1; i++ {
+		style := h.normalTabStyle
+		if i == h.activeTab {
+			style = h.activeTabStyle
 		}
-		centerTabs = append(centerTabs, style.Render(t.tabsSection[i].title))
+		centerTabs = append(centerTabs, style.Render(h.tabsSection[i].title))
 	}
 
 	// Right tab processing (example HELP)
-	rightStyle := tab
-	if t.activeTabIndex == len(t.tabsSection)-1 {
-		rightStyle = activeTabIndex
+	rightStyle := h.normalTabStyle
+	if h.activeTab == len(h.tabsSection)-1 {
+		rightStyle = h.activeTabStyle
 	}
-	rightTab = append(rightTab, rightStyle.Render(t.tabsSection[len(t.tabsSection)-1].title))
+	rightTab = append(rightTab, rightStyle.Render(h.tabsSection[len(h.tabsSection)-1].title))
 
 	// Combine everything with appropriate spacing
 	centerSection := lipgloss.JoinHorizontal(lipgloss.Top, centerTabs...)
 	// Calcular espaciado para centrar la sección central
-	totalWidth := t.width - lipgloss.Width(leftTab[0]) - lipgloss.Width(rightTab[0]) - 4
+	totalWidth := h.viewport.Width - lipgloss.Width(leftTab[0]) - lipgloss.Width(rightTab[0]) - 4
 	centerWidth := lipgloss.Width(centerSection)
 	padding := (totalWidth - centerWidth) / 2
 	spacer := strings.Repeat(" ", padding)
@@ -273,18 +276,24 @@ func (t *TextUserInterface) renderLeftSectionForm() string {
 	selectedStyle := style
 	selectedStyle = selectedStyle.
 		Bold(true).
-		Background(lipgloss.Color(background)).
-		Foreground(lipgloss.Color(foreGround))
+		Background(lipgloss.Color(t.Highlight)).
+		Foreground(lipgloss.Color(t.ForeGround))
 
 	editingStyle := selectedStyle
 	editingStyle = editingStyle.
-		Foreground(lipgloss.Color(black))
+		Foreground(lipgloss.Color(t.Background))
 
-	for i, field := range t.tabsSection[0].sectionFields {
-		line := fmt.Sprintf("%s: %s", field.label, field.value)
+	for indexSection, tabSection := range t.tabsSection {
 
-		if t.activeTabIndex == 0 {
-			if i == t.indexActiveEditField {
+		// break different index
+		if indexSection != t.activeTab {
+			continue
+		}
+
+		for i, field := range tabSection.sectionFields {
+			line := fmt.Sprintf("%s: %s", field.label, field.value)
+
+			if i == tabSection.indexActiveEditField {
 				if t.editingFieldValueInSection {
 					cursorPos := field.cursor + len(field.label) + 2
 					line = line[:cursorPos] + "▋" + line[cursorPos:]
@@ -295,27 +304,20 @@ func (t *TextUserInterface) renderLeftSectionForm() string {
 			} else {
 				line = style.Render(line)
 			}
-		}
 
-		lines = append(lines, line)
+			lines = append(lines, line)
+		}
 	}
 
 	return strings.Join(lines, "\n")
 }
 
-func (t *TextUserInterface) renderFooter(tab TabSection) string {
+func (h *TextUserInterface) footerViewOLD() string {
+	return h.tabsSection[h.activeTab].SectionFooter
+}
 
-	if tab.SectionFooter != "" {
-		return tab.SectionFooter
-	}
-
-	var footerParts []string
-	// for _, field := range tab.sectionFields {
-	// 	status := "○" // inactive
-	// 	if field.isOpenedStatus {
-	// 		status = "●" // isOpenedStatus
-	// 	}
-	// 	footerParts = append(footerParts, fmt.Sprintf("'%s' %s %s", field.ShortCut, field.label, status))
-	// }
-	return strings.Join(footerParts, " | ")
+func (h *TextUserInterface) footerView() string {
+	info := h.footerInfoStyle.Render(fmt.Sprintf("%3.f%%", h.viewport.ScrollPercent()*100))
+	line := strings.Repeat("─", max(0, h.viewport.Width-lipgloss.Width(info)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 }
