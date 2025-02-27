@@ -77,7 +77,7 @@ func joinMessages(messages ...any) (Label string) {
 // SendMessage envía un mensaje al tui
 func (t *TextUserInterface) SendMessage(content string, msgType MessageType) {
 
-	t.tabContentsChan <- TabContent{
+	t.tabContentsChan <- tabContent{
 		Content: content,
 		Type:    msgType,
 		Time:    time.Now(),
@@ -121,7 +121,7 @@ const (
 )
 
 // formatMessage formatea un mensaje según su tipo
-func (t *TextUserInterface) formatMessage(msg TabContent) string {
+func (t *TextUserInterface) formatMessage(msg tabContent) string {
 	timeStr := timeStyle.Render(fmt.Sprintf("%s", msg.Time.Format("15:04:05")))
 	// content := fmt.Sprintf("[%s] %s", timeStr, msg.Content)
 

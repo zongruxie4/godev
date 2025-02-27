@@ -29,7 +29,7 @@ func GodevStart() {
 	h.tui = NewTUI(&TuiConfig{
 		TabIndexStart: 0,
 		ExitChan:      make(chan bool),
-		Sections:      []tuiSectionAdapter{},
+		TabSections:   []TabSection{},
 		Color: &ColorStyle{
 			ForeGround: "#F4F4F4", // #F4F4F4
 			Background: "#000000", // #000000

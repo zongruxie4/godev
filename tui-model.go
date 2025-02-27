@@ -16,13 +16,13 @@ import (
 )
 
 // channelMsg es un tipo especial para mensajes del canal
-type channelMsg TabContent
+type channelMsg tabContent
 
 // Print representa un mensaje de actualización
 type tickMsg time.Time
 
-// TabContent imprime un mensaje en la tui
-type TabContent struct {
+// tabContent imprime un mensaje en la tui
+type tabContent struct {
 	Content string
 	Type    MessageType
 	Time    time.Time
@@ -36,111 +36,80 @@ type TextUserInterface struct {
 	ready    bool
 	viewport viewport.Model
 
-	tabsSection                []TabSection
-	activeTab                  int
+	activeTab                  int  // current tab index
 	editingFieldValueInSection bool // Si estamos editando un campo
 	SectionFooter              string
 	currentTime                string
-	tabContentsChan            chan TabContent
+	tabContentsChan            chan tabContent
 	tea                        *tea.Program
 }
 
+// represent the tab section in the tui
 type TabSection struct {
-	title                string
-	SectionFooter        string
-	tabContents          []TabContent   // message contents
-	sectionFields        []SectionField // Field actions configured for the section
-	indexActiveEditField int            // Índice del campo de configuración seleccionado
+	Title         string         // eg: "BUILD", "TEST"
+	SectionFields []SectionField // Field actions configured for the section
+	SectionFooter string         // eg: "Press 't' to compile", "Press 'r' to run tests"
+	// internal use
+	tabContents          []tabContent // message contents
+	indexActiveEditField int          // Índice del campo de configuración seleccionado
 }
 
 // Interface for handling tab field sectionFields
-type sectionFieldAdapter interface {
-	FieldNameLabelAndValue() (name, label, value string)             // eg: "port", "Server Port", "8080"
-	Editable() bool                                                  // if no editable eject the action FieldValueChange directly
-	FieldValueChange(newValue string) (runMessage string, err error) //eg: "8080" -> "9090" runMessage: "Port changed from 8080 to 9090"
-}
-
-// SectionField representa un campo de configuración Editable()
 type SectionField struct {
-	index          int
-	name           string // eg: "port"
-	label          string // eg: "Server Port"
-	value          string // eg: "8080"
-	isOpenedStatus bool
-	cursor         int // Posición del cursor en la cadena de texto
-
-	sectionFieldAdapter
-}
-
-// represent the tab section in the tui
-type tuiSectionAdapter interface {
-	SectionTitle() string // eg: "BUILD", "TEST"
-	SectionFieldsAdapters() []sectionFieldAdapter
-	SectionFooter() string // eg: "Press 't' to compile", "Press 'r' to run tests"
+	Name             string                                               // eg: "port", "Server Port", "8080"
+	Label            string                                               // eg: "Server Port"
+	Value            string                                               // eg: "8080"
+	Editable         bool                                                 // if no editable eject the action FieldValueChange directly
+	FieldValueChange func(newValue string) (runMessage string, err error) //eg: "8080" -> "9090" runMessage: "Port changed from 8080 to 9090"
+	//internal use
+	index  int
+	cursor int // cursor position in text value
 }
 
 type TuiConfig struct {
-	TabIndexStart int                 // tabIndexStart is the index of the tab to start
-	ExitChan      chan bool           //  global chan to close app
-	Sections      []tuiSectionAdapter // represent sections in the tui
+	TabIndexStart int          // is the index of the tab to start
+	ExitChan      chan bool    //  global chan to close app
+	TabSections   []TabSection // represent sections in the tui
 	Color         *ColorStyle
 }
 
 func NewTUI(c *TuiConfig) *TextUserInterface {
 
-	tabsSection := make([]TabSection, len(c.Sections))
-
-	for i, section := range c.Sections {
-
-		var tabActions []SectionField
-
-		for i, action := range section.SectionFieldsAdapters() {
-
-			name, label, value := action.FieldNameLabelAndValue()
-
-			tabActions = append(tabActions, SectionField{
-				index:               i,
-				name:                name,
-				label:               label,
-				value:               value,
-				isOpenedStatus:      false,
-				cursor:              0,
-				sectionFieldAdapter: action,
-			})
-		}
-
-		tabsSection[i] = TabSection{
-			title:         section.SectionTitle(),
-			SectionFooter: section.SectionFooter(),
-			tabContents:   []TabContent{},
-			sectionFields: tabActions,
-		}
-	}
-
 	// Create default tab if no tabs provided
-	if len(tabsSection) == 0 {
+	if len(c.TabSections) == 0 {
 		defaultTab := TabSection{
-			title:         "GODEV",
-			tabContents:   []TabContent{},
-			sectionFields: []SectionField{},
+			Title:         "BUILD",
+			SectionFields: []SectionField{},
+			SectionFooter: "build footer example",
+			tabContents:   []tabContent{},
 		}
-		tabsSection = append(tabsSection, defaultTab)
+		c.TabSections = append(c.TabSections, defaultTab)
 
 		testTab := TabSection{
-			title:         "TEST",
-			tabContents:   []TabContent{},
-			sectionFields: []SectionField{},
+			Title:         "DEPLOY",
+			SectionFields: []SectionField{},
+			SectionFooter: "deploy footer example",
+			tabContents:   []tabContent{},
 		}
-		tabsSection = append(tabsSection, testTab)
+		c.TabSections = append(c.TabSections, testTab)
 
 		c.TabIndexStart = 0 // Set the default tab index to 0
 	}
 
+	// Recorremos c.TabSections y actualizamos el índice de cada campo.
+	for i := range c.TabSections {
+		section := &c.TabSections[i]
+		for j := range section.SectionFields {
+			section.SectionFields[j].index = j
+			section.SectionFields[j].cursor = 0
+		}
+		// Si es necesario asignar otros valores, se hace aquí.
+	}
+
 	tui := &TextUserInterface{
 		TuiConfig:       c,
-		tabsSection:     tabsSection,
 		activeTab:       c.TabIndexStart,
-		tabContentsChan: make(chan TabContent, 100),
+		tabContentsChan: make(chan tabContent, 100),
 		currentTime:     time.Now().Format("15:04:05"),
 		TuiStyle:        NewTuiStyle(c.Color),
 	}
@@ -154,7 +123,7 @@ func NewTUI(c *TuiConfig) *TextUserInterface {
 }
 
 func (cf *SectionField) SetCursorAtEnd() {
-	cf.cursor = len(cf.value)
+	cf.cursor = len(cf.Value)
 }
 
 // Init inicializa el modelo
@@ -183,9 +152,9 @@ func (h *TextUserInterface) tickEverySecond() tea.Cmd {
 
 // Add this helper function
 func (h *TextUserInterface) addTerminalPrint(msgType MessageType, content string) {
-	h.tabsSection[h.activeTab].tabContents = append(
-		h.tabsSection[h.activeTab].tabContents,
-		TabContent{
+	h.TabSections[h.activeTab].tabContents = append(
+		h.TabSections[h.activeTab].tabContents,
+		tabContent{
 			Type:    msgType,
 			Content: content,
 			Time:    time.Now(),
@@ -204,24 +173,24 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg: // Al presionar una tecla
 		if h.editingFieldValueInSection { // EDITING FIELD IN SECTION
 
-			currentTab := &h.tabsSection[h.activeTab]
+			currentTab := &h.TabSections[h.activeTab]
 
-			currentField := &h.tabsSection[h.activeTab].sectionFields[currentTab.indexActiveEditField]
+			currentField := &h.TabSections[h.activeTab].SectionFields[currentTab.indexActiveEditField]
 
-			if currentField.Editable() { // Si el campo es editable, permitir la edición
+			if currentField.Editable { // Si el campo es editable, permitir la edición
 
 				switch msg.String() {
 				case "enter": // Al presionar ENTER, guardamos los cambios o ejecutamos la acción
-					if _, err := currentField.FieldValueChange(currentField.value); err != nil {
-						h.addTerminalPrint(ErrorMsg, fmt.Sprintf("Error updating field: %v %v", currentField.name, err))
+					if _, err := currentField.FieldValueChange(currentField.Value); err != nil {
+						h.addTerminalPrint(ErrorMsg, fmt.Sprintf("Error updating field: %v %v", currentField.Name, err))
 					}
 					// return the cursor to its position in the field
 					currentField.SetCursorAtEnd()
 					h.editingFieldValueInSection = false
 					return h, nil
 				case "esc": // Al presionar ESC, descartamos los cambios
-					currentField := &h.tabsSection[h.activeTab].sectionFields[currentTab.indexActiveEditField]
-					// currentField.value = GetConfigFields()[currentTab.indexActiveEditField].value // Restaurar valor original
+					currentField := &h.TabSections[h.activeTab].SectionFields[currentTab.indexActiveEditField]
+					// currentField.Value = GetConfigFields()[currentTab.indexActiveEditField].value // Restaurar valor original
 
 					// volvemos el cursor a su posición
 					currentField.SetCursorAtEnd()
@@ -229,22 +198,22 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					h.editingFieldValueInSection = false
 					return h, nil
 				case "left": // Mover el cursor a la izquierda
-					currentField := &h.tabsSection[h.activeTab].sectionFields[currentTab.indexActiveEditField]
+					currentField := &h.TabSections[h.activeTab].SectionFields[currentTab.indexActiveEditField]
 					if currentField.cursor > 0 {
 						currentField.cursor--
 					}
 				case "right": // Mover el cursor a la derecha
-					currentField := &h.tabsSection[h.activeTab].sectionFields[currentTab.indexActiveEditField]
-					if currentField.cursor < len(currentField.value) {
+					currentField := &h.TabSections[h.activeTab].SectionFields[currentTab.indexActiveEditField]
+					if currentField.cursor < len(currentField.Value) {
 						currentField.cursor++
 					}
 				default:
-					currentField := &h.tabsSection[h.activeTab].sectionFields[currentTab.indexActiveEditField]
+					currentField := &h.TabSections[h.activeTab].SectionFields[currentTab.indexActiveEditField]
 					if msg.String() == "backspace" && currentField.cursor > 0 {
-						currentField.value = currentField.value[:currentField.cursor-1] + currentField.value[currentField.cursor:]
+						currentField.Value = currentField.Value[:currentField.cursor-1] + currentField.Value[currentField.cursor:]
 						currentField.cursor--
 					} else if len(msg.String()) == 1 {
-						currentField.value = currentField.value[:currentField.cursor] + msg.String() + currentField.value[currentField.cursor:]
+						currentField.Value = currentField.Value[:currentField.cursor] + msg.String() + currentField.Value[currentField.cursor:]
 						currentField.cursor++
 					}
 				}
@@ -255,12 +224,12 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					msgType := OkMsg
 					// content eg: "Browser Opened"
-					content, err := currentField.FieldValueChange(currentField.value)
+					content, err := currentField.FieldValueChange(currentField.Value)
 					if err != nil {
 						msgType = ErrorMsg
-						content = fmt.Sprintf("%s %s %s", currentField.label, content, err.Error())
+						content = fmt.Sprintf("%s %s %s", currentField.Label, content, err.Error())
 					}
-					currentField.value = content
+					currentField.Value = content
 					h.addTerminalPrint(msgType, content)
 					h.editingFieldValueInSection = false
 				}
@@ -271,26 +240,26 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch msg.String() {
 			case "up": // Mover hacia arriba el indice del campo activo
-				currentTab := &h.tabsSection[h.activeTab]
+				currentTab := &h.TabSections[h.activeTab]
 
 				if currentTab.indexActiveEditField > 0 {
 					currentTab.indexActiveEditField--
 				}
 			case "down": // Mover hacia abajo el indice del campo activo
-				currentTab := &h.tabsSection[h.activeTab]
-				if currentTab.indexActiveEditField < len(h.tabsSection[0].sectionFields)-1 {
+				currentTab := &h.TabSections[h.activeTab]
+				if currentTab.indexActiveEditField < len(h.TabSections[0].SectionFields)-1 {
 					currentTab.indexActiveEditField++
 				}
 			case "enter":
 				h.editingFieldValueInSection = true
 			case "tab": // change tabSection
-				h.activeTab = (h.activeTab + 1) % len(h.tabsSection)
+				h.activeTab = (h.activeTab + 1) % len(h.TabSections)
 				h.updateViewport()
 			case "shift+tab": // change tabSection
-				h.activeTab = (h.activeTab - 1 + len(h.tabsSection)) % len(h.tabsSection)
+				h.activeTab = (h.activeTab - 1 + len(h.TabSections)) % len(h.TabSections)
 				h.updateViewport()
 			case "ctrl+l":
-				h.tabsSection[h.activeTab].tabContents = []TabContent{}
+				h.TabSections[h.activeTab].tabContents = []tabContent{}
 			case "ctrl+c":
 				close(h.ExitChan) // Cerrar el canal para señalizar a todas las goroutines
 				return h, tea.Quit
@@ -299,7 +268,7 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case channelMsg:
-		h.tabsSection[h.activeTab].tabContents = append(h.tabsSection[h.activeTab].tabContents, TabContent(msg))
+		h.TabSections[h.activeTab].tabContents = append(h.TabSections[h.activeTab].tabContents, tabContent(msg))
 		cmds = append(cmds, h.listenToMessages())
 
 		h.updateViewport()

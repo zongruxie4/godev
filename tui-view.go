@@ -70,7 +70,7 @@ func (h *TextUserInterface) View() string {
 
 // ContentView renderiza los mensajes para una sección de contenido
 func (h *TextUserInterface) ContentView() string {
-	tabContent := h.tabsSection[h.activeTab].tabContents
+	tabContent := h.TabSections[h.activeTab].tabContents
 	var contentLines []string
 	for _, content := range tabContent {
 		formattedMsg := h.formatMessage(content)
@@ -95,19 +95,19 @@ func (t *TextUserInterface) renderLeftSectionForm() string {
 	editingStyle = editingStyle.
 		Foreground(lipgloss.Color(t.Background))
 
-	for indexSection, tabSection := range t.tabsSection {
+	for indexSection, tabSection := range t.TabSections {
 
 		// break different index
 		if indexSection != t.activeTab {
 			continue
 		}
 
-		for i, field := range tabSection.sectionFields {
-			line := fmt.Sprintf("%s: %s", field.label, field.value)
+		for i, field := range tabSection.SectionFields {
+			line := fmt.Sprintf("%s: %s", field.Label, field.Value)
 
 			if i == tabSection.indexActiveEditField {
 				if t.editingFieldValueInSection {
-					cursorPos := field.cursor + len(field.label) + 2
+					cursorPos := field.cursor + len(field.Label) + 2
 					line = line[:cursorPos] + "▋" + line[cursorPos:]
 					line = editingStyle.Render(line)
 				} else {
@@ -125,8 +125,8 @@ func (t *TextUserInterface) renderLeftSectionForm() string {
 }
 
 func (h *TextUserInterface) headerView() string {
-	tab := h.tabsSection[h.activeTab]
-	title := h.headerTitleStyle.Render(tab.title)
+	tab := h.TabSections[h.activeTab]
+	title := h.headerTitleStyle.Render(tab.Title)
 	line := h.lineHeadFootStyle.Render(strings.Repeat("─", max(0, h.viewport.Width-lipgloss.Width(title))))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
