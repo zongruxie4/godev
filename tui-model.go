@@ -195,7 +195,10 @@ func (h *TextUserInterface) addTerminalPrint(msgType MessageType, content string
 
 // Update maneja las actualizaciones del estado
 func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
+	var (
+		cmds []tea.Cmd
+		cmd  tea.Cmd
+	)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg: // Al presionar una tecla
@@ -280,10 +283,12 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case "enter":
 				h.editingFieldValueInSection = true
-			case "tab":
+			case "tab": // change tabSection
 				h.activeTab = (h.activeTab + 1) % len(h.tabsSection)
-			case "shift+tab":
+				h.updateViewport()
+			case "shift+tab": // change tabSection
 				h.activeTab = (h.activeTab - 1 + len(h.tabsSection)) % len(h.tabsSection)
+				h.updateViewport()
 			case "ctrl+l":
 				h.tabsSection[h.activeTab].tabContents = []TabContent{}
 			case "ctrl+c":
@@ -296,6 +301,8 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case channelMsg:
 		h.tabsSection[h.activeTab].tabContents = append(h.tabsSection[h.activeTab].tabContents, TabContent(msg))
 		cmds = append(cmds, h.listenToMessages())
+
+		h.updateViewport()
 
 	case tea.WindowSizeMsg:
 
@@ -322,8 +329,16 @@ func (h *TextUserInterface) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h.currentTime = time.Now().Format("15:04:05")
 		cmds = append(cmds, h.tickEverySecond())
 	}
+	// Handle keyboard and mouse events in the viewport
+	h.viewport, cmd = h.viewport.Update(msg)
+	cmds = append(cmds, cmd)
 
 	return h, tea.Batch(cmds...)
+}
+
+func (h *TextUserInterface) updateViewport() {
+	h.viewport.SetContent(h.ContentView())
+	h.viewport.GotoBottom()
 }
 
 func (h *TextUserInterface) StartTUI(wg *sync.WaitGroup) {

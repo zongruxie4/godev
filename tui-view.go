@@ -120,71 +120,8 @@ func (h *TextUserInterface) View() string {
 	if !h.ready {
 		return "\n  Initializing..."
 	}
-	return fmt.Sprintf("%s\n%s\n%s", h.headerView(), h.ContentView(), h.footerView())
-}
-
-// View renderiza la interfaz
-func (h *TextUserInterface) ViewOLD() string {
-	// if h.width < 40 || h.height < 10 {
-	// 	return "TextUserInterface too small. Minimum size: 40x10"
-	// }
-
-	headerHeight := 0 // Reducido de 3 a 2
-	footerHeight := 0
-	contentHeight := h.viewport.Height - headerHeight - footerHeight
-	// contentHeight := h.height - headerHeight - footerHeight
-	contentWidth := h.viewport.Width
-
-	// Render components
-	tabsSection := h.headerView()
-	hasFields := len(h.tabsSection[h.activeTab].sectionFields) > 0
-	contentArea := h.renderContent(contentWidth, contentHeight, hasFields)
-
-	sectionFooter := h.headerFooterStyle.
-		Width(contentWidth).
-		Render(h.footerView())
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center, // Cambiado de Center a Left para mejor alineación
-		tabsSection,
-		contentArea,
-		sectionFooter,
-	)
-}
-
-// renderContent renderiza el área de contenido según si tiene campos o no
-func (h *TextUserInterface) renderContent(contentWidth, contentHeight int, hasFields bool) string {
-	if !hasFields {
-		content := h.ContentView()
-		return h.borderStyle.
-			Width(contentWidth).
-			Height(contentHeight).
-			Render(content)
-	}
-
-	// Split layout (30/70)
-	leftWidth := (contentWidth * 30) / 100
-	rightWidth := contentWidth - leftWidth - 1
-
-	// Left form section
-	leftContent := h.renderLeftSectionForm()
-	leftArea := h.borderStyle.
-		Width(leftWidth).
-		Height(contentHeight).
-		Render(leftContent)
-
-	// Right content section
-	rightContent := ""
-	if h.activeTab > 0 {
-		rightContent = h.ContentView()
-	}
-
-	rightArea := h.borderStyle.
-		Width(rightWidth).
-		Height(contentHeight).
-		Render(rightContent)
-
-	return lipgloss.JoinHorizontal(lipgloss.Top, leftArea, rightArea)
+	return fmt.Sprintf("%s\n%s\n%s", h.headerView(), h.viewport.View(), h.footerView())
+	// return fmt.Sprintf("%s\n%s\n%s", h.headerView(), h.ContentView(), h.footerView())
 }
 
 // ContentView renderiza los mensajes para una sección de contenido
@@ -310,10 +247,6 @@ func (t *TextUserInterface) renderLeftSectionForm() string {
 	}
 
 	return strings.Join(lines, "\n")
-}
-
-func (h *TextUserInterface) footerViewOLD() string {
-	return h.tabsSection[h.activeTab].SectionFooter
 }
 
 func (h *TextUserInterface) footerView() string {
