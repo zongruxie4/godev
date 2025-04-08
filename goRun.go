@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"sync"
 )
 
 type GoRunConfig struct {
@@ -53,6 +54,7 @@ func (h *GoRun) RunProgram() error {
 	}
 	h.IsRunning = true
 
+	var once sync.Once
 	done := make(chan struct{})
 
 	go io.Copy(h.Writer, stderr)
@@ -63,7 +65,7 @@ func (h *GoRun) RunProgram() error {
 		case <-h.ExitChan:
 			// h.Print("Received exit signal, stopping application...")
 			h.StopProgram()
-			close(done)
+			once.Do(func() { close(done) })
 		case <-done:
 			// finish goroutine
 		}
@@ -76,7 +78,7 @@ func (h *GoRun) RunProgram() error {
 		} else {
 			fmt.Fprintf(h.Writer, "App: %v closed successfully\n", h.ExecProgramPath)
 		}
-		close(done)
+		once.Do(func() { close(done) })
 	}()
 
 	return nil

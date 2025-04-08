@@ -33,6 +33,7 @@ func GodevStart() {
 	}
 
 	h.NewConfig()
+	h.ch.InitializeFields(h)
 	h.NewBrowser()
 
 	h.tui = NewTUI(&TuiConfig{
@@ -42,15 +43,13 @@ func GodevStart() {
 		Color: &ColorStyle{
 			ForeGround: "#F4F4F4", // #F4F4F4
 			Background: "#000000", // #000000
-			Highlight:  "#FF6600", // #FF6600
+			Highlight:  "#FF6600", // #FF6600, FF6600  73ceddff
 			Lowlight:   "#666666", // #666666
 		},
 		LogToFile: h.LogToFile,
 	})
 
-	h.BuildTabHandlers()
-
-	// h.tui = NewTUI(h.exitChan, h.serverHandler, h.assetsHandler, h.wasmHandler)
+	h.AddSectionBUILD()
 
 	var wg sync.WaitGroup
 	wg.Add(3)

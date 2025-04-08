@@ -2,7 +2,7 @@ package godev
 
 import "path"
 
-func (h *handler) BuildTabHandlers() {
+func (h *handler) AddSectionBUILD() {
 
 	// LDFlags      func() []string // eg: []string{"-X 'main.version=v1.0.0'","-X 'main.buildDate=2023-01-01'"}
 
@@ -16,7 +16,7 @@ func (h *handler) BuildTabHandlers() {
 		ArgumentsToRunServer:        nil,
 		PublicFolder:                h.ch.config.PublicFolder(),
 		AppPort:                     h.ch.config.ServerPortField.Value(),
-		Writer:                      &sectionBuild,
+		Writer:                      sectionBuild,
 		ExitChan:                    h.exitChan,
 	})
 
@@ -28,7 +28,7 @@ func (h *handler) BuildTabHandlers() {
 		WebFilesFolder: func() (string, string) {
 			return h.ch.config.WebFilesFolderField.Value(), h.ch.config.PublicFolder()
 		},
-		Writer: &sectionBuild,
+		Writer: sectionBuild,
 	})
 
 	//ASSETS
@@ -61,7 +61,7 @@ func (h *handler) BuildTabHandlers() {
 		},
 		BrowserReload: h.browser.Reload,
 
-		Writer:   &sectionBuild,
+		Writer:   sectionBuild,
 		ExitChan: h.exitChan,
 		UnobservedFiles: func() []string {
 
@@ -81,7 +81,7 @@ func (h *handler) BuildTabHandlers() {
 		},
 	})
 
-	h.tui.AddTabSections()
+	h.tui.AddTabSections(sectionBuild)
 
 }
 

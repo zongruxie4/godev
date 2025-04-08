@@ -89,11 +89,11 @@ func (h *handler) OpenBrowser() error {
 		h.browser.isOpen = true
 		var protocol = "http"
 
-		url := protocol + `://localhost:` + h.ch.config.ServerPort + h.ch.config.BrowserStartUrl
+		url := protocol + `://localhost:` + h.ch.config.ServerPortField.Value() + h.ch.config.BrowserStartUrlField.Value()
 
 		err = chromedp.Run(h.browser.Context, h.browser.sendkeys(url))
 		if err != nil {
-			h.browser.errChan <- fmt.Errorf("error navigating to %s: %v", h.ch.config.BrowserStartUrl, err)
+			h.browser.errChan <- fmt.Errorf("error navigating to %s: %v", h.ch.config.BrowserStartUrlField.Value(), err)
 			return
 		}
 
@@ -136,7 +136,7 @@ func (h *handler) OpenBrowser() error {
 
 func (h *handler) CreateBrowserContext() error {
 
-	err := h.browser.setBrowserPositionAndSize(h.ch.config.BrowserPositionAndSize)
+	err := h.browser.setBrowserPositionAndSize(h.ch.config.BrowserPositionField.Value())
 	if err != nil {
 		return err
 	}

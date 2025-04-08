@@ -70,6 +70,7 @@ func (h *ServerHandler) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	fmt.Fprintln(h.Writer, "Server Start ...")
+	// fmt.Println("Server Start ...")
 
 	if _, err := os.Stat(h.goCompiler.MainFilePath); os.IsNotExist(err) {
 		// ejecutar el servidor interno de archivos estáticos
@@ -218,4 +219,21 @@ func (h *ServerHandler) RestartExternalServer() error {
 
 func (h *ServerHandler) UnobservedFiles() []string {
 	return h.goCompiler.UnobservedFiles()
+}
+
+// RestartServer reinicia el servidor actual (interno o externo) y devuelve un mensaje de estado
+func (h *ServerHandler) RestartServer() (string, error) {
+	if h.internalServerRun {
+		err := h.RestartInternalServer()
+		if err != nil {
+			return "Error restarting internal server", err
+		}
+		return "Internal server restarted", nil
+	} else {
+		err := h.RestartExternalServer()
+		if err != nil {
+			return "Error restarting external server", err
+		}
+		return "External server restarted", nil
+	}
 }

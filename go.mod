@@ -31,7 +31,6 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -47,10 +46,9 @@ require (
 )
 
 require (
-	github.com/cdvelop/devtui v0.0.43
+	github.com/cdvelop/devtui v0.0.44
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/fstanis/screenresolution v0.0.0-20190527020317-869904d15333
 	github.com/tdewolff/minify/v2 v2.23.1
 	golang.org/x/sys v0.32.0 // indirect
 )
