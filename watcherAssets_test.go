@@ -1,70 +1,22 @@
 package godev
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
-	"sync" // Import sync
 	"testing"
 	"time"
 
-	"strings" // Import strings
-	// sync, testing, time ya están importados arriba
+	"strings"
+
 	"github.com/stretchr/testify/require"
 )
 
 func TestWatcherAssetsIntegration(t *testing.T) {
-	// --- Setup ---
-	tmpDir := t.TempDir()
-	t.Logf("Directorio temporal de prueba: %s", tmpDir) // Log temp dir
-
-	webDir := filepath.Join(tmpDir, "web")
-	publicDir := filepath.Join(webDir, "public")
-	// Usaremos themeDir directamente para simplificar las rutas en el test
-	themeDir := filepath.Join(webDir, "theme")
-
-	require.NoError(t, os.MkdirAll(publicDir, 0755))
-	require.NoError(t, os.MkdirAll(themeDir, 0755)) // Crear themeDir
-
-	exitChan := make(chan bool)
-	var logBuf bytes.Buffer
-
-	assetsCfg := &AssetsConfig{
-		ThemeFolder:    func() string { return themeDir }, // Usar themeDir directamente
-		WebFilesFolder: func() string { return publicDir },
-		Print:          func(messages ...any) { logBuf.WriteString(fmt.Sprintln(messages...)) }, // Usar Sprintln para mejor formato
-		// JavascriptForInitializing: func() (string, error) { return "/*init*/", nil }, // Usar código inicial simple
-		JavascriptForInitializing: func() (string, error) { return "", nil }, // Sin código inicial para simplificar aserciones
-	}
-
-	assetsHandler := NewAssetsCompiler(assetsCfg)
-	assetsHandler.writeOnDisk = true
-
-	watchCfg := &WatchConfig{
-		AppRootDir:      tmpDir,
-		FileEventAssets: assetsHandler,
-		FileEventGO:     nil,
-		FileEventWASM:   nil,
-		FileTypeGO:      nil,
-		BrowserReload:   func() error { return nil },
-		Writer:          &logBuf,
-		ExitChan:        exitChan,
-		UnobservedFiles: assetsHandler.UnobservedFiles,
-	}
-
-	watcher := NewWatchHandler(watchCfg)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		watcher.FileWatcherStart(&wg)
-	}()
-
-	// Espera corta para que el watcher inicie
-	time.Sleep(50 * time.Millisecond)
-
-	outputJsPath := filepath.Join(publicDir, "main.js") // Ruta del archivo de salida
+	// --- Setup using helper ---
+	// Call the setup function from watcherInit_test.go
+	// We only need a subset of the returned variables directly in this test function's scope.
+	// _ indicates variables we don't need to reference directly here (like tmpDir, assetsHandler, watcher).
+	_, themeDir, _, _, _, exitChan, logBuf, wg, outputJsPath := setupWatcherAssetsTest(t)
 
 	// --- Test Steps ---
 

@@ -46,7 +46,7 @@ require (
 )
 
 require (
-	github.com/cdvelop/devtui v0.0.44
+	github.com/cdvelop/devtui v0.0.45
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.1

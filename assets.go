@@ -184,6 +184,8 @@ func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string
 		return errors.New(e + err.Error())
 	}
 
+	c.Print("debug", "writing to disk:", minifiedBuf.String())
+
 	if err := FileWrite(path.Join(c.WebFilesFolder(), fh.fileOutputName), minifiedBuf); err != nil {
 		return errors.New(e + err.Error())
 	}
