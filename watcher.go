@@ -80,6 +80,7 @@ func (h *WatchHandler) FileWatcherStart(wg *sync.WaitGroup) {
 }
 
 func (h *WatchHandler) watchEvents() {
+	// Restored but with shorter debounce time to avoid missing important events
 	lastActions := make(map[string]time.Time)
 
 	reloadBrowserTimer := time.NewTimer(0)
@@ -100,8 +101,9 @@ func (h *WatchHandler) watchEvents() {
 			}
 
 			// fmt.Fprintln(h.Writer, "DEBUG Event:", event.Name, event.Op)
-			// Aplicar debouncing para evitar múltiples eventos
-			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 1*time.Second {
+			// Restore debouncer with shorter timeout - 100ms is enough for file operations to complete,
+			// but short enough to not miss important events like CREATE followed by WRITE
+			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 100*time.Millisecond {
 
 				// Restablece el temporizador de recarga de navegador
 				reloadBrowserTimer.Stop()
@@ -155,9 +157,9 @@ func (h *WatchHandler) watchEvents() {
 						reloadBrowserTimer.Reset(wait)
 					}
 
+					// Update the last action time for debouncing
 					lastActions[event.Name] = time.Now()
 				}
-
 			}
 		case err, ok := <-h.watcher.Errors:
 			if !ok {
@@ -234,15 +236,25 @@ func (h *WatchHandler) Contain(path string) bool {
 	if h.no_add_to_watch == nil {
 		h.no_add_to_watch = map[string]bool{}
 
-		// add files to ignore
-		for _, file := range h.UnobservedFiles() {
-			h.no_add_to_watch[file] = true
+		// add files to ignore only if UnobservedFiles is configured
+		if h.UnobservedFiles != nil {
+			for _, file := range h.UnobservedFiles() {
+				h.no_add_to_watch[file] = true
+			}
 		}
 
 	}
 
-	for value := range h.no_add_to_watch {
-		if strings.Contains(path, value) {
+	// Check for exact match against the full paths in the ignore list
+	if _, exists := h.no_add_to_watch[path]; exists {
+		return true
+	}
+
+	// Additionally, ignore directories within ignored paths (e.g., subfolders of .git)
+	for ignoredPath := range h.no_add_to_watch {
+		// Check if the current path starts with an ignored path + separator
+		// This prevents watching subdirectories of ignored directories (like .git/hooks)
+		if strings.HasPrefix(path, ignoredPath+string(filepath.Separator)) {
 			return true
 		}
 	}

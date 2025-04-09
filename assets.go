@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -133,7 +134,9 @@ func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string
 
 	c.Print("Asset", extension, event, "...", filePath)
 
-	time.Sleep(10 * time.Millisecond) // Esperar antes de intentar leer el archivo de nuevo
+	// Increase sleep duration significantly to allow file system operations (like write after rename) to settle
+	// fail when time is < 10ms
+	time.Sleep(20 * time.Millisecond) // Increased from 10ms
 
 	// read file content from filePath
 	content, err := os.ReadFile(filePath)
@@ -189,9 +192,11 @@ func (c *AssetsHandler) NewFileEvent(fileName, extension, filePath, event string
 }
 
 func (c *AssetsHandler) UnobservedFiles() []string {
+	// Return the full path of the output files to ignore
+	outputDir := c.WebFilesFolder() // Get the output directory path
 	return []string{
-		c.cssHandler.fileOutputName,
-		c.jsHandler.fileOutputName,
+		filepath.Join(outputDir, c.cssHandler.fileOutputName), // e.g., C:\...\public\style.css
+		filepath.Join(outputDir, c.jsHandler.fileOutputName),  // e.g., C:\...\public\main.js
 	}
 }
 
