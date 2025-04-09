@@ -27,6 +27,7 @@ func setupWatcherAssetsTest(t *testing.T) (
 	watcher *WatchHandler,
 	exitChan chan bool,
 	logBuf *bytes.Buffer,
+	logBufMu *sync.Mutex, // Mutex for logBuf
 	wg *sync.WaitGroup,
 	outputJsPath string,
 ) {
@@ -45,11 +46,19 @@ func setupWatcherAssetsTest(t *testing.T) (
 
 	exitChan = make(chan bool)
 	logBuf = new(bytes.Buffer) // Use new for pointer
+	logBufMu = new(sync.Mutex) // Initialize the mutex
+
+	// Define the print function that uses the mutex
+	printFunc := func(messages ...any) {
+		logBufMu.Lock()
+		defer logBufMu.Unlock()
+		logBuf.WriteString(fmt.Sprintln(messages...))
+	}
 
 	assetsCfg := &AssetsConfig{
 		ThemeFolder:               func() string { return themeDir },
 		WebFilesFolder:            func() string { return publicDir },
-		Print:                     func(messages ...any) { logBuf.WriteString(fmt.Sprintln(messages...)) },
+		Print:                     printFunc, // Use the mutex-protected print function
 		JavascriptForInitializing: func() (string, error) { return "", nil },
 	}
 
@@ -63,7 +72,7 @@ func setupWatcherAssetsTest(t *testing.T) (
 		FileEventWASM:   nil,
 		FileTypeGO:      nil,
 		BrowserReload:   func() error { return nil },
-		Writer:          logBuf, // Pass the pointer directly
+		Print:           printFunc, // Use the mutex-protected print function
 		ExitChan:        exitChan,
 		UnobservedFiles: assetsHandler.UnobservedFiles,
 	}

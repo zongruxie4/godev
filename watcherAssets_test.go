@@ -3,10 +3,10 @@ package godev
 import (
 	"os"
 	"path/filepath"
+	"strings"
+	_ "sync" // Use blank identifier to force import
 	"testing"
 	"time"
-
-	"strings"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,21 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 	// Call the setup function from watcherInit_test.go
 	// We only need a subset of the returned variables directly in this test function's scope.
 	// _ indicates variables we don't need to reference directly here (like tmpDir, assetsHandler, watcher).
-	_, themeDir, _, _, _, exitChan, logBuf, wg, outputJsPath := setupWatcherAssetsTest(t)
+	_, themeDir, _, _, _, exitChan, logBuf, logBufMu, wg, outputJsPath := setupWatcherAssetsTest(t) // Receive logBufMu
+
+	// Helper function to safely get log buffer content
+	getLogContent := func() string {
+		logBufMu.Lock()
+		defer logBufMu.Unlock()
+		return logBuf.String()
+	}
+
+	// Helper function to safely reset log buffer
+	resetLogBuffer := func() {
+		logBufMu.Lock()
+		defer logBufMu.Unlock()
+		logBuf.Reset()
+	}
 
 	// --- Test Steps ---
 
@@ -34,8 +48,8 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 
 		// Verificar que main.js NO existe
 		_, err := os.Stat(outputJsPath)
-		require.True(t, os.IsNotExist(err), "main.js no debería existir después de crear un .txt. Logs:\n%s", logBuf.String())
-		logBuf.Reset() // Limpiar buffer para el siguiente paso
+		require.True(t, os.IsNotExist(err), "main.js no debería existir después de crear un .txt. Logs:\n%s", getLogContent())
+		resetLogBuffer() // Limpiar buffer para el siguiente paso
 	})
 
 	// 2. Renombrar a .js y escribir contenido (debería procesarse)
@@ -57,13 +71,13 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 		time.Sleep(200 * time.Millisecond) // Espera más larga para asegurar procesamiento
 
 		// Verificar que main.js existe y tiene el contenido esperado
-		require.FileExists(t, outputJsPath, "main.js debería existir después del paso 2. Logs:\n%s", logBuf.String())
+		require.FileExists(t, outputJsPath, "main.js debería existir después del paso 2. Logs:\n%s", getLogContent())
 		contentBytes, err := os.ReadFile(outputJsPath)
 		require.NoError(t, err, "Error al leer main.js después del paso 2")
 		content := string(contentBytes)
 		expectedContent := `"use strict";console.log("Archivo 1")` // Sin ; final
-		require.Contains(t, content, expectedContent, "El contenido de main.js no es el esperado después del paso 2. Logs:\n%s", logBuf.String())
-		logBuf.Reset()
+		require.Contains(t, content, expectedContent, "El contenido de main.js no es el esperado después del paso 2. Logs:\n%s", getLogContent())
+		resetLogBuffer()
 	})
 
 	// 3. Crear otro archivo .js (debería añadirse al output)
@@ -79,7 +93,7 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 
 		// Verificar que main.js contiene ambos contenidos sin duplicar
-		require.FileExists(t, outputJsPath, "main.js debería existir después del paso 3. Logs:\n%s", logBuf.String())
+		require.FileExists(t, outputJsPath, "main.js debería existir después del paso 3. Logs:\n%s", getLogContent())
 		contentBytes, err := os.ReadFile(outputJsPath)
 		require.NoError(t, err, "Error al leer main.js después del paso 3")
 		content := string(contentBytes)
@@ -88,14 +102,14 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 		expectedContent2 := `function saludar(){alert("Hola!")}`
 		expectedStart := `"use strict";`
 
-		require.Contains(t, content, expectedStart, "Falta 'use strict'; en main.js después del paso 3. Logs:\n%s", logBuf.String())
-		require.Contains(t, content, expectedContent1, "Falta contenido de file1.js en main.js después del paso 3. Logs:\n%s", logBuf.String())
-		require.Contains(t, content, expectedContent2, "Falta contenido de file2.js en main.js después del paso 3. Logs:\n%s", logBuf.String())
+		require.Contains(t, content, expectedStart, "Falta 'use strict'; en main.js después del paso 3. Logs:\n%s", getLogContent())
+		require.Contains(t, content, expectedContent1, "Falta contenido de file1.js en main.js después del paso 3. Logs:\n%s", getLogContent())
+		require.Contains(t, content, expectedContent2, "Falta contenido de file2.js en main.js después del paso 3. Logs:\n%s", getLogContent())
 
 		// Verificar no duplicados (simple)
-		require.Equal(t, 1, strings.Count(content, expectedContent1), "Contenido de file1.js duplicado después del paso 3. Logs:\n%s", logBuf.String())
-		require.Equal(t, 1, strings.Count(content, expectedContent2), "Contenido de file2.js duplicado después del paso 3. Logs:\n%s", logBuf.String())
-		logBuf.Reset()
+		require.Equal(t, 1, strings.Count(content, expectedContent1), "Contenido de file1.js duplicado después del paso 3. Logs:\n%s", getLogContent())
+		require.Equal(t, 1, strings.Count(content, expectedContent2), "Contenido de file2.js duplicado después del paso 3. Logs:\n%s", getLogContent())
+		resetLogBuffer()
 	})
 
 	// 4. Editar el contenido del archivo 1 (debería actualizarse sin duplicar)
@@ -110,7 +124,7 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 
 		// Verificar contenido final
-		require.FileExists(t, outputJsPath, "main.js debería existir después del paso 4. Logs:\n%s", logBuf.String())
+		require.FileExists(t, outputJsPath, "main.js debería existir después del paso 4. Logs:\n%s", getLogContent())
 		contentBytes, err := os.ReadFile(outputJsPath)
 		require.NoError(t, err, "Error al leer main.js después del paso 4")
 		content := string(contentBytes)
@@ -120,15 +134,15 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 		content2 := `function saludar(){alert("Hola!")}`
 		expectedStart := `"use strict";`
 
-		require.Contains(t, content, expectedStart, "Falta 'use strict'; en main.js después del paso 4. Logs:\n%s", logBuf.String())
-		require.Contains(t, content, updatedContent1, "Falta contenido actualizado de file1.js en main.js después del paso 4. Logs:\n%s", logBuf.String())
-		require.Contains(t, content, content2, "Falta contenido de file2.js en main.js después del paso 4. Logs:\n%s", logBuf.String())
-		require.NotContains(t, content, originalContent1, "Contenido original de file1.js no debería estar presente después del paso 4. Logs:\n%s", logBuf.String())
+		require.Contains(t, content, expectedStart, "Falta 'use strict'; en main.js después del paso 4. Logs:\n%s", getLogContent())
+		require.Contains(t, content, updatedContent1, "Falta contenido actualizado de file1.js en main.js después del paso 4. Logs:\n%s", getLogContent())
+		require.Contains(t, content, content2, "Falta contenido de file2.js en main.js después del paso 4. Logs:\n%s", getLogContent())
+		require.NotContains(t, content, originalContent1, "Contenido original de file1.js no debería estar presente después del paso 4. Logs:\n%s", getLogContent())
 
 		// Verificar no duplicados
-		require.Equal(t, 1, strings.Count(content, updatedContent1), "Contenido actualizado de file1.js duplicado después del paso 4. Logs:\n%s", logBuf.String())
-		require.Equal(t, 1, strings.Count(content, content2), "Contenido de file2.js duplicado después del paso 4. Logs:\n%s", logBuf.String())
-		logBuf.Reset()
+		require.Equal(t, 1, strings.Count(content, updatedContent1), "Contenido actualizado de file1.js duplicado después del paso 4. Logs:\n%s", getLogContent())
+		require.Equal(t, 1, strings.Count(content, content2), "Contenido de file2.js duplicado después del paso 4. Logs:\n%s", getLogContent())
+		resetLogBuffer()
 	})
 
 	// --- Teardown ---
@@ -139,5 +153,5 @@ func TestWatcherAssetsIntegration(t *testing.T) {
 	t.Log("Test de integración completado.")
 	// Imprimir logs finales solo si el test falla (require maneja esto implícitamente)
 	// Si quieres ver los logs siempre, descomenta la siguiente línea:
-	// t.Log("Logs finales del watcher:\n", logBuf.String())
+	// t.Log("Logs finales del watcher:\n", getLogContent())
 }

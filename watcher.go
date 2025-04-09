@@ -2,8 +2,6 @@ package godev
 
 import (
 	"errors"
-	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,15 +32,16 @@ type WatchConfig struct {
 
 	BrowserReload func() error // when change frontend files reload browser
 
-	Writer          io.Writer       // For logging output
-	ExitChan        chan bool       // global channel to signal the exit
-	UnobservedFiles func() []string // files that are not observed by the watcher eg: ".git", ".gitignore", ".vscode",  "examples",
+	Print           func(messages ...any) // For logging output
+	ExitChan        chan bool             // global channel to signal the exit
+	UnobservedFiles func() []string       // files that are not observed by the watcher eg: ".git", ".gitignore", ".vscode",  "examples",
 }
 
 type WatchHandler struct {
 	*WatchConfig
 	watcher         *fsnotify.Watcher
 	no_add_to_watch map[string]bool
+	// logMu           sync.Mutex // No longer needed with Print func
 }
 
 func NewWatchHandler(c *WatchConfig) *WatchHandler {
@@ -56,7 +55,7 @@ func (h *WatchHandler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	if h.watcher == nil {
 		if watcher, err := fsnotify.NewWatcher(); err != nil {
-			fmt.Fprintln(h.Writer, "Error New Watcher: ", err)
+			h.Print("Error New Watcher: ", err)
 			return
 		} else {
 			h.watcher = watcher
@@ -68,7 +67,7 @@ func (h *WatchHandler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	h.RegisterFiles()
 
-	fmt.Fprintln(h.Writer, "Listening for File Changes ...")
+	h.Print("Listening for File Changes ...")
 	// Wait for exit signal after watching is active
 
 	select {
@@ -96,11 +95,11 @@ func (h *WatchHandler) watchEvents() {
 
 		case event, ok := <-h.watcher.Events:
 			if !ok {
-				fmt.Fprintln(h.Writer, "Error h.watcher.Events")
+				h.Print("Error h.watcher.Events")
 				return
 			}
 
-			// fmt.Fprintln(h.Writer, "DEBUG Event:", event.Name, event.Op)
+			// h.Print("DEBUG Event:", event.Name, event.Op)
 			// Restore debouncer with shorter timeout - 100ms is enough for file operations to complete,
 			// but short enough to not miss important events like CREATE followed by WRITE
 			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 100*time.Millisecond {
@@ -113,7 +112,7 @@ func (h *WatchHandler) watchEvents() {
 
 					// create, write, rename, remove
 					eventType := strings.ToLower(event.Op.String())
-					// fmt.Fprintln(h.Writer, "Event type:", event.Op.String(), "File changed:", event.Name)
+					// h.Print("Event type:", event.Op.String(), "File changed:", event.Name)
 
 					fileName, err := GetFileName(event.Name)
 					if err == nil {
@@ -131,15 +130,15 @@ func (h *WatchHandler) watchEvents() {
 							isFrontend, isBackend := h.GoFileIsType(fileName)
 
 							if isFrontend { // compilar a wasm y recargar el navegador
-								// fmt.Fprintln(h.Writer, "Go File IsFrontend")
+								// h.Print("Go File IsFrontend")
 								err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
 
 							} else if isBackend { // compilar servidor y recargar el navegador
-								// fmt.Fprintln(h.Writer, "Go File IsBackend")
+								// h.Print("Go File IsBackend")
 								err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
 
 							} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
-								// fmt.Fprintln(h.Writer, "Go File Shared")
+								// h.Print("Go File Shared")
 								err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
 								if err == nil {
 									err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
@@ -152,7 +151,7 @@ func (h *WatchHandler) watchEvents() {
 					}
 
 					if err != nil {
-						fmt.Fprintln(h.Writer, "Watch updating file:", err)
+						h.Print("Watch updating file:", err)
 					} else {
 						reloadBrowserTimer.Reset(wait)
 					}
@@ -163,7 +162,7 @@ func (h *WatchHandler) watchEvents() {
 			}
 		case err, ok := <-h.watcher.Errors:
 			if !ok {
-				fmt.Fprintln(h.Writer, "h.watcher.Errors:", err)
+				h.Print("h.watcher.Errors:", err)
 				return
 			}
 
@@ -171,7 +170,7 @@ func (h *WatchHandler) watchEvents() {
 			// El temporizador de recarga ha expirado, ejecuta reload del navegador
 			err := h.BrowserReload()
 			if err != nil {
-				fmt.Fprintln(h.Writer, "Watch:", err)
+				h.Print("Watch:", err)
 			}
 
 		case <-h.ExitChan:
@@ -182,24 +181,24 @@ func (h *WatchHandler) watchEvents() {
 }
 
 func (h *WatchHandler) RegisterFiles() {
-	fmt.Fprintln(h.Writer, "RegisterFiles APP ROOT DIR: "+h.AppRootDir)
+	h.Print("RegisterFiles APP ROOT DIR: " + h.AppRootDir)
 
 	reg := make(map[string]struct{})
 
 	err := filepath.Walk(h.AppRootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Fprintln(h.Writer, "accessing path:", path, err)
+			h.Print("accessing path:", path, err)
 			return nil
 		}
 
 		if info.IsDir() && !h.Contain(path) {
 			if _, exists := reg[path]; !exists {
 				if err := h.watcher.Add(path); err != nil {
-					fmt.Fprintln(h.Writer, "Watch RegisterFiles Add watch path:", path, err)
+					h.Print("Watch RegisterFiles Add watch path:", path, err)
 					return nil
 				}
 				reg[path] = struct{}{}
-				fmt.Fprintln(h.Writer, "Watch path added:", path)
+				h.Print("Watch path added:", path)
 
 				// MEMORY REGISTER FILES IN HANDLERS
 				fileName, err := GetFileName(path)
@@ -213,7 +212,7 @@ func (h *WatchHandler) RegisterFiles() {
 				}
 
 				if err != nil {
-					fmt.Fprintln(h.Writer, "Watch RegisterFiles:", extension, err)
+					h.Print("Watch RegisterFiles:", extension, err)
 				}
 
 			}
@@ -222,7 +221,7 @@ func (h *WatchHandler) RegisterFiles() {
 	})
 
 	if err != nil {
-		fmt.Fprintln(h.Writer, "Walking directory:", err)
+		h.Print("Walking directory:", err)
 	}
 }
 

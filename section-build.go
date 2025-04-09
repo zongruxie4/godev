@@ -61,7 +61,7 @@ func (h *handler) AddSectionBUILD() {
 		},
 		BrowserReload: h.browser.Reload,
 
-		Writer:   sectionBuild,
+		Print:    h.tui.Print, // Use the TUI print function
 		ExitChan: h.exitChan,
 		UnobservedFiles: func() []string {
 
