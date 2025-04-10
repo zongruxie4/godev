@@ -241,7 +241,6 @@ func (h *WatchHandler) Contain(path string) bool {
 				h.no_add_to_watch[file] = true
 			}
 		}
-
 	}
 
 	// Check for exact match against the full paths in the ignore list
@@ -249,7 +248,21 @@ func (h *WatchHandler) Contain(path string) bool {
 		return true
 	}
 
-	// Additionally, ignore directories within ignored paths (e.g., subfolders of .git)
+	// Split the path into components
+	pathParts := strings.SplitSeq(filepath.ToSlash(path), "/")
+
+	// Check each part of the path against ignored files/directories
+	for part := range pathParts {
+		if part == "" {
+			continue
+		}
+
+		if _, exists := h.no_add_to_watch[part]; exists {
+			return true
+		}
+	}
+
+	// Additionally, check for paths that start with an ignored path + separator
 	for ignoredPath := range h.no_add_to_watch {
 		// Check if the current path starts with an ignored path + separator
 		// This prevents watching subdirectories of ignored directories (like .git/hooks)

@@ -15,7 +15,7 @@ require (
 	github.com/cdvelop/messagetype v0.0.10 // indirect
 	github.com/cdvelop/tinystring v0.0.14 // indirect
 	github.com/cdvelop/unixid v0.0.67 // indirect
-	github.com/charmbracelet/bubbles v0.20.0 // indirect
+	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.4 // indirect
 	github.com/charmbracelet/colorprofile v0.3.0 // indirect
 	github.com/charmbracelet/lipgloss v1.1.0 // indirect

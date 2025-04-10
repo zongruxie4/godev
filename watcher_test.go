@@ -55,6 +55,62 @@ func TestContain(t *testing.T) {
 			},
 			expected: false,
 		},
+		{
+			name: "git folder in middle of path",
+			path: "C:\\Users\\Cesar\\Packages\\Internal\\godev\\test\\manual\\.git\\objects\\pack",
+			setup: func() *WatchHandler {
+				return &WatchHandler{
+					WatchConfig: &WatchConfig{
+						UnobservedFiles: func() []string {
+							return []string{".git"}
+						},
+					},
+				}
+			},
+			expected: true,
+		},
+		{
+			name: "git folder in middle of path with unix style",
+			path: "/Users/Cesar/Packages/Internal/godev/test/manual/.git/objects/pack",
+			setup: func() *WatchHandler {
+				return &WatchHandler{
+					WatchConfig: &WatchConfig{
+						UnobservedFiles: func() []string {
+							return []string{".git"}
+						},
+					},
+				}
+			},
+			expected: true,
+		},
+		{
+			name: "git folder in middle of path with project root",
+			path: "test/manual/.git/objects/pack",
+			setup: func() *WatchHandler {
+				return &WatchHandler{
+					WatchConfig: &WatchConfig{
+						UnobservedFiles: func() []string {
+							return []string{".git"}
+						},
+					},
+				}
+			},
+			expected: true,
+		},
+		{
+			name: "git string in directory name but not excluded",
+			path: "test/github-integration/code.go",
+			setup: func() *WatchHandler {
+				return &WatchHandler{
+					WatchConfig: &WatchConfig{
+						UnobservedFiles: func() []string {
+							return []string{".git"}
+						},
+					},
+				}
+			},
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {
