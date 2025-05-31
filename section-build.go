@@ -1,6 +1,11 @@
 package godev
 
-import "path"
+import (
+	"path"
+
+	. "github.com/cdvelop/assetmin"
+	"github.com/cdvelop/tinywasm"
+)
 
 func (h *handler) AddSectionBUILD() {
 
@@ -22,23 +27,21 @@ func (h *handler) AddSectionBUILD() {
 
 	// Añadimos los fields de configuración usando el método AddFields
 	sectionBuild.AddFields(*h.ch.config.ServerPortField)
-
 	//WASM
-	h.wasmHandler = NewWasmCompiler(&WasmConfig{
+	h.wasmHandler = tinywasm.New(&tinywasm.Config{
 		WebFilesFolder: func() (string, string) {
 			return h.ch.config.WebFilesFolderField.Value(), h.ch.config.PublicFolder()
 		},
-		Writer: sectionBuild,
+		Log: sectionBuild,
 	})
 
 	//ASSETS
-	h.assetsHandler = NewAssetsCompiler(&AssetsConfig{
+	h.assetsHandler = NewAssetMin(&AssetConfig{
 		ThemeFolder: func() string {
 			return path.Join(h.ch.config.WebFilesFolderField.Value(), "theme")
 		},
 		WebFilesFolder: h.ch.config.OutPutStaticsDirectory,
-		Print:          h.tui.Print,
-		JavascriptForInitializing: func() (string, error) {
+		Print:          h.tui.Print, GetRuntimeInitializerJS: func() (string, error) {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 	})
@@ -50,9 +53,8 @@ func (h *handler) AddSectionBUILD() {
 		FileEventGO:     h.serverHandler,
 		FileEventWASM:   h.wasmHandler,
 		FileTypeGO: GoFileType{
-			FrontendPrefix: []string{"f."},
-			FrontendFiles: []string{
-				h.wasmHandler.mainOutputFile,
+			FrontendPrefix: []string{"f."}, FrontendFiles: []string{
+				h.wasmHandler.MainOutputFile(),
 			},
 			BackendPrefix: []string{"b."},
 			BackendFiles: []string{

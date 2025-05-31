@@ -3,9 +3,11 @@ package godev
 import (
 	"sync"
 
+	. "github.com/cdvelop/assetmin"
 	. "github.com/cdvelop/devtui"
 	"github.com/cdvelop/tinytranslator"
 	. "github.com/cdvelop/tinytranslator"
+	"github.com/cdvelop/tinywasm"
 )
 
 type handler struct {
@@ -13,8 +15,8 @@ type handler struct {
 	ch            *ConfigHandler
 	tui           *DevTUI
 	serverHandler *ServerHandler
-	assetsHandler *AssetsHandler
-	wasmHandler   *WasmHandler
+	assetsHandler *AssetMin
+	wasmHandler   *tinywasm.TinyWasm
 	watcher       *WatchHandler
 	browser       *Browser
 	exitChan      chan bool // Canal global para señalizar el cierre

@@ -9,6 +9,9 @@ import (
 	"path"
 	"runtime"
 	"sync"
+	"time"
+
+	"github.com/cdvelop/gobuild"
 )
 
 type ServerHandler struct {
@@ -16,7 +19,7 @@ type ServerHandler struct {
 	mainFileExternalServer string // eg: main.server.go
 	internalServerRun      bool
 	server                 *http.Server
-	goCompiler             *GoCompiler
+	goCompiler             *gobuild.GoBuild
 	goRun                  *GoRun
 }
 
@@ -44,19 +47,18 @@ func NewServerHandler(c *ServerConfig) *ServerHandler {
 		internalServerRun:      false,
 		server:                 nil,
 	}
-
-	sh.goCompiler = NewGoCompiler(&GoCompilerConfig{
+	sh.goCompiler = gobuild.New(&gobuild.Config{
 		Command:            "go",
 		MainFilePath:       path.Join(c.RootFolder, sh.mainFileExternalServer),
 		OutName:            c.MainFileWithoutExtension,
 		Extension:          exe_ext,
 		CompilingArguments: c.ArgumentsForCompilingServer,
 		OutFolder:          c.RootFolder,
-		Writer:             c.Writer,
+		Log:                c.Writer,
+		Timeout:            30 * time.Second,
 	})
-
 	sh.goRun = NewGoRun(&GoRunConfig{
-		ExecProgramPath: path.Join(c.RootFolder, sh.goCompiler.outFileName),
+		ExecProgramPath: path.Join(c.RootFolder, sh.goCompiler.MainOutputFileNameWithExtension()),
 		RunArguments:    c.ArgumentsToRunServer,
 		ExitChan:        c.ExitChan,
 		Writer:          c.Writer,
@@ -72,7 +74,7 @@ func (h *ServerHandler) Start(wg *sync.WaitGroup) {
 	fmt.Fprintln(h.Writer, "Server Start ...")
 	// fmt.Println("Server Start ...")
 
-	if _, err := os.Stat(h.goCompiler.MainFilePath); os.IsNotExist(err) {
+	if _, err := os.Stat(path.Join(h.RootFolder, h.mainFileExternalServer)); os.IsNotExist(err) {
 		// ejecutar el servidor interno de archivos estáticos
 		h.StartInternalServerFiles()
 	} else {
