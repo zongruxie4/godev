@@ -1,7 +1,22 @@
 package main
 
-import "github.com/cdvelop/godev"
+import (
+	"log"
+	"os"
+
+	"github.com/cdvelop/godev"
+)
 
 func main() {
-	godev.GodevStart()
+	// Initialize root directory
+	rootDir, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Error getting current working directory:", err)
+		return
+	}
+
+	// Create a Logger instance
+	logger := godev.NewLogger()
+
+	godev.GodevStart(rootDir, logger.LogToFile)
 }

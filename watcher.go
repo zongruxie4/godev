@@ -21,12 +21,17 @@ type FileEvent interface {
 	NewFileEvent(fileName, extension, filePath, event string) error
 }
 
-type WatchConfig struct {
-	AppRootDir string // eg: "home/user/myNewApp"
+// event: create, remove, write, rename
+type FolderEvent interface {
+	NewFolderEvent(folderName, path, event string) error
+}
 
-	FileEventAssets FileEvent // when change assets files eg: css, js, html, png, jpg, svg, etc event: create, remove, write, rename
-	FileEventGO     FileEvent // when change go files to backend or any destination
-	FileEventWASM   FileEvent // when change go files to webAssembly destination
+type WatchConfig struct {
+	AppRootDir      string      // eg: "home/user/myNewApp"
+	FileEventAssets FileEvent   // when change assets files eg: css, js, html, png, jpg, svg, etc event: create, remove, write, rename
+	FileEventGO     FileEvent   // when change go files to backend or any destination
+	FileEventWASM   FileEvent   // when change go files to webAssembly destination
+	FolderEvents    FolderEvent // when directories are created/removed for architecture detection
 
 	FileTypeGO // when change go files to webAssembly destination
 
@@ -64,8 +69,7 @@ func (h *WatchHandler) FileWatcherStart(wg *sync.WaitGroup) {
 
 	// Start watching in the main routine
 	go h.watchEvents()
-
-	h.RegisterFiles()
+	h.InitialRegistration()
 
 	h.Print("Listening for File Changes ...")
 	// Wait for exit signal after watching is active
@@ -97,69 +101,84 @@ func (h *WatchHandler) watchEvents() {
 			if !ok {
 				h.Print("Error h.watcher.Events")
 				return
-			}
-
-			// h.Print("DEBUG Event:", event.Name, event.Op)
+			} // h.Print("DEBUG Event:", event.Name, event.Op)
 			// Restore debouncer with shorter timeout - 100ms is enough for file operations to complete,
 			// but short enough to not miss important events like CREATE followed by WRITE
 			if lastTime, ok := lastActions[event.Name]; !ok || time.Since(lastTime) > 100*time.Millisecond {
-
 				// Restablece el temporizador de recarga de navegador
 				reloadBrowserTimer.Stop()
 
 				// Verificar si es un nuevo directorio para agregarlo al watcher
-				if info, err := os.Stat(event.Name); err == nil && !h.Contain(event.Name) && !info.IsDir() {
+				if info, err := os.Stat(event.Name); err == nil && !h.Contain(event.Name) {
 
 					// create, write, rename, remove
 					eventType := strings.ToLower(event.Op.String())
 					// h.Print("Event type:", event.Op.String(), "File changed:", event.Name)
 
+					// Get fileName once and reuse
 					fileName, err := GetFileName(event.Name)
 					if err == nil {
-
-						extension := filepath.Ext(event.Name)
-						// fmt.Println("extension:", extension, "File Event:", event)
-
-						switch extension {
-
-						case ".css", ".js", ".html":
-							err = h.FileEventAssets.NewFileEvent(fileName, extension, event.Name, eventType)
-
-						case ".go":
-
-							isFrontend, isBackend := h.GoFileIsType(fileName)
-
-							if isFrontend { // compilar a wasm y recargar el navegador
-								// h.Print("Go File IsFrontend")
-								err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
-
-							} else if isBackend { // compilar servidor y recargar el navegador
-								// h.Print("Go File IsBackend")
-								err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
-
-							} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
-								// h.Print("Go File Shared")
-								err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
-								if err == nil {
-									err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
+						// Handle directory changes for architecture detection
+						if info.IsDir() {
+							if h.FolderEvents != nil {
+								err = h.FolderEvents.NewFolderEvent(fileName, event.Name, eventType)
+								if err != nil {
+									h.Print("Watch folder event error:", err)
 								}
 							}
+							// Add new directory to watcher
+							if eventType == "create" {
+								if err := h.watcher.Add(event.Name); err != nil {
+									h.Print("Watch: Failed to add new directory to watcher:", event.Name, err)
+								} else {
+									h.Print("Watch: New directory added to watcher:", event.Name)
+								}
+							}
+						} else {
+							// Handle file changes (existing logic)
+							extension := filepath.Ext(event.Name)
+							// fmt.Println("extension:", extension, "File Event:", event)
 
-						default:
-							err = errors.New("Watch Unknown file type: " + extension)
+							switch extension {
+
+							case ".css", ".js", ".html":
+								err = h.FileEventAssets.NewFileEvent(fileName, extension, event.Name, eventType)
+
+							case ".go":
+
+								isFrontend, isBackend := h.GoFileIsType(fileName)
+
+								if isFrontend { // compilar a wasm y recargar el navegador
+									// h.Print("Go File IsFrontend")
+									err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
+								} else if isBackend { // compilar servidor y recargar el navegador
+									// h.Print("Go File IsBackend")
+									err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
+
+								} else { // ambos compilar servidor, compilar a wasm (según modulo) y recargar el navegador
+									// h.Print("Go File Shared")
+									err = h.FileEventWASM.NewFileEvent(fileName, extension, event.Name, eventType)
+									if err == nil {
+										err = h.FileEventGO.NewFileEvent(fileName, extension, event.Name, eventType)
+									}
+								}
+
+							default:
+								err = errors.New("Watch Unknown file type: " + extension)
+							}
+
+							if err != nil {
+								h.Print("Watch updating file:", err)
+							} else {
+								reloadBrowserTimer.Reset(wait)
+							}
 						}
 					}
-
-					if err != nil {
-						h.Print("Watch updating file:", err)
-					} else {
-						reloadBrowserTimer.Reset(wait)
-					}
-
 					// Update the last action time for debouncing
 					lastActions[event.Name] = time.Now()
 				}
 			}
+
 		case err, ok := <-h.watcher.Errors:
 			if !ok {
 				h.Print("h.watcher.Errors:", err)
@@ -180,8 +199,8 @@ func (h *WatchHandler) watchEvents() {
 	}
 }
 
-func (h *WatchHandler) RegisterFiles() {
-	h.Print("RegisterFiles APP ROOT DIR: " + h.AppRootDir)
+func (h *WatchHandler) InitialRegistration() {
+	h.Print("InitialRegistration APP ROOT DIR: " + h.AppRootDir)
 
 	reg := make(map[string]struct{})
 
@@ -190,21 +209,25 @@ func (h *WatchHandler) RegisterFiles() {
 			h.Print("accessing path:", path, err)
 			return nil
 		}
-
 		if info.IsDir() && !h.Contain(path) {
 			if _, exists := reg[path]; !exists {
 				if err := h.watcher.Add(path); err != nil {
-					h.Print("Watch RegisterFiles Add watch path:", path, err)
+					h.Print("Watch InitialRegistration Add watch path:", path, err)
 					return nil
 				}
 				reg[path] = struct{}{}
 				h.Print("Watch path added:", path)
 
-				// MEMORY REGISTER FILES IN HANDLERS
+				// Get fileName once and reuse
 				fileName, err := GetFileName(path)
-				extension := filepath.Ext(path)
-				if err == nil {
-
+				if err == nil { // NOTIFY FOLDER EVENTS HANDLER FOR ARCHITECTURE DETECTION
+					if h.FolderEvents != nil {
+						err = h.FolderEvents.NewFolderEvent(fileName, path, "create")
+						if err != nil {
+							h.Print("Watch InitialRegistration FolderEvents error:", err)
+						}
+					} // MEMORY REGISTER FILES IN HANDLERS
+					extension := filepath.Ext(path)
 					switch extension {
 					case ".html", ".css", ".js", ".svg":
 						err = h.FileEventAssets.NewFileEvent(fileName, extension, path, "create")
@@ -212,7 +235,7 @@ func (h *WatchHandler) RegisterFiles() {
 				}
 
 				if err != nil {
-					h.Print("Watch RegisterFiles:", extension, err)
+					h.Print("Watch InitialRegistration:", err)
 				}
 
 			}

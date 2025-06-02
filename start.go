@@ -1,6 +1,7 @@
 package godev
 
 import (
+	"os"
 	"sync"
 
 	. "github.com/cdvelop/assetmin"
@@ -11,8 +12,9 @@ import (
 )
 
 type handler struct {
+	rootDir string      // Application root directory
+	config  *AutoConfig // Main configuration source
 	*Translator
-	ch            *ConfigHandler
 	tui           *DevTUI
 	serverHandler *ServerHandler
 	assetsHandler *AssetMin
@@ -22,20 +24,25 @@ type handler struct {
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
 
-func GodevStart() {
+func GodevStart(rootDir string, logger func(messages ...any)) {
 	var err error
 	h := &handler{
+		rootDir:  rootDir,
 		exitChan: make(chan bool),
 	}
 
-	h.Translator, err = tinytranslator.NewTranslationEngine().WithCurrentDeviceLanguage()
-	if err != nil {
-		h.LogToFile(err)
+	// Validate we're not in system directories
+	homeDir, _ := os.UserHomeDir()
+	if rootDir == homeDir || rootDir == "/" {
+		// Use the provided logger since Translator is not initialized yet
+		logger("Cannot run godev in user root directory. Please run in a Go project directory")
 		return
 	}
-
-	h.NewConfig()
-	h.ch.InitializeFields(h)
+	h.Translator, err = tinytranslator.NewTranslationEngine().WithCurrentDeviceLanguage()
+	if err != nil {
+		logger("Error initializing translator:", err)
+		return
+	}
 	h.NewBrowser()
 
 	h.tui = NewTUI(&TuiConfig{
@@ -48,8 +55,13 @@ func GodevStart() {
 			Highlight:  "#FF6600", // #FF6600, FF6600  73ceddff
 			Lowlight:   "#666666", // #666666
 		},
-		LogToFile: h.LogToFile,
-	})
+		LogToFile: func(messageErr any) { logger(messageErr) },
+	}) // Initialize AutoConfig FIRST - this will be our configuration source
+	h.config = NewAutoConfig(logger) // Use the provided logger
+	h.config.SetRootDir(h.rootDir)
+
+	// Scan initial architecture - this must happen before AddSectionBUILD
+	h.config.ScanDirectoryStructure()
 
 	h.AddSectionBUILD()
 
@@ -58,13 +70,6 @@ func GodevStart() {
 
 	// Start the tui in a goroutine
 	go h.tui.InitTUI(&wg)
-
-	// Mostrar errores de configuración como warning
-	if len(h.ch.configErrors) != 0 {
-		for _, err := range h.ch.configErrors {
-			h.tui.Print(err)
-		}
-	}
 
 	// Iniciar servidor
 	go h.serverHandler.Start(&wg)

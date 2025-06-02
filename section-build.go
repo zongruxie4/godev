@@ -12,46 +12,41 @@ func (h *handler) AddSectionBUILD() {
 	// LDFlags      func() []string // eg: []string{"-X 'main.version=v1.0.0'","-X 'main.buildDate=2023-01-01'"}
 
 	sectionBuild := h.tui.NewTabSection("BUILD", "")
-
 	//SERVER
 	h.serverHandler = NewServerHandler(&ServerConfig{
-		RootFolder:                  h.ch.config.WebFilesFolderField.Value(),
+		RootFolder:                  h.config.GetWebFilesFolder(),
 		MainFileWithoutExtension:    "main.server",
 		ArgumentsForCompilingServer: nil,
 		ArgumentsToRunServer:        nil,
-		PublicFolder:                h.ch.config.PublicFolder(),
-		AppPort:                     h.ch.config.ServerPortField.Value(),
+		PublicFolder:                h.config.GetPublicFolder(),
+		AppPort:                     h.config.GetServerPort(),
 		Writer:                      sectionBuild,
 		ExitChan:                    h.exitChan,
 	})
-
-	// Añadimos los fields de configuración usando el método AddFields
-	sectionBuild.AddFields(*h.ch.config.ServerPortField)
 	//WASM
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
 		WebFilesFolder: func() (string, string) {
-			return h.ch.config.WebFilesFolderField.Value(), h.ch.config.PublicFolder()
+			return h.config.GetWebFilesFolder(), h.config.GetPublicFolder()
 		},
 		Log: sectionBuild,
 	})
-
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
 		ThemeFolder: func() string {
-			return path.Join(h.ch.config.WebFilesFolderField.Value(), "theme")
+			return path.Join(h.config.GetWebFilesFolder(), "theme")
 		},
-		WebFilesFolder: h.ch.config.OutPutStaticsDirectory,
+		WebFilesFolder: h.config.GetOutputStaticsDirectory,
 		Print:          h.tui.Print, GetRuntimeInitializerJS: func() (string, error) {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 	})
-
 	// WATCHER
 	h.watcher = NewWatchHandler(&WatchConfig{
-		AppRootDir:      h.ch.appRootDir,
+		AppRootDir:      h.config.GetRootDir(),
 		FileEventAssets: h.assetsHandler,
 		FileEventGO:     h.serverHandler,
 		FileEventWASM:   h.wasmHandler,
+		FolderEvents:    h.config, // Architecture detection for directory changes
 		FileTypeGO: GoFileType{
 			FrontendPrefix: []string{"f."}, FrontendFiles: []string{
 				h.wasmHandler.MainOutputFile(),

@@ -1,0 +1,220 @@
+@startuml godev-architecture
+!define RECTANGLE class
+
+title GoDev - Arquitectura del Sistema
+
+package "Core Application" {
+    RECTANGLE Handler {
+        - Translator: *TinyTranslator
+        - ch: *ConfigHandler
+        - tui: *DevTUI
+        - serverHandler: *ServerHandler
+        - assetsHandler: *AssetMin
+        - wasmHandler: *TinyWasm
+        - watcher: *WatchHandler
+        - browser: *Browser
+        - exitChan: chan bool
+        --
+        + GodevStart()
+        + NewConfig()
+        + NewBrowser()
+        + AddSectionBUILD()
+    }
+}
+
+package "Configuration Management" {
+    RECTANGLE ConfigHandler {
+        - config: *Config
+        - configErrors: []error
+        - appRootDir: string
+        - conFileName: string
+        - translator: *TinyTranslator
+        --
+        + InitializeFields()
+        + LoadConfigFromYML()
+        + SaveConfigToYML()
+        + SetTranslator()
+    }
+    
+    RECTANGLE Config {
+        - AppNameField: *devtui.Field
+        - MainFilePathField: *devtui.Field
+        - WebFilesFolderField: *devtui.Field
+        - ServerPortField: *devtui.Field
+        - BrowserStartUrlField: *devtui.Field
+        - BrowserPositionField: *devtui.Field
+        --
+        + OutPutStaticsDirectory()
+        + PublicFolder()
+    }
+}
+
+package "Server Management" {
+    RECTANGLE ServerHandler {
+        - ServerConfig: *ServerConfig
+        - mainFileExternalServer: string
+        - internalServerRun: bool
+        - server: *http.Server
+        - goCompiler: *GoBuild
+        - goRun: *GoRun
+        --
+        + Start()
+        + NewFileEvent()
+        + StartInternalServerFiles()
+        + StartExternalServer()
+        + RestartServer()
+    }
+    
+    RECTANGLE GoRun {
+        - ExecProgramPath: string
+        - Arguments: []string
+        --
+        + RunProgram()
+        + StopProgram()
+    }
+}
+
+package "File Watching" {
+    RECTANGLE WatchHandler {
+        - WatchConfig: *WatchConfig
+        - watcher: *fsnotify.Watcher
+        - no_add_to_watch: map[string]bool
+        --
+        + FileWatcherStart()
+        + RegisterFiles()
+        + watchEvents()
+    }
+    
+    interface FileEvent {
+        + NewFileEvent(fileName, extension, filePath, event string) error
+    }
+    
+    RECTANGLE GoFileType {
+        - FrontendPrefix: []string
+        - FrontendFiles: []string
+        - BackendPrefix: []string
+        - BackendFiles: []string
+        --
+        + GoFileIsType(filename string) (bool, bool)
+    }
+}
+
+package "Browser Automation" {
+    RECTANGLE Browser {
+        - Width: int
+        - Height: int
+        - Position: string
+        - isOpen: bool
+        - Context: context.Context
+        - CancelFunc: context.CancelFunc
+        --
+        + OpenBrowser()
+        + CloseBrowser()
+        + Reload()
+        + setBrowserPositionAndSize()
+    }
+}
+
+package "External Dependencies" {
+    RECTANGLE DevTUI <<cdvelop/devtui>> {
+        --
+        + InitTUI()
+        + Print()
+        + NewTabSection()
+        + AddFields()
+        + HandleInput()
+    }
+    
+    RECTANGLE AssetMin <<cdvelop/assetmin>> {
+        --
+        + NewFileEvent()
+        + UnobservedFiles()
+        + GetRuntimeInitializerJS()
+        + ProcessAssets()
+    }
+    
+    RECTANGLE TinyWasm <<cdvelop/tinywasm>> {
+        --
+        + CompileMainModule()
+        + SetTinyGoCompiler()
+        + JavascriptForInitializing()
+        + NewFileEvent()
+    }
+    
+    RECTANGLE GoBuild <<cdvelop/gobuild>> {
+        --
+        + CompileProgram()
+        + Cancel()
+        + IsCompiling()
+    }
+    
+    RECTANGLE TinyTranslator <<cdvelop/tinytranslator>> {
+        --
+        + Internationalization
+        + Message Translation
+    }
+    
+    RECTANGLE MessageType <<cdvelop/messagetype>> {
+        --
+        + Message Types
+        + Communication Protocols
+    }
+    
+    RECTANGLE TinyString <<cdvelop/tinystring>> {
+        --
+        + String Utilities
+        + Text Processing
+    }
+    
+    RECTANGLE ChromeDP {
+        --
+        + Run()
+        + Navigate()
+    }
+    
+    RECTANGLE FSNotify {
+        --
+        + NewWatcher()
+        + Add()
+        + Events
+    }
+}
+
+' Relationships
+Handler ||--|| ConfigHandler : manages
+Handler ||--|| ServerHandler : orchestrates
+Handler ||--|| TinyWasm : controls
+Handler ||--|| AssetMin : handles
+Handler ||--|| WatchHandler : coordinates
+Handler ||--|| Browser : automates
+Handler ||--|| DevTUI : interfaces
+
+ConfigHandler ||--|| Config : contains
+ConfigHandler ||--|| TinyTranslator : uses
+
+ServerHandler ||--|| GoRun : uses
+ServerHandler ||--|| GoBuild : compiles_with
+
+TinyWasm ||--|| GoBuild : dual_builders
+
+WatchHandler ||--|| FileEvent : implements
+WatchHandler ||--|| GoFileType : uses
+WatchHandler ||--|| FSNotify : wraps
+
+Browser ||--|| ChromeDP : uses
+
+ServerHandler --|> FileEvent : implements
+TinyWasm --|> FileEvent : implements
+AssetMin --|> FileEvent : implements
+
+' Cross-cutting concerns
+WatchHandler ..> ServerHandler : file_events
+WatchHandler ..> TinyWasm : file_events
+WatchHandler ..> AssetMin : file_events
+WatchHandler ..> Browser : triggers_reload
+
+note top of Handler : "Central orchestrator\nUses cdvelop libraries"
+
+note right of WatchHandler : "File system observer\nDebounced event handling"
+
+@enduml

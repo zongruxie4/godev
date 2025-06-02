@@ -27,8 +27,6 @@ el principal problema que pretende resolver este framework es el facilitar el de
 
 el problema de otras implementaciones de webAssembly y go que desean escribir todo en go inclusive el css, ese enfoque de este framework quiere evitar ya que busca un equilibrio entre javascript y go, dejando el uso de javascript (syscall/js) para el manejo de la interfaz de usuario y el uso de go para la lógica de negocio.
 
-otros proyectos de go en la web generan un único fichero webAssembly en la salida, generando un resultado de un archivo wasm muy grande y difícil de optimizar. el enfoque de este framework es que el desarrollo sea en módulos y estos ser compilados y optimizados por separado ya se a usando el compilador go o tinygo.
-
 en este framework se quiero evitar en lo posible configuraciones interminables para iniciar un proyecto dado que su único lenguaje es go eso lo facilita.
 
 ¿Cansado de configuraciones complejas para desarrollar aplicaciones web? ¿Frustrado por depender de múltiples herramientas para compilar, recargar, desplegar, configurar Docker y VPS?  
@@ -85,7 +83,7 @@ godev
 
 
 ## Arquitectura
-![arquitectura godev](docs/godev.arq.svg)
+![arquitectura godev](docs/architecture/godev-architecture.svg)
 
 ## Estructura del Proyecto
 
@@ -191,9 +189,6 @@ miProyecto/
 - [ ] Integrar ayudante IA
 
 
-
-### uses case
-- [x] cuando se ejecuta el archivo servidor main.server.go y este tiene errores si este modifica en vivo, tiene que arrancar.
 
 ## Agradecimientos
 Este proyecto no sería posible sin:
