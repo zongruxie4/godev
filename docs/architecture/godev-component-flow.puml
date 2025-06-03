@@ -10,9 +10,10 @@ package "Application Lifecycle" {
 }
 
 package "Configuration Layer" {
-    [ConfigHandler] as config_h
-    [Config Fields] as config_f
-    [YAML Persistence] as yaml
+    [AutoConfig] as autoconfig
+    [Directory Scanning] as dir_scan
+    [Logger] as logger
+    [Architecture Detection] as arch_detect
     [TinyTranslator] as translator
 }
 
@@ -25,7 +26,8 @@ package "User Interface Layer" {
 package "File System Layer" {
     [WatchHandler] as watcher
     [FSNotify] as fsnotify
-    [File Events] as events
+    [File Events] as file_events
+    [Folder Events] as folder_events
     [Debouncing] as debounce
 }
 
@@ -65,10 +67,11 @@ package "Third-party Dependencies" {
 
 ' Initialization Flow
 start --> main_handler : creates
-main_handler --> config_h : initializes
-config_h --> ext_yaml : loads/saves
-config_h --> config_f : manages
-config_h --> translator : uses
+main_handler --> autoconfig : initializes
+autoconfig --> dir_scan : performs
+autoconfig --> arch_detect : executes
+autoconfig --> logger : uses
+autoconfig --> translator : integrates
 
 main_handler --> tui : creates
 tui --> tabs : organizes
@@ -81,15 +84,17 @@ main_handler --> watcher : configures
 main_handler --> browser : configures
 
 ' External Dependencies Integration
-config_h --> ext_translator : uses
+autoconfig --> ext_translator : uses
 server_h --> ext_gobuild : compiles_with
 wasm_h --> ext_tinywasm : engine
 assets_h --> ext_assetmin : minifier
 
 ' File Watching Flow
 watcher --> ext_fsnotify : uses
-ext_fsnotify --> events : generates
-events --> debounce : processed_by
+ext_fsnotify --> file_events : generates
+ext_fsnotify --> folder_events : generates
+file_events --> debounce : processed_by
+folder_events --> debounce : processed_by
 debounce --> server_h : .go files
 debounce --> wasm_h : .wasm.go files
 debounce --> assets_h : .css/.js/.html files
@@ -128,5 +133,7 @@ note bottom of ext_gobuild : "cdvelop/gobuild\nGo compilation engine"
 note bottom of ext_devtui : "cdvelop/devtui\nTerminal UI framework"
 
 note bottom of ext_chromedp : "Third-party\nBrowser automation"
+
+note left of autoconfig : "Zero-configuration\nDirectory structure detection\nNo YAML dependencies"
 
 @enduml

@@ -5,17 +5,16 @@ go 1.24
 toolchain go1.24.0
 
 require (
+	github.com/cdvelop/gobuild v0.0.3
+	github.com/cdvelop/tinywasm v0.0.7
 	github.com/chromedp/chromedp v0.13.6
 	github.com/stretchr/testify v1.10.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/gobuild v0.0.3 // indirect
 	github.com/cdvelop/messagetype v0.0.18 // indirect
 	github.com/cdvelop/tinystring v0.0.29 // indirect
-	github.com/cdvelop/tinywasm v0.0.7 // indirect
 	github.com/cdvelop/unixid v0.0.67 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.5 // indirect
@@ -45,6 +44,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (

@@ -5,8 +5,9 @@ title GoDev - Arquitectura del Sistema
 
 package "Core Application" {
     RECTANGLE Handler {
+        - rootDir: string
+        - config: *AutoConfig
         - Translator: *TinyTranslator
-        - ch: *ConfigHandler
         - tui: *DevTUI
         - serverHandler: *ServerHandler
         - assetsHandler: *AssetMin
@@ -15,37 +16,32 @@ package "Core Application" {
         - browser: *Browser
         - exitChan: chan bool
         --
-        + GodevStart()
-        + NewConfig()
+        + GodevStart(rootDir, logger)
         + NewBrowser()
         + AddSectionBUILD()
     }
 }
 
 package "Configuration Management" {
-    RECTANGLE ConfigHandler {
-        - config: *Config
-        - configErrors: []error
-        - appRootDir: string
-        - conFileName: string
-        - translator: *TinyTranslator
+    RECTANGLE AutoConfig {
+        - rootDir: string
+        - logger: func(messages ...any)
+        - AppName: string
+        - Types: []string
+        - HasConsole: bool
+        - WebType: string
         --
-        + InitializeFields()
-        + LoadConfigFromYML()
-        + SaveConfigToYML()
-        + SetTranslator()
+        + ScanDirectoryStructure()
+        + GetServerPort() string
+        + GetWebServerFileName() string
+        + GetCMDFileName() string
+        + NewFolderEvent()
+        + SetRootDir()
     }
     
-    RECTANGLE Config {
-        - AppNameField: *devtui.Field
-        - MainFilePathField: *devtui.Field
-        - WebFilesFolderField: *devtui.Field
-        - ServerPortField: *devtui.Field
-        - BrowserStartUrlField: *devtui.Field
-        - BrowserPositionField: *devtui.Field
+    RECTANGLE Logger {
         --
-        + OutPutStaticsDirectory()
-        + PublicFolder()
+        + LogToFile(messages ...any)
     }
 }
 
@@ -83,6 +79,9 @@ package "File Watching" {
         + FileWatcherStart()
         + RegisterFiles()
         + watchEvents()
+    }
+      interface FolderEvent {
+        + NewFolderEvent(folderName, path, event string) error
     }
     
     interface FileEvent {
@@ -181,7 +180,7 @@ package "External Dependencies" {
 }
 
 ' Relationships
-Handler ||--|| ConfigHandler : manages
+Handler ||--|| AutoConfig : uses
 Handler ||--|| ServerHandler : orchestrates
 Handler ||--|| TinyWasm : controls
 Handler ||--|| AssetMin : handles
@@ -189,14 +188,14 @@ Handler ||--|| WatchHandler : coordinates
 Handler ||--|| Browser : automates
 Handler ||--|| DevTUI : interfaces
 
-ConfigHandler ||--|| Config : contains
-ConfigHandler ||--|| TinyTranslator : uses
+AutoConfig ||--|| Logger : uses
 
 ServerHandler ||--|| GoRun : uses
 ServerHandler ||--|| GoBuild : compiles_with
 
 TinyWasm ||--|| GoBuild : dual_builders
 
+WatchHandler ||--|| FolderEvent : implements
 WatchHandler ||--|| FileEvent : implements
 WatchHandler ||--|| GoFileType : uses
 WatchHandler ||--|| FSNotify : wraps
@@ -206,6 +205,7 @@ Browser ||--|| ChromeDP : uses
 ServerHandler --|> FileEvent : implements
 TinyWasm --|> FileEvent : implements
 AssetMin --|> FileEvent : implements
+AutoConfig --|> FolderEvent : implements
 
 ' Cross-cutting concerns
 WatchHandler ..> ServerHandler : file_events
@@ -213,8 +213,10 @@ WatchHandler ..> TinyWasm : file_events
 WatchHandler ..> AssetMin : file_events
 WatchHandler ..> Browser : triggers_reload
 
-note top of Handler : "Central orchestrator\nUses cdvelop libraries"
+note top of Handler : "Central orchestrator\nZero-configuration architecture\nUses cdvelop libraries"
 
-note right of WatchHandler : "File system observer\nDebounced event handling"
+note right of WatchHandler : "File system observer\nDebounced event handling\nFolderEvent + FileEvent support"
+
+note left of AutoConfig : "Zero-configuration\nDirectory structure detection\nNo YAML files required"
 
 @enduml
