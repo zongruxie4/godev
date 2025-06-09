@@ -15,9 +15,9 @@ type AppType string
 const (
 	AppTypeUnknown AppType = "unknown"
 	AppTypeConsole AppType = "console" // cmd/
-	AppTypeWeb     AppType = "web"     // web/ (undefined architecture)
-	AppTypePWA     AppType = "pwa"     // web/pwa/
-	AppTypeSPA     AppType = "spa"     // web/spa/
+	AppTypeMPA     AppType = "mpa"     // mpa/ (Multi-Page Application)
+	AppTypePWA     AppType = "pwa"     // pwa/ (Progressive Web App)
+	AppTypeSPA     AppType = "spa"     // spa/ (Single Page Application)
 )
 
 // AutoConfig handles automatic detection of application architecture
@@ -59,9 +59,18 @@ func (ac *AutoConfig) GetAppName() string {
 	return ac.AppName
 }
 
-// GetWebFilesFolder returns the web files folder path
+// GetWebFilesFolder returns the detected web architecture folder path
 func (ac *AutoConfig) GetWebFilesFolder() string {
-	return "web" // Convention: web files are in "web/" directory
+	switch ac.WebType {
+	case AppTypePWA:
+		return "pwa"
+	case AppTypeSPA:
+		return "spa"
+	case AppTypeMPA:
+		return "mpa"
+	default:
+		return "pwa" // Default fallback
+	}
 }
 
 // GetPublicFolder returns the public folder path
@@ -154,79 +163,91 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 		ac.HasConsole = true
 		ac.print("AutoConfig: Found console application (cmd/)")
 	}
-	// Check for web application (web/)
-	webPath := filepath.Join(ac.rootDir, "web")
-	if ac.directoryExists(webPath) {
-		// Check for all web architecture types and detect conflicts
-		webTypes := ac.detectAllWebArchitectures(webPath)
 
-		if len(webTypes) > 1 {
-			// Multiple web architectures detected - this is a conflict
-			detectedTypes = append(detectedTypes, webTypes...)
-		} else if len(webTypes) == 1 {
-			// Single web architecture detected
-			detectedTypes = append(detectedTypes, webTypes[0])
-			ac.WebType = webTypes[0]
-		} else {
-			// Generic web application (architecture undefined)
-			detectedTypes = append(detectedTypes, AppTypeWeb)
-			ac.WebType = AppTypeWeb
-		}
+	// Check for web architectures directly in root (pwa/, spa/, mpa/)
+	webTypes := ac.detectAllWebArchitectures()
 
-		// Log what was found
-		for _, webType := range webTypes {
-			switch webType {
-			case AppTypePWA:
-				ac.print("AutoConfig: Found Progressive Web App (web/pwa/)")
-			case AppTypeSPA:
-				ac.print("AutoConfig: Found Single Page Application (web/spa/)")
-			}
-		}
+	if len(webTypes) > 1 {
+		// Multiple web architectures detected - apply priority order
+		priorityType := ac.resolvePriorityConflict(webTypes)
+		detectedTypes = append(detectedTypes, priorityType)
+		ac.WebType = priorityType
+	} else if len(webTypes) == 1 {
+		// Single web architecture detected
+		detectedTypes = append(detectedTypes, webTypes[0])
+		ac.WebType = webTypes[0]
+	} else {
+		// No web architecture found - return unknown
+		ac.WebType = AppTypeUnknown
+	}
 
-		if len(webTypes) == 0 {
-			ac.print("AutoConfig: Found web project (web/) - architecture undefined")
+	// Log what was found
+	for _, webType := range webTypes {
+		switch webType {
+		case AppTypePWA:
+			ac.print("AutoConfig: Found Progressive Web App (pwa/)")
+		case AppTypeSPA:
+			ac.print("AutoConfig: Found Single Page Application (spa/)")
+		case AppTypeMPA:
+			ac.print("AutoConfig: Found Multi-Page Application (mpa/)")
 		}
+	}
+
+	if len(webTypes) == 0 {
+		ac.print("AutoConfig: No web architecture found - returning unknown")
 	}
 
 	ac.Types = detectedTypes
 	return nil
 }
 
-// detectAllWebArchitectures detects all web architecture types present
-func (ac *AutoConfig) detectAllWebArchitectures(webPath string) []AppType {
+// detectAllWebArchitectures detects all web architecture types present in root directory
+func (ac *AutoConfig) detectAllWebArchitectures() []AppType {
 	var webTypes []AppType
 
 	// Check for PWA (Progressive Web App)
-	pwaPath := filepath.Join(webPath, "pwa")
+	pwaPath := filepath.Join(ac.rootDir, "pwa")
 	if ac.directoryExists(pwaPath) {
 		webTypes = append(webTypes, AppTypePWA)
 	}
 
 	// Check for SPA (Single Page Application)
-	spaPath := filepath.Join(webPath, "spa")
+	spaPath := filepath.Join(ac.rootDir, "spa")
 	if ac.directoryExists(spaPath) {
 		webTypes = append(webTypes, AppTypeSPA)
+	}
+
+	// Check for MPA (Multi-Page Application)
+	mpaPath := filepath.Join(ac.rootDir, "mpa")
+	if ac.directoryExists(mpaPath) {
+		webTypes = append(webTypes, AppTypeMPA)
 	}
 
 	return webTypes
 }
 
-// detectWebArchitecture determines the specific web architecture type
-func (ac *AutoConfig) detectWebArchitecture(webPath string) AppType {
+// detectWebArchitecture determines the specific web architecture type in root directory
+func (ac *AutoConfig) detectWebArchitecture() AppType {
 	// Check for PWA (Progressive Web App)
-	pwaPath := filepath.Join(webPath, "pwa")
+	pwaPath := filepath.Join(ac.rootDir, "pwa")
 	if ac.directoryExists(pwaPath) {
 		return AppTypePWA
 	}
 
 	// Check for SPA (Single Page Application)
-	spaPath := filepath.Join(webPath, "spa")
+	spaPath := filepath.Join(ac.rootDir, "spa")
 	if ac.directoryExists(spaPath) {
 		return AppTypeSPA
 	}
 
-	// Generic web application (architecture undefined)
-	return AppTypeWeb
+	// Check for MPA (Multi-Page Application)
+	mpaPath := filepath.Join(ac.rootDir, "mpa")
+	if ac.directoryExists(mpaPath) {
+		return AppTypeMPA
+	}
+
+	// No web architecture found
+	return AppTypeUnknown
 }
 
 // validateArchitecture checks for conflicting architecture patterns
@@ -234,13 +255,13 @@ func (ac *AutoConfig) validateArchitecture() error {
 	// Check for conflicting web architectures
 	webCount := 0
 	for _, appType := range ac.Types {
-		if appType == AppTypePWA || appType == AppTypeSPA {
+		if appType == AppTypePWA || appType == AppTypeSPA || appType == AppTypeMPA {
 			webCount++
 		}
 	}
 
 	if webCount > 1 {
-		return errors.New("conflicting web architectures detected: cannot have both PWA and SPA")
+		return errors.New("conflicting web architectures detected: only one web architecture allowed (pwa/, spa/, or mpa/)")
 	}
 
 	// Multiple console applications are not allowed
@@ -277,9 +298,9 @@ func (ac *AutoConfig) isRelevantDirectoryChange(dirPath string) bool {
 	relevantPaths := []string{
 		"cmd",
 		"cmd/" + ac.AppName,
-		"web",
-		"web/pwa",
-		"web/spa",
+		"pwa",
+		"spa",
+		"mpa",
 	}
 
 	for _, relevantPath := range relevantPaths {
@@ -312,4 +333,40 @@ func (ac *AutoConfig) hasArchitectureChanged(oldTypes []AppType, oldWebType AppT
 
 	// Check if WebType or HasConsole changed
 	return ac.WebType != oldWebType || ac.HasConsole != oldHasConsole
+}
+
+// resolvePriorityConflict applies priority order when multiple web architectures are found
+// Priority: PWA (1) > SPA (2) > MPA (3) - highest priority wins
+func (ac *AutoConfig) resolvePriorityConflict(webTypes []AppType) AppType {
+	var conflicts []string
+
+	// Check which architectures are present and build conflict message
+	hasPWA := slices.Contains(webTypes, AppTypePWA)
+	hasSPA := slices.Contains(webTypes, AppTypeSPA)
+	hasMPA := slices.Contains(webTypes, AppTypeMPA)
+
+	if hasPWA {
+		conflicts = append(conflicts, "pwa/")
+	}
+	if hasSPA {
+		conflicts = append(conflicts, "spa/")
+	}
+	if hasMPA {
+		conflicts = append(conflicts, "mpa/")
+	}
+
+	// Apply priority order and warn about conflicts
+	if hasPWA {
+		ac.print(fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using PWA (highest priority)", conflicts))
+		return AppTypePWA
+	} else if hasSPA {
+		ac.print(fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using SPA (priority 2)", conflicts))
+		return AppTypeSPA
+	} else if hasMPA {
+		ac.print(fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using MPA (priority 3)", conflicts))
+		return AppTypeMPA
+	}
+
+	// Fallback (should never reach here)
+	return AppTypeUnknown
 }

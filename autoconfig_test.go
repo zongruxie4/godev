@@ -54,13 +54,13 @@ func TestArchDetector_DetectConsoleApp(t *testing.T) {
 	assert.Equal(t, filepath.Base(tempDir), detector.AppName)
 }
 
-// TestArchDetector_DetectPWA tests detection of Progressive Web Apps
-func TestArchDetector_DetectPWA(t *testing.T) {
+// TestArchDetector_DetectPWA_RootLevel tests detection of Progressive Web Apps in root
+func TestArchDetector_DetectPWA_RootLevel(t *testing.T) {
 	tempDir := createTempDir(t)
 	defer os.RemoveAll(tempDir)
-	// Create web/pwa directory structure
-	createDir(t, filepath.Join(tempDir, "web", "pwa"))
-	createFile(t, filepath.Join(tempDir, "web", "pwa", "index.html"), "<html></html>")
+	// Create pwa directory structure in root
+	createDir(t, filepath.Join(tempDir, "pwa"))
+	createFile(t, filepath.Join(tempDir, "pwa", "index.html"), "<html></html>")
 
 	detector := createTestDetector(tempDir, t)
 
@@ -71,14 +71,14 @@ func TestArchDetector_DetectPWA(t *testing.T) {
 	assert.Contains(t, detector.Types, AppTypePWA)
 }
 
-// TestArchDetector_DetectSPA tests detection of Single Page Applications
-func TestArchDetector_DetectSPA(t *testing.T) {
+// TestArchDetector_DetectSPA_RootLevel tests detection of Single Page Applications in root
+func TestArchDetector_DetectSPA_RootLevel(t *testing.T) {
 	tempDir := createTempDir(t)
 	defer os.RemoveAll(tempDir)
 
-	// Create web/spa directory structure
-	createDir(t, filepath.Join(tempDir, "web", "spa"))
-	createFile(t, filepath.Join(tempDir, "web", "spa", "app.js"), "console.log('spa')")
+	// Create spa directory structure in root
+	createDir(t, filepath.Join(tempDir, "spa"))
+	createFile(t, filepath.Join(tempDir, "spa", "app.js"), "console.log('spa')")
 
 	detector := createTestDetector(tempDir, t)
 
@@ -89,22 +89,41 @@ func TestArchDetector_DetectSPA(t *testing.T) {
 	assert.Contains(t, detector.Types, AppTypeSPA)
 }
 
-// TestArchDetector_DetectWebUndefined tests detection of undefined web architecture
-func TestArchDetector_DetectWebUndefined(t *testing.T) {
+// TestArchDetector_DetectMPA_RootLevel tests detection of Multi-Page Applications in root
+func TestArchDetector_DetectMPA_RootLevel(t *testing.T) {
 	tempDir := createTempDir(t)
 	defer os.RemoveAll(tempDir)
 
-	// Create web directory without specific architecture
-	createDir(t, filepath.Join(tempDir, "web"))
-	createFile(t, filepath.Join(tempDir, "web", "index.html"), "<html></html>")
+	// Create mpa directory structure in root
+	createDir(t, filepath.Join(tempDir, "mpa"))
+	createFile(t, filepath.Join(tempDir, "mpa", "page1.html"), "<html>Page 1</html>")
 
 	detector := createTestDetector(tempDir, t)
 
 	err := detector.ScanDirectoryStructure()
 	assert.NoError(t, err)
 
-	assert.Equal(t, AppTypeWeb, detector.WebType)
-	assert.Contains(t, detector.Types, AppTypeWeb)
+	assert.Equal(t, AppTypeMPA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypeMPA)
+}
+
+// TestArchDetector_NoArchitecture_ReturnsUnknown tests when no architecture is detected
+func TestArchDetector_NoArchitecture_ReturnsUnknown(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create only some random files, no architecture directories
+	createFile(t, filepath.Join(tempDir, "README.md"), "# Test Project")
+	createFile(t, filepath.Join(tempDir, "go.mod"), "module test")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	assert.Equal(t, AppTypeUnknown, detector.WebType)
+	assert.Empty(t, detector.Types)
+	assert.False(t, detector.HasConsole)
 }
 
 // TestArchDetector_DetectHybridApp tests detection of hybrid applications
@@ -112,11 +131,11 @@ func TestArchDetector_DetectHybridApp(t *testing.T) {
 	tempDir := createTempDir(t)
 	defer os.RemoveAll(tempDir)
 
-	// Create both cmd and web directories
+	// Create both cmd and spa directories
 	createDir(t, filepath.Join(tempDir, "cmd"))
 	createFile(t, filepath.Join(tempDir, "cmd", "main.go"), "package main")
-	createDir(t, filepath.Join(tempDir, "web", "spa"))
-	createFile(t, filepath.Join(tempDir, "web", "spa", "app.js"), "console.log('spa')")
+	createDir(t, filepath.Join(tempDir, "spa"))
+	createFile(t, filepath.Join(tempDir, "spa", "app.js"), "console.log('spa')")
 
 	detector := createTestDetector(tempDir, t)
 
@@ -130,42 +149,9 @@ func TestArchDetector_DetectHybridApp(t *testing.T) {
 	assert.Len(t, detector.Types, 2)
 }
 
-// TestArchDetector_ConflictingWebArchitectures tests validation of conflicting web architectures
-func TestArchDetector_ConflictingWebArchitectures(t *testing.T) {
-	tempDir := createTempDir(t)
-	defer os.RemoveAll(tempDir)
+// Test removed - replaced with priority resolution tests above
 
-	// Create both pwa and spa directories (should cause conflict)
-	createDir(t, filepath.Join(tempDir, "web", "pwa"))
-	createDir(t, filepath.Join(tempDir, "web", "spa"))
-	createFile(t, filepath.Join(tempDir, "web", "pwa", "index.html"), "<html></html>")
-	createFile(t, filepath.Join(tempDir, "web", "spa", "app.js"), "console.log('spa')")
-
-	detector := createTestDetector(tempDir, t)
-
-	err := detector.ScanDirectoryStructure()
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "conflicting web architectures")
-}
-
-// TestArchDetector_NoArchitecture tests when no architecture is detected
-func TestArchDetector_NoArchitecture(t *testing.T) {
-	tempDir := createTempDir(t)
-	defer os.RemoveAll(tempDir)
-
-	// Create only some random files, no architecture directories
-	createFile(t, filepath.Join(tempDir, "main.go"), "package main")
-	createFile(t, filepath.Join(tempDir, "README.md"), "# Test")
-
-	detector := createTestDetector(tempDir, t)
-
-	err := detector.ScanDirectoryStructure()
-	assert.NoError(t, err)
-
-	assert.False(t, detector.HasConsole)
-	assert.Equal(t, AppTypeUnknown, detector.WebType)
-	assert.Empty(t, detector.Types)
-}
+// Test removed - duplicate of TestArchDetector_NoArchitecture_ReturnsUnknown above
 
 // TestArchDetector_NewFileEvent tests the NewFileEvent method
 func TestArchDetector_NewFileEvent(t *testing.T) {
@@ -196,9 +182,23 @@ func TestArchDetector_NewFileEvent(t *testing.T) {
 			shouldRun: true,
 		},
 		{
-			name:      "web directory event should trigger scan",
-			fileName:  "web",
-			filePath:  filepath.Join(tempDir, "web"),
+			name:      "pwa directory event should trigger scan",
+			fileName:  "pwa",
+			filePath:  filepath.Join(tempDir, "pwa"),
+			event:     "created",
+			shouldRun: true,
+		},
+		{
+			name:      "spa directory event should trigger scan",
+			fileName:  "spa",
+			filePath:  filepath.Join(tempDir, "spa"),
+			event:     "created",
+			shouldRun: true,
+		},
+		{
+			name:      "mpa directory event should trigger scan",
+			fileName:  "mpa",
+			filePath:  filepath.Join(tempDir, "mpa"),
 			event:     "created",
 			shouldRun: true,
 		},
@@ -247,18 +247,18 @@ func TestArchDetector_IsRelevantDirectoryChange(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "web directory",
-			dirPath:  filepath.Join(tempDir, "web"),
+			name:     "pwa directory",
+			dirPath:  filepath.Join(tempDir, "pwa"),
 			expected: true,
 		},
 		{
-			name:     "web/pwa directory",
-			dirPath:  filepath.Join(tempDir, "web", "pwa"),
+			name:     "spa directory",
+			dirPath:  filepath.Join(tempDir, "spa"),
 			expected: true,
 		},
 		{
-			name:     "web/spa directory",
-			dirPath:  filepath.Join(tempDir, "web", "spa"),
+			name:     "mpa directory",
+			dirPath:  filepath.Join(tempDir, "mpa"),
 			expected: true,
 		},
 		{
@@ -279,6 +279,143 @@ func TestArchDetector_IsRelevantDirectoryChange(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+// Priority Resolution Tests - PWA wins over SPA and MPA
+// TestArchDetector_PWA_SPA_Priority tests that PWA has priority over SPA
+func TestArchDetector_PWA_SPA_Priority(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create both PWA and SPA directories
+	createDir(t, filepath.Join(tempDir, "pwa"))
+	createFile(t, filepath.Join(tempDir, "pwa", "manifest.json"), "{}")
+	createDir(t, filepath.Join(tempDir, "spa"))
+	createFile(t, filepath.Join(tempDir, "spa", "app.js"), "console.log('spa')")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	// PWA should win (priority 1)
+	assert.Equal(t, AppTypePWA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypePWA)
+	assert.NotContains(t, detector.Types, AppTypeSPA)
+}
+
+// TestArchDetector_PWA_MPA_Priority tests that PWA has priority over MPA
+func TestArchDetector_PWA_MPA_Priority(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create both PWA and MPA directories
+	createDir(t, filepath.Join(tempDir, "pwa"))
+	createFile(t, filepath.Join(tempDir, "pwa", "manifest.json"), "{}")
+	createDir(t, filepath.Join(tempDir, "mpa"))
+	createFile(t, filepath.Join(tempDir, "mpa", "page1.html"), "<html></html>")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	// PWA should win (priority 1)
+	assert.Equal(t, AppTypePWA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypePWA)
+	assert.NotContains(t, detector.Types, AppTypeMPA)
+}
+
+// TestArchDetector_SPA_MPA_Priority tests that SPA has priority over MPA
+func TestArchDetector_SPA_MPA_Priority(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create both SPA and MPA directories
+	createDir(t, filepath.Join(tempDir, "spa"))
+	createFile(t, filepath.Join(tempDir, "spa", "app.js"), "console.log('spa')")
+	createDir(t, filepath.Join(tempDir, "mpa"))
+	createFile(t, filepath.Join(tempDir, "mpa", "page1.html"), "<html></html>")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	// SPA should win (priority 2)
+	assert.Equal(t, AppTypeSPA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypeSPA)
+	assert.NotContains(t, detector.Types, AppTypeMPA)
+}
+
+// Hybrid Application Tests
+// TestArchDetector_CMD_PWA_Hybrid tests console + PWA hybrid application
+func TestArchDetector_CMD_PWA_Hybrid(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create both cmd and pwa directories
+	createDir(t, filepath.Join(tempDir, "cmd"))
+	createFile(t, filepath.Join(tempDir, "cmd", "main.go"), "package main")
+	createDir(t, filepath.Join(tempDir, "pwa"))
+	createFile(t, filepath.Join(tempDir, "pwa", "manifest.json"), "{}")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	assert.True(t, detector.HasConsole)
+	assert.Equal(t, AppTypePWA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypeConsole)
+	assert.Contains(t, detector.Types, AppTypePWA)
+	assert.Len(t, detector.Types, 2) // Should have exactly 2 types
+}
+
+// TestArchDetector_CMD_SPA_Hybrid tests console + SPA hybrid application
+func TestArchDetector_CMD_SPA_Hybrid(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create both cmd and spa directories
+	createDir(t, filepath.Join(tempDir, "cmd"))
+	createFile(t, filepath.Join(tempDir, "cmd", "main.go"), "package main")
+	createDir(t, filepath.Join(tempDir, "spa"))
+	createFile(t, filepath.Join(tempDir, "spa", "app.js"), "console.log('spa')")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	assert.True(t, detector.HasConsole)
+	assert.Equal(t, AppTypeSPA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypeConsole)
+	assert.Contains(t, detector.Types, AppTypeSPA)
+	assert.Len(t, detector.Types, 2) // Should have exactly 2 types
+}
+
+// TestArchDetector_CMD_MPA_Hybrid tests console + MPA hybrid application
+func TestArchDetector_CMD_MPA_Hybrid(t *testing.T) {
+	tempDir := createTempDir(t)
+	defer os.RemoveAll(tempDir)
+
+	// Create both cmd and mpa directories
+	createDir(t, filepath.Join(tempDir, "cmd"))
+	createFile(t, filepath.Join(tempDir, "cmd", "main.go"), "package main")
+	createDir(t, filepath.Join(tempDir, "mpa"))
+	createFile(t, filepath.Join(tempDir, "mpa", "page1.html"), "<html></html>")
+
+	detector := createTestDetector(tempDir, t)
+
+	err := detector.ScanDirectoryStructure()
+	assert.NoError(t, err)
+
+	assert.True(t, detector.HasConsole)
+	assert.Equal(t, AppTypeMPA, detector.WebType)
+	assert.Contains(t, detector.Types, AppTypeConsole)
+	assert.Contains(t, detector.Types, AppTypeMPA)
+	assert.Len(t, detector.Types, 2) // Should have exactly 2 types
 }
 
 // Helper functions

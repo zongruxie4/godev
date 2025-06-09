@@ -102,9 +102,17 @@ GoDev detectará automáticamente la estructura de tu proyecto y configurará el
 
 ### 📁 **Tipos de Aplicación Detectados**
 - **`cmd/`**: Aplicación de consola (solo una permitida)
-- **`web/pwa/`**: Progressive Web App  
-- **`web/spa/`**: Single Page Application
-- **Combinaciones válidas**: `cmd + web/pwa` o `cmd + web/spa`
+- **`pwa/`**: Progressive Web App  
+- **`spa/`**: Single Page Application
+- **`mpa/`**: Multi-Page Application
+- **Combinaciones válidas**: `cmd + pwa`, `cmd + spa`, o `cmd + mpa`
+- **Una sola arquitectura web**: Solo puede existir una arquitectura web (`pwa/` OR `spa/` OR `mpa/`)
+
+### 🎯 **Prioridades de Arquitectura**
+**Cuando múltiples arquitecturas web coexisten:**
+- **PWA (Prioridad 1)**: Máxima prioridad
+- **SPA (Prioridad 2)**: Segunda prioridad  
+- **MPA (Prioridad 3)**: Tercera prioridad
 
 ### 🏷️ **Convención de Prefijos (OBLIGATORIA)**
 **Dentro del directorio `modules/`:**
@@ -121,7 +129,7 @@ AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
 │       └── main.go             # Punto de entrada CLI
 │
 ├── modules/                    # 🔧 Lógica modular (obligatorio)
-│   ├── modules.go              # Registro de módulos en main.server.go, main.wasm.go
+│   ├── modules.go              # Registro de módulos
 │   │
 │   ├── home/                   # 🏠 Módulo home con autenticación
 │   │   ├── auth.go             # Estructuras y lógica de autenticación
@@ -141,32 +149,39 @@ AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
 │       ├── f.medical.go        # 🌐 Frontend médico (// +build wasm)
 │       └── handlers.go         # Handlers HTTP
 │
-├── web/                        # 🌐 Aplicación web
+├── pwa/                        # 📱 Progressive Web App (una de las 3)
 │   ├── theme/                  # 🎨 Assets de desarrollo
 │   │   ├── css/                # CSS sin procesar
 │   │   └── js/                 # JavaScript sin procesar
 │   │
-│   ├── pwa/                    # 📱 PWA Assets (si es PWA)
+│   ├── public/                 # � Assets finales (generados)
+│   │   ├── img/                # Imágenes optimizadas
+│   │   ├── icons.svg           # Sprite de iconos SVG
+│   │   ├── main.js             # JavaScript minificado
+│   │   ├── style.css           # CSS minificado
+│   │   ├── AppName.wasm        # 🎯 WebAssembly compilado
 │   │   ├── manifest.json       # Manifiesto PWA
 │   │   ├── sw.js               # Service Worker
 │   │   ├── icons/              # Iconos PWA
 │   │   │   ├── icon-192x192.png
 │   │   │   └── icon-512x512.png
-│   │   └── offline.html        # Página offline
-│   │
-│   ├── public/                 # 📁 Assets finales (generados)
-│   │   ├── img/                # Imágenes optimizadas
-│   │   ├── icons.svg           # Sprite de iconos SVG
-│   │   ├── main.js             # JavaScript minificado
-│   │   ├── style.css           # CSS minificado
-│   │   ├── AppName.wasm        # 🎯 WebAssembly compilado (UN SOLO ARCHIVO)
-│   │   ├── manifest.json       # Copiado desde pwa/ (si aplica)
-│   │   ├── sw.js               # Copiado desde pwa/ (si aplica)
+│   │   ├── offline.html        # Página offline
 │   │   └── index.html          # HTML principal generado
 │   │
-│   ├── main.server.exe         # 🔙 Ejecutable del servidor (generado)
-│   ├── main.server.go          # 🔙 Servidor Go (si existe = backend)
-│   └── main.wasm.go            # 🌐 Entry point WebAssembly (si existe = frontend)
+│   ├── main.server.go          # 🔙 Servidor Go (opcional)
+│   └── main.wasm.go            # 🌐 Entry point WebAssembly (opcional)
+│
+├── spa/                        # 🌐 Single Page Application (alternativa)
+│   ├── theme/                  # 🎨 Assets de desarrollo
+│   ├── public/                 # 📁 Assets finales
+│   ├── main.server.go          # 🔙 Servidor Go (opcional)
+│   └── main.wasm.go            # 🌐 Entry point WebAssembly (opcional)
+│
+├── mpa/                        # 🌐 Multi-Page Application (alternativa)
+│   ├── theme/                  # 🎨 Assets de desarrollo
+│   ├── public/                 # 📁 Assets finales
+│   ├── main.server.go          # 🔙 Servidor Go (opcional)
+│   └── main.wasm.go            # 🌐 Entry point WebAssembly (opcional)
 │
 ├── go.mod                      # 📦 Módulo Go
 ├── env                         # 🔧 Variables de entorno
@@ -182,10 +197,11 @@ AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
 
 ### 📁 **Detección Automática**
 - **`cmd/`** presente → Aplicación híbrida (CLI + Web)
-- **`web/pwa/`** presente → Progressive Web App  
-- **`web/spa/`** presente → Single Page Application
-- **`main.server.go`** presente → Backend con servidor
-- **`main.wasm.go`** presente → Frontend WebAssembly
+- **`pwa/`** presente → Progressive Web App  
+- **`spa/`** presente → Single Page Application
+- **`mpa/`** presente → Multi-Page Application
+- **Múltiples arquitecturas** → Aplica orden de prioridad (PWA > SPA > MPA)
+- **Ninguna arquitectura** → Retorna `unknown` (manejador central decide)
 
 
 
@@ -198,12 +214,19 @@ AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
 - **Detección automática**: Tipo de aplicación detectado por estructura de carpetas
 
 ### 🎯 **Convenciones Obligatorias**
-| Directorio | Propósito | Archivos Requeridos |
+| Directorio | Propósito | Archivos Opcionales |
 |------------|-----------|-------------------|
 | `cmd/AppName/` | Aplicación consola | `main.go` |
-| `web/pwa/` | Progressive Web App | `manifest.json`, `sw.js` |
-| `web/spa/` | Single Page App | Estructura web básica |
+| `pwa/` | Progressive Web App | `main.server.go`, `main.wasm.go` |
+| `spa/` | Single Page App | `main.server.go`, `main.wasm.go` |
+| `mpa/` | Multi-Page App | `main.server.go`, `main.wasm.go` |
 | `modules/` | Lógica modular | `b.*.go`, `f.*.go` |
+
+**Reglas de Arquitectura:**
+- ✅ **Una sola arquitectura web** permitida por proyecto
+- ✅ **Prioridad automática**: PWA(1) > SPA(2) > MPA(3)  
+- ✅ **Aplicación híbrida**: `cmd/` + cualquier arquitectura web
+- ❌ **No múltiples**: `pwa/` + `spa/` (se aplica prioridad con warning)
 
 ## 📌 Hoja de Ruta
 
