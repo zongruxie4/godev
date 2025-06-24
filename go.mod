@@ -13,9 +13,9 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.33 // indirect
-	github.com/cdvelop/tinystring v0.1.6 // indirect
-	github.com/cdvelop/unixid v0.0.81 // indirect
+	github.com/cdvelop/messagetype v0.0.34 // indirect
+	github.com/cdvelop/tinystring v0.1.8 // indirect
+	github.com/cdvelop/unixid v0.0.82 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.5 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
