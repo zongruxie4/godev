@@ -7,15 +7,15 @@ toolchain go1.24.0
 require (
 	github.com/cdvelop/gobuild v0.0.3
 	github.com/cdvelop/tinywasm v0.0.7
-	github.com/chromedp/chromedp v0.13.6
+	github.com/chromedp/chromedp v0.13.7
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.32 // indirect
-	github.com/cdvelop/tinystring v0.1.4 // indirect
-	github.com/cdvelop/unixid v0.0.80 // indirect
+	github.com/cdvelop/messagetype v0.0.33 // indirect
+	github.com/cdvelop/tinystring v0.1.6 // indirect
+	github.com/cdvelop/unixid v0.0.81 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.5 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.9.3 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/chromedp/cdproto v0.0.0-20250615221225-2454e98bdb89 // indirect
+	github.com/chromedp/cdproto v0.0.0-20250621212827-3f1355e655b9 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
@@ -49,7 +49,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.44
-	github.com/cdvelop/devtui v0.0.60
+	github.com/cdvelop/devtui v0.0.62
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.8 // indirect
