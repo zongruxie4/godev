@@ -8,8 +8,8 @@ github.com/cdvelop/gobuild v0.0.3 h1:evqqd5UTZ6q44DTAZnlxmnsk6YQgsrcp+gRZXvJeqjQ
 github.com/cdvelop/gobuild v0.0.3/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/messagetype v0.0.39 h1:41Xs/ggqLsmwW9JOgV5bvBGLS4iPqNeRiclxTEGEKKQ=
 github.com/cdvelop/messagetype v0.0.39/go.mod h1:ZUiG6dX6TOq72qAUl76DoHf80hzGwEZ4O/ltgtZmheY=
-github.com/cdvelop/tinystring v0.1.17 h1:poibQSsktxMHR8G4E7V4xQovcUuGtciBynSjVoozarY=
-github.com/cdvelop/tinystring v0.1.17/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
+github.com/cdvelop/tinystring v0.1.18 h1:BcVICBUXmNt5nwh8C5rudX6tYbNEcKpwxnjrN0tZZ3s=
+github.com/cdvelop/tinystring v0.1.18/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
 github.com/cdvelop/tinytranslator v0.0.10 h1:W3ga34JD7fddQb2N2xBlr7465e2nrc0itF9LB9HeuOA=
 github.com/cdvelop/tinytranslator v0.0.10/go.mod h1:8VW6TODDRyCFB42GmnbBfKedjfbp8eTjDq7i0qIXdwI=
 github.com/cdvelop/tinywasm v0.0.7 h1:HyVnidxLl7PXYgOKLepjBAOPKC9jjVUVdOkQh0IFzXg=
