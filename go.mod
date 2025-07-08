@@ -13,17 +13,17 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.38 // indirect
-	github.com/cdvelop/tinystring v0.1.12 // indirect
-	github.com/cdvelop/unixid v0.0.86 // indirect
+	github.com/cdvelop/messagetype v0.0.39 // indirect
+	github.com/cdvelop/tinystring v0.1.17 // indirect
+	github.com/cdvelop/unixid v0.0.90 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
-	github.com/charmbracelet/bubbletea v1.3.5 // indirect
+	github.com/charmbracelet/bubbletea v1.3.6 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/lipgloss v1.1.0 // indirect
 	github.com/charmbracelet/x/ansi v0.9.3 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/chromedp/cdproto v0.0.0-20250625204652-ce640014f9ac // indirect
+	github.com/chromedp/cdproto v0.0.0-20250706212322-41fb261d0659 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
@@ -49,11 +49,9 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.44
-	github.com/cdvelop/devtui v0.0.65
+	github.com/cdvelop/devtui v0.0.68
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.8 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 )
-
-replace github.com/cdvelop/devtui => ../devtui

@@ -10,51 +10,45 @@ NC='\033[0m' # No color
 app_name="godev"
 # app_name=$(basename "$(pwd)")
 
+
 # Detect OS and set executable extension
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-    exe_ext=".exe"
-else
-    exe_ext=""
-fi
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*|Windows_NT)
+        exe_ext=".exe" ;;
+    *)
+        exe_ext="" ;;
+esac
+
 
 # Generate executable using go build
 echo -e "${YELLOW}Generating executable...${NC}"
-if go build -o "$HOME/go/bin/$app_name$exe_ext" ./cmd/...; then
-  echo -e "${GREEN}The executable has been generated.${NC}"
+if go build -o "$HOME/go/bin/$app_name$exe_ext" ./cmd/godev; then
+  echo -e "${GREEN}The executable has been generated at $HOME/go/bin/$app_name$exe_ext.${NC}"
 else
   echo -e "${RED}An error occurred while generating the executable.${NC}"
   exit 1
 fi
 
+
 # Check if bin directory is already in PATH environment variable
+case $SHELL in
+    */bash)
+        profile_file=~/.bashrc ;;
+    */zsh)
+        profile_file=~/.zshrc ;;
+    *)
+        profile_file=~/.profile ;;
+esac
+
 if [[ ":$PATH:" == *":$HOME/go/bin:"* ]]; then
   echo -e "${YELLOW}The bin directory is already in the PATH environment variable.${NC}"
 else
   echo -e "${YELLOW}Adding bin directory to PATH environment variable...${NC}"
-  echo "export PATH=\"$HOME/go/bin:$PATH\"" >> ~/.bashrc
-  source ~/.bashrc
+  echo "export PATH=\"$HOME/go/bin:$PATH\"" >> "$profile_file"
+  echo -e "${YELLOW}Please restart your terminal or run: source $profile_file${NC}"
 fi
 
-# Full path of the executable
-executable_path="$HOME/go/bin/$app_name$exe_ext"
 
-# Check if executable exists before replacing it
-if [ -f "$executable_path" ]; then
-  echo -e "${YELLOW}Replacing existing executable in bin directory...${NC}"
-  if mv -f "$executable_path" "$HOME/go/bin"; then
-    echo -e "${GREEN}The executable has been replaced in bin directory.${NC}"
-  else
-    echo -e "${RED}An error occurred while replacing the executable.${NC}"
-    exit 1
-  fi
-else
-  echo -e "${YELLOW}Moving executable to bin directory...${NC}"
-  if mv "$executable_path" "$HOME/go/bin"; then
-    echo -e "${GREEN}The executable has been moved to bin directory.${NC}"
-  else
-    echo -e "${RED}An error occurred while moving the executable.${NC}"
-    exit 1
-  fi
-fi
+# No need to move the executable, it is already in $HOME/go/bin
 
 echo -e "${GREEN}Installation completed!${NC}"
