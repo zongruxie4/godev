@@ -15,7 +15,7 @@ require (
 	github.com/cdvelop/tinyreflect v0.0.17 // indirect
 	github.com/cdvelop/tinystring v0.1.32 // indirect
 	github.com/cdvelop/tinytime v0.0.2 // indirect
-	github.com/cdvelop/unixid v0.0.94 // indirect
+	github.com/cdvelop/unixid v0.0.95 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.6 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
