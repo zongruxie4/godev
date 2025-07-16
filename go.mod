@@ -14,7 +14,7 @@ require (
 	github.com/cdvelop/messagetype v0.0.39 // indirect
 	github.com/cdvelop/tinyreflect v0.0.22 // indirect
 	github.com/cdvelop/tinystring v0.1.32 // indirect
-	github.com/cdvelop/tinytime v0.0.2 // indirect
+	github.com/cdvelop/tinytime v0.0.3 // indirect
 	github.com/cdvelop/unixid v0.0.99 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.6 // indirect
@@ -49,7 +49,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.44
-	github.com/cdvelop/devtui v0.0.85
+	github.com/cdvelop/devtui v0.0.86
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.8 // indirect
