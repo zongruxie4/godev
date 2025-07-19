@@ -50,7 +50,7 @@ func GodevStart(rootDir string, logger func(messages ...any)) {
 		TabIndexStart: 0,
 		ExitChan:      h.exitChan,
 		Color: &ColorStyle{
-			ForeGround: "#F4F4F4", // #F4F4F4
+			Foreground: "#F4F4F4", // #F4F4F4
 			Background: "#000000", // #000000
 			Highlight:  "#FF6600", // #FF6600, FF6600  73ceddff
 			Lowlight:   "#666666", // #666666

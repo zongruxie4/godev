@@ -11,7 +11,7 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.39 // indirect
+	github.com/cdvelop/messagetype v0.0.40 // indirect
 	github.com/cdvelop/tinyreflect v0.0.27 // indirect
 	github.com/cdvelop/tinystring v0.1.35 // indirect
 	github.com/cdvelop/tinytime v0.0.3 // indirect
@@ -49,9 +49,9 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.44
-	github.com/cdvelop/devtui v0.0.89
+	github.com/cdvelop/devtui v0.0.90
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/tdewolff/minify/v2 v2.23.8 // indirect
+	github.com/tdewolff/minify/v2 v2.23.9 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 )
