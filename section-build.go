@@ -28,7 +28,7 @@ func (h *handler) AddSectionBUILD() {
 		WebFilesFolder: func() (string, string) {
 			return h.config.GetWebFilesFolder(), h.config.GetPublicFolder()
 		},
-		Log: sectionBuild,
+		Writer: sectionBuild,
 	})
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
@@ -36,7 +36,8 @@ func (h *handler) AddSectionBUILD() {
 			return path.Join(h.config.GetWebFilesFolder(), "theme")
 		},
 		WebFilesFolder: h.config.GetOutputStaticsDirectory,
-		Print:          h.tui.Print, GetRuntimeInitializerJS: func() (string, error) {
+		Writer:         sectionBuild,
+		GetRuntimeInitializerJS: func() (string, error) {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 	})

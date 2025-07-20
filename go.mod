@@ -3,7 +3,7 @@ module github.com/cdvelop/godev
 go 1.24.4
 
 require (
-	github.com/cdvelop/gobuild v0.0.3
+	github.com/cdvelop/gobuild v0.0.4
 	github.com/cdvelop/tinywasm v0.0.7
 	github.com/chromedp/chromedp v0.13.7
 	github.com/stretchr/testify v1.10.0
