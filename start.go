@@ -69,7 +69,7 @@ func GodevStart(rootDir string, logger func(messages ...any)) {
 	wg.Add(3)
 
 	// Start the tui in a goroutine
-	go h.tui.InitTUI(&wg)
+	go h.tui.Start(&wg)
 
 	// Iniciar servidor
 	go h.serverHandler.Start(&wg)
