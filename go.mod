@@ -13,7 +13,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/messagetype v0.0.40 // indirect
 	github.com/cdvelop/tinyreflect v0.0.27 // indirect
-	github.com/cdvelop/tinystring v0.1.36 // indirect
+	github.com/cdvelop/tinystring v0.1.37 // indirect
 	github.com/cdvelop/tinytime v0.0.3 // indirect
 	github.com/cdvelop/unixid v0.0.100 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
