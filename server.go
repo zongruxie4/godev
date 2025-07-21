@@ -54,7 +54,7 @@ func NewServerHandler(c *ServerConfig) *ServerHandler {
 		Extension:          exe_ext,
 		CompilingArguments: c.ArgumentsForCompilingServer,
 		OutFolder:          c.RootFolder,
-		Log:                c.Writer,
+		Writer:             c.Writer,
 		Timeout:            30 * time.Second,
 	})
 	sh.goRun = NewGoRun(&GoRunConfig{

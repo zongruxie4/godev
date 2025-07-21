@@ -58,9 +58,8 @@ func (h *handler) AddSectionBUILD() {
 			},
 		},
 		BrowserReload: h.browser.Reload,
-
-		Print:    h.tui.Print, // Use the TUI print function
-		ExitChan: h.exitChan,
+		Writer:        sectionBuild,
+		ExitChan:      h.exitChan,
 		UnobservedFiles: func() []string {
 
 			uf := []string{
@@ -78,6 +77,17 @@ func (h *handler) AddSectionBUILD() {
 			return uf
 		},
 	})
+
+	// Crear handlers para la interfaz DevTUI
+	serverFieldHandler := &ServerFieldHandler{ServerHandler: h.serverHandler}
+	tinyGoFieldHandler := NewTinyGoFieldHandler(h.wasmHandler)
+	browserFieldHandler := NewBrowserFieldHandler(h.browser)
+
+	// Agregar fields usando la nueva API de DevTUI
+	sectionBuild.
+		NewField(serverFieldHandler).
+		NewField(tinyGoFieldHandler).
+		NewField(browserFieldHandler)
 
 	h.tui.AddTabSections(sectionBuild)
 
