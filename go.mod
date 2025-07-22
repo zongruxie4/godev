@@ -49,10 +49,10 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.45
-	github.com/cdvelop/devtui v0.0.109
+	github.com/cdvelop/devtui v0.0.110
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/tdewolff/minify/v2 v2.23.9 // indirect
+	github.com/tdewolff/minify/v2 v2.23.10 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 )
 
