@@ -11,7 +11,7 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.42 // indirect
+	github.com/cdvelop/messagetype v0.0.43 // indirect
 	github.com/cdvelop/tinyreflect v0.0.33 // indirect
 	github.com/cdvelop/tinystring v0.1.38 // indirect
 	github.com/cdvelop/tinytime v0.0.3 // indirect
