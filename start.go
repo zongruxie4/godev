@@ -46,16 +46,15 @@ func GodevStart(rootDir string, logger func(messages ...any)) {
 	h.NewBrowser()
 
 	h.tui = NewTUI(&TuiConfig{
-		AppName:       "GODEV",
-		TabIndexStart: 0,
-		ExitChan:      h.exitChan,
+		AppName:  "GODEV",
+		ExitChan: h.exitChan,
 		Color: &ColorStyle{
 			Foreground: "#F4F4F4", // #F4F4F4
 			Background: "#000000", // #000000
 			Highlight:  "#FF6600", // #FF6600, FF6600  73ceddff
 			Lowlight:   "#666666", // #666666
 		},
-		LogToFile: func(messageErr any) { logger(messageErr) },
+		LogToFile: func(messages ...any) { logger(messages...) },
 	}) // Initialize AutoConfig FIRST - this will be our configuration source
 	h.config = NewAutoConfig(logger) // Use the provided logger
 	h.config.SetRootDir(h.rootDir)
