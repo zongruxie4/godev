@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/cdvelop/gobuild v0.0.4
 	github.com/cdvelop/tinywasm v0.0.10
-	github.com/chromedp/chromedp v0.13.7
+	github.com/chromedp/chromedp v0.14.0
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -49,7 +49,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.45
-	github.com/cdvelop/devtui v0.0.137
+	github.com/cdvelop/devtui v0.0.138
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.10 // indirect
