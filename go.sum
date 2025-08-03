@@ -4,12 +4,12 @@ github.com/cdvelop/assetmin v0.0.45 h1:zhzC/LPdQpQna3xe5kDWXIwr6mIsQGjLv2MIOfvta
 github.com/cdvelop/assetmin v0.0.45/go.mod h1:mwsm/zoe4Ezkhd7HW37ARQ3XnOb6EEIkxzCJMNMUmlU=
 github.com/cdvelop/gobuild v0.0.4 h1:GqpsKhleDaEP7vq83i5EPujooAA6YpCcfO6M0PbBVfE=
 github.com/cdvelop/gobuild v0.0.4/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
-github.com/cdvelop/messagetype v0.0.56 h1:xphwVz1XAYXVQ7KaNnY7lndhSCbxZVVF2hn4ty16t6M=
-github.com/cdvelop/messagetype v0.0.56/go.mod h1:ajRM6evEiNkjFJcAPOz0ppNDhrNV0d3+tMbl1hyduy4=
+github.com/cdvelop/messagetype v0.0.57 h1:uFnBL4WzOVyDzwiJz5ZdcMPTmT/z8+kHiIGXwUvOxoE=
+github.com/cdvelop/messagetype v0.0.57/go.mod h1:GspdyClCjW5UWRdQX+1TW72vXzL+HjjhScxLZI8U2wg=
 github.com/cdvelop/tinyreflect v0.0.33 h1:DYR20o/bLjY4L7c/5IjeDRxOsWsGIQDaoarHXqllQf8=
 github.com/cdvelop/tinyreflect v0.0.33/go.mod h1:6+XWgo0mGawupPZtL19aDgxUNXmI3Bakvq2TzeK0A80=
-github.com/cdvelop/tinystring v0.1.52 h1:5XFCFR2In+k8DlqEFX32G/f0hVHqjzB5X4R9ZAd8eGY=
-github.com/cdvelop/tinystring v0.1.52/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
+github.com/cdvelop/tinystring v0.1.53 h1:hCZ6sJHBxNlyRQBTGD1+tvU3h7nTf72eX5Dq+UzwOts=
+github.com/cdvelop/tinystring v0.1.53/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
 github.com/cdvelop/tinytime v0.0.3 h1:vNDmcSebzxK0v2j15DqVbVlx5EnEJDpm+hb/8sKhfyU=
 github.com/cdvelop/tinytime v0.0.3/go.mod h1:/GKa6LHF4P9+TQjkPwPAt0fsoIiXWt2xa/alvKQk8XU=
 github.com/cdvelop/tinytranslator v0.0.10 h1:W3ga34JD7fddQb2N2xBlr7465e2nrc0itF9LB9HeuOA=
