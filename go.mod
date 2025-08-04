@@ -4,18 +4,17 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/gobuild v0.0.4
-	github.com/cdvelop/tinywasm v0.0.10
+	github.com/cdvelop/tinywasm v0.0.11
 	github.com/chromedp/chromedp v0.14.0
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.58 // indirect
-	github.com/cdvelop/tinyreflect v0.0.33 // indirect
-	github.com/cdvelop/tinystring v0.1.54 // indirect
-	github.com/cdvelop/tinytime v0.0.3 // indirect
-	github.com/cdvelop/unixid v0.0.102 // indirect
+	github.com/cdvelop/tinyreflect v0.0.34 // indirect
+	github.com/cdvelop/tinystring v0.1.55 // indirect
+	github.com/cdvelop/tinytime v0.0.4 // indirect
+	github.com/cdvelop/unixid v0.0.103 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.6 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
@@ -49,7 +48,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.45
-	github.com/cdvelop/devtui v0.0.160
+	github.com/cdvelop/devtui v0.0.161
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.10 // indirect
