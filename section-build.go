@@ -11,7 +11,8 @@ func (h *handler) AddSectionBUILD() {
 
 	// LDFlags      func() []string // eg: []string{"-X 'main.version=v1.0.0'","-X 'main.buildDate=2023-01-01'"}
 
-	sectionBuild := h.tui.NewTabSection("BUILD", "")
+	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
+
 	//SERVER
 	h.serverHandler = NewServerHandler(&ServerConfig{
 		RootFolder:                  h.config.GetWebFilesFolder(),
@@ -23,6 +24,7 @@ func (h *handler) AddSectionBUILD() {
 		Writer:                      sectionBuild,
 		ExitChan:                    h.exitChan,
 	})
+
 	//WASM
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
 		WebFilesFolder: func() (string, string) {
@@ -30,6 +32,7 @@ func (h *handler) AddSectionBUILD() {
 		},
 		Writer: sectionBuild,
 	})
+
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
 		ThemeFolder: func() string {
@@ -41,6 +44,7 @@ func (h *handler) AddSectionBUILD() {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 	})
+
 	// WATCHER
 	h.watcher = NewWatchHandler(&WatchConfig{
 		AppRootDir:      h.config.GetRootDir(),
@@ -78,18 +82,9 @@ func (h *handler) AddSectionBUILD() {
 		},
 	})
 
-	// Crear handlers para la interfaz DevTUI
-	serverFieldHandler := &ServerFieldHandler{ServerHandler: h.serverHandler}
-	tinyGoFieldHandler := NewTinyGoFieldHandler(h.wasmHandler)
-	browserFieldHandler := NewBrowserFieldHandler(h.browser)
-
 	// Agregar fields usando la nueva API de DevTUI
 	sectionBuild.
-		NewField(serverFieldHandler).
-		NewField(tinyGoFieldHandler).
-		NewField(browserFieldHandler)
-
-	h.tui.AddTabSections(sectionBuild)
+		AddEditHandler(serverFieldHandler)
 
 }
 

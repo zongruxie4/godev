@@ -24,7 +24,7 @@ type handler struct {
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
 
-func GodevStart(rootDir string, logger func(messages ...any)) {
+func Start(rootDir string, logger func(messages ...any)) {
 	var err error
 	h := &handler{
 		rootDir:  rootDir,
