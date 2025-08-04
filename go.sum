@@ -6,8 +6,8 @@ github.com/cdvelop/gobuild v0.0.4 h1:GqpsKhleDaEP7vq83i5EPujooAA6YpCcfO6M0PbBVfE
 github.com/cdvelop/gobuild v0.0.4/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/tinyreflect v0.0.36 h1:HW8Ci27Eao908Tq8RIW9UkfNTBX/B2IXPpf7/zt8GpE=
 github.com/cdvelop/tinyreflect v0.0.36/go.mod h1:GQbedFHstViYklssXeUgSAnsU17FsL7QNselBwFdV5E=
-github.com/cdvelop/tinystring v0.1.56 h1:QbFYnYY9LXH6PhAmMTS4mR12IJXj4BYv3XQqWpvwhm4=
-github.com/cdvelop/tinystring v0.1.56/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
+github.com/cdvelop/tinystring v0.1.57 h1:vn30tynManHfqnE1yv310gZrOGEaEtBdEmdg2Acmoig=
+github.com/cdvelop/tinystring v0.1.57/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
 github.com/cdvelop/tinytime v0.0.6 h1:dl/pKB/SMaL/1NgL000dJzst54+dhAqaNSJj5UkYzH0=
 github.com/cdvelop/tinytime v0.0.6/go.mod h1:QOpIUbio8TJXj/+edjgq4S9VxS3XzqktBMeXYyjcMXg=
 github.com/cdvelop/tinytranslator v0.0.10 h1:W3ga34JD7fddQb2N2xBlr7465e2nrc0itF9LB9HeuOA=
