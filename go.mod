@@ -11,9 +11,9 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/messagetype v0.0.57 // indirect
+	github.com/cdvelop/messagetype v0.0.58 // indirect
 	github.com/cdvelop/tinyreflect v0.0.33 // indirect
-	github.com/cdvelop/tinystring v0.1.53 // indirect
+	github.com/cdvelop/tinystring v0.1.54 // indirect
 	github.com/cdvelop/tinytime v0.0.3 // indirect
 	github.com/cdvelop/unixid v0.0.102 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.9.3 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327 // indirect
+	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
@@ -49,7 +49,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.45
-	github.com/cdvelop/devtui v0.0.159
+	github.com/cdvelop/devtui v0.0.160
 	github.com/cdvelop/tinytranslator v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/tdewolff/minify/v2 v2.23.10 // indirect

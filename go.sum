@@ -4,12 +4,12 @@ github.com/cdvelop/assetmin v0.0.45 h1:zhzC/LPdQpQna3xe5kDWXIwr6mIsQGjLv2MIOfvta
 github.com/cdvelop/assetmin v0.0.45/go.mod h1:mwsm/zoe4Ezkhd7HW37ARQ3XnOb6EEIkxzCJMNMUmlU=
 github.com/cdvelop/gobuild v0.0.4 h1:GqpsKhleDaEP7vq83i5EPujooAA6YpCcfO6M0PbBVfE=
 github.com/cdvelop/gobuild v0.0.4/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
-github.com/cdvelop/messagetype v0.0.57 h1:uFnBL4WzOVyDzwiJz5ZdcMPTmT/z8+kHiIGXwUvOxoE=
-github.com/cdvelop/messagetype v0.0.57/go.mod h1:GspdyClCjW5UWRdQX+1TW72vXzL+HjjhScxLZI8U2wg=
+github.com/cdvelop/messagetype v0.0.58 h1:KDlF1boUjHCq1cfWsFYkaC7M44wTGXM/CdVh19EDkjM=
+github.com/cdvelop/messagetype v0.0.58/go.mod h1:wL+C1shzVvDpxDt2JRYVWfvUcGC17C9rHLi1WvGHBg8=
 github.com/cdvelop/tinyreflect v0.0.33 h1:DYR20o/bLjY4L7c/5IjeDRxOsWsGIQDaoarHXqllQf8=
 github.com/cdvelop/tinyreflect v0.0.33/go.mod h1:6+XWgo0mGawupPZtL19aDgxUNXmI3Bakvq2TzeK0A80=
-github.com/cdvelop/tinystring v0.1.53 h1:hCZ6sJHBxNlyRQBTGD1+tvU3h7nTf72eX5Dq+UzwOts=
-github.com/cdvelop/tinystring v0.1.53/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
+github.com/cdvelop/tinystring v0.1.54 h1:X0ysyegL6ZWSp/NxrQZ8z/MEJTjJ8fqldK+5TeuOC8E=
+github.com/cdvelop/tinystring v0.1.54/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
 github.com/cdvelop/tinytime v0.0.3 h1:vNDmcSebzxK0v2j15DqVbVlx5EnEJDpm+hb/8sKhfyU=
 github.com/cdvelop/tinytime v0.0.3/go.mod h1:/GKa6LHF4P9+TQjkPwPAt0fsoIiXWt2xa/alvKQk8XU=
 github.com/cdvelop/tinytranslator v0.0.10 h1:W3ga34JD7fddQb2N2xBlr7465e2nrc0itF9LB9HeuOA=
@@ -32,8 +32,8 @@ github.com/charmbracelet/x/cellbuf v0.0.13 h1:/KBBKHuVRbq1lYx5BzEHBAFBP8VcQzJejZ
 github.com/charmbracelet/x/cellbuf v0.0.13/go.mod h1:xe0nKWGd3eJgtqZRaN9RjMtK7xUYchjzPr7q6kcvCCs=
 github.com/charmbracelet/x/term v0.2.1 h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=
 github.com/charmbracelet/x/term v0.2.1/go.mod h1:oQ4enTYFV7QN4m0i9mzHrViD7TQKvNEEkHUMCmsxdUg=
-github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327 h1:UQ4AU+BGti3Sy/aLU8KVseYKNALcX9UXY6DfpwQ6J8E=
-github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327/go.mod h1:NItd7aLkcfOA/dcMXvl8p1u+lQqioRMq/SqDp71Pb/k=
+github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d h1:ZtA1sedVbEW7EW80Iz2GR3Ye6PwbJAJXjv7D74xG6HU=
+github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d/go.mod h1:NItd7aLkcfOA/dcMXvl8p1u+lQqioRMq/SqDp71Pb/k=
 github.com/chromedp/chromedp v0.14.0 h1:/xE5m6wEBwivhalHwlCOyYfBcAJNwg4nLw96QiCfYr0=
 github.com/chromedp/chromedp v0.14.0/go.mod h1:rHzAv60xDE7VNy/MYtTUrYreSc0ujt2O1/C3bzctYBo=
 github.com/chromedp/sysutil v1.1.0 h1:PUFNv5EcprjqXZD9nJb9b/c9ibAbxiYo4exNWZyipwM=
