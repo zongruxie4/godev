@@ -2,6 +2,7 @@ package godev
 
 import (
 	"path"
+	"time"
 
 	. "github.com/cdvelop/assetmin"
 	"github.com/cdvelop/devwatch"
@@ -88,7 +89,8 @@ func (h *handler) AddSectionBUILD() {
 		},
 	})
 
-	// Agregar fields usando la nueva API de DevTUI
-	// sectionBuild.AddEditHandler(serverFieldHandler, time)
+	// Agregar manejadores que requieren interacción del desarrollador
+	// BROWSER
+	sectionBuild.AddExecutionHandler(h.browser, time.Millisecond*500)
 
 }

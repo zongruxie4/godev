@@ -50,7 +50,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.46
-	github.com/cdvelop/devtui v0.0.174
+	github.com/cdvelop/devtui v0.0.175
 	github.com/cdvelop/devwatch v0.0.5
 	github.com/cdvelop/goserver v0.0.4
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
