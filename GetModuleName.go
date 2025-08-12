@@ -13,11 +13,14 @@ func GetModuleName(path string) (string, error) {
 		return "", errors.New("empty path")
 	}
 
-	// Normalize path separators and clean the path
-	cleanPath := filepath.Clean(path)
+	// Replace backslashes with slashes to support Windows paths on any OS
+	normalized := strings.ReplaceAll(path, "\\", "/")
 
-	// Split into parts using OS-specific separator
-	parts := strings.Split(cleanPath, string(filepath.Separator))
+	// Clean the path
+	cleanPath := filepath.Clean(normalized)
+
+	// Split into parts using '/' to be OS-agnostic
+	parts := strings.Split(cleanPath, "/")
 
 	// Find the "modules" directory and return the next part
 	for i, part := range parts {
