@@ -116,7 +116,7 @@ func (ac *AutoConfig) NewFolderEvent(folderName, path, event string) error {
 		return nil // Not a directory we care about
 	}
 
-	fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Directory %s detected (%s)", event, path))
+	fmt.Fprintf(ac.logger, "Directory %s detected (%s)\n", event, path)
 
 	// Perform full architecture scan after any relevant directory change
 	return ac.ScanDirectoryStructure()
@@ -146,7 +146,7 @@ func (ac *AutoConfig) ScanDirectoryStructure() error {
 
 	// Check if architecture changed
 	if ac.hasArchitectureChanged(oldTypes, oldWebType, oldHasConsole) {
-		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Architecture updated - App: %s, Types: %v", ac.AppName, ac.Types))
+		fmt.Fprintf(ac.logger, "Architecture updated - App: %s, Types: %v\n", ac.AppName, ac.Types)
 	}
 
 	return nil
@@ -161,7 +161,7 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 	if ac.directoryExists(cmdPath) {
 		detectedTypes = append(detectedTypes, AppTypeConsole)
 		ac.HasConsole = true
-		fmt.Fprintln(ac.logger, "AutoConfig: Found console application (cmd/)")
+		fmt.Fprintln(ac.logger, "Found console application (cmd/)")
 	}
 
 	// Check for web architectures directly in root (pwa/, spa/, mpa/)
@@ -185,16 +185,16 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 	for _, webType := range webTypes {
 		switch webType {
 		case AppTypePWA:
-			fmt.Fprintln(ac.logger, "AutoConfig: Found Progressive Web App (pwa/)")
+			fmt.Fprintln(ac.logger, "Found Progressive Web App (pwa/)")
 		case AppTypeSPA:
-			fmt.Fprintln(ac.logger, "AutoConfig: Found Single Page Application (spa/)")
+			fmt.Fprintln(ac.logger, "Found Single Page Application (spa/)")
 		case AppTypeMPA:
-			fmt.Fprintln(ac.logger, "AutoConfig: Found Multi-Page Application (mpa/)")
+			fmt.Fprintln(ac.logger, "Found Multi-Page Application (mpa/)")
 		}
 	}
 
 	if len(webTypes) == 0 {
-		fmt.Fprintln(ac.logger, "AutoConfig: No web architecture found - returning unknown")
+		fmt.Fprintln(ac.logger, "No web architecture found - returning unknown")
 	}
 
 	ac.Types = detectedTypes
@@ -357,13 +357,13 @@ func (ac *AutoConfig) resolvePriorityConflict(webTypes []AppType) AppType {
 
 	// Apply priority order and warn about conflicts
 	if hasPWA {
-		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using PWA (highest priority)", conflicts))
+		fmt.Fprintf(ac.logger, "Warning - Multiple web architectures found: %v. Using PWA (highest priority)\n", conflicts)
 		return AppTypePWA
 	} else if hasSPA {
-		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using SPA (priority 2)", conflicts))
+		fmt.Fprintf(ac.logger, "Warning - Multiple web architectures found: %v. Using SPA (priority 2)\n", conflicts)
 		return AppTypeSPA
 	} else if hasMPA {
-		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using MPA (priority 3)", conflicts))
+		fmt.Fprintf(ac.logger, "Warning - Multiple web architectures found: %v. Using MPA (priority 3)\n", conflicts)
 		return AppTypeMPA
 	}
 
