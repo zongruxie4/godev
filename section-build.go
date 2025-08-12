@@ -23,6 +23,7 @@ func (h *handler) AddSectionBUILD() {
 	assetsWriter := sectionBuild.NewWriter("ASSETS", false)
 	watchWriter := sectionBuild.NewWriter("WATCH", false)
 	configWriter := sectionBuild.NewWriter("CONFIG", false)
+	browserLogWriter := sectionBuild.NewWriter("BrowserLOG", false)
 
 	// CONFIG
 	h.config = NewAutoConfig(h.rootDir, configWriter) // Use the provided logger
@@ -64,7 +65,7 @@ func (h *handler) AddSectionBUILD() {
 	})
 
 	// BROWSER
-	h.browser = devbrowser.New(h.config, h.tui, h.exitChan)
+	h.browser = devbrowser.New(h.config, h.tui, h.exitChan, browserLogWriter)
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
