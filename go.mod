@@ -4,7 +4,6 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/tinywasm v0.0.15
-	github.com/chromedp/chromedp v0.14.1
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -25,6 +24,7 @@ require (
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d // indirect
+	github.com/chromedp/chromedp v0.14.1 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
@@ -50,6 +50,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.46
+	github.com/cdvelop/devbrowser v0.0.4
 	github.com/cdvelop/devtui v0.0.175
 	github.com/cdvelop/devwatch v0.0.5
 	github.com/cdvelop/goserver v0.0.4
@@ -63,3 +64,5 @@ replace github.com/cdvelop/devtui => ../devtui
 replace github.com/cdvelop/devwatch => ../devwatch
 
 replace github.com/cdvelop/assetmin => ../assetmin
+
+replace github.com/cdvelop/devbrowser => ../devbrowser

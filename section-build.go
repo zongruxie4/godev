@@ -5,6 +5,7 @@ import (
 	"time"
 
 	. "github.com/cdvelop/assetmin"
+	"github.com/cdvelop/devbrowser"
 	"github.com/cdvelop/devwatch"
 	"github.com/cdvelop/goserver"
 	"github.com/cdvelop/tinywasm"
@@ -61,6 +62,9 @@ func (h *handler) AddSectionBUILD() {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 	})
+
+	// BROWSER
+	h.browser = devbrowser.New(h.config, h.tui, h.exitChan)
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{

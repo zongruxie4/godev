@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	. "github.com/cdvelop/assetmin"
+	"github.com/cdvelop/devbrowser"
 	. "github.com/cdvelop/devtui"
 	"github.com/cdvelop/devwatch"
 	"github.com/cdvelop/goserver"
@@ -19,7 +20,7 @@ type handler struct {
 	assetsHandler *AssetMin
 	wasmHandler   *tinywasm.TinyWasm
 	watcher       *devwatch.DevWatch
-	browser       *Browser
+	browser       *devbrowser.DevBrowser
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
 
@@ -37,8 +38,6 @@ func Start(rootDir string, logger func(messages ...any)) {
 		logger("Cannot run godev in user root directory. Please run in a Go project directory")
 		return
 	}
-
-	h.NewBrowser()
 
 	h.tui = NewTUI(&TuiConfig{
 		AppName:   "GODEV",

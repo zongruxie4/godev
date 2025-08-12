@@ -13,11 +13,11 @@ package "Core Application" {
         - assetsHandler: *AssetMin
         - wasmHandler: *TinyWasm
         - watcher: *DevWatch
-        - browser: *Browser
+        - browser: *DevBrowser
         - exitChan: chan bool
         --
         + GodevStart(rootDir, logger)
-        + NewBrowser()
+        + New()
         + AddSectionBUILD()
     }
 }
@@ -98,8 +98,8 @@ package "File Watching" {
     }
 }
 
-package "Browser Automation" {
-    RECTANGLE Browser {
+package "DevBrowser Automation" {
+    RECTANGLE DevBrowser {
         - Width: int
         - Height: int
         - Position: string
@@ -185,7 +185,7 @@ Handler ||--|| ServerHandler : orchestrates
 Handler ||--|| TinyWasm : controls
 Handler ||--|| AssetMin : handles
 Handler ||--|| DevWatch : coordinates
-Handler ||--|| Browser : automates
+Handler ||--|| DevBrowser : automates
 Handler ||--|| DevTUI : interfaces
 
 AutoConfig ||--|| Logger : uses
@@ -200,7 +200,7 @@ DevWatch ||--|| FileEvent : implements
 DevWatch ||--|| GoFileType : uses
 DevWatch ||--|| FSNotify : wraps
 
-Browser ||--|| ChromeDP : uses
+DevBrowser ||--|| ChromeDP : uses
 
 ServerHandler --|> FileEvent : implements
 TinyWasm --|> FileEvent : implements
@@ -211,7 +211,7 @@ AutoConfig --|> FolderEvent : implements
 DevWatch ..> ServerHandler : file_events
 DevWatch ..> TinyWasm : file_events
 DevWatch ..> AssetMin : file_events
-DevWatch ..> Browser : triggers_reload
+DevWatch ..> DevBrowser : triggers_reload
 
 note top of Handler : "Central orchestrator\nZero-configuration architecture\nUses cdvelop libraries"
 

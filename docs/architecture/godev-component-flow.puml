@@ -44,8 +44,8 @@ package "Runtime Layer" {
     [GoRun] as gorun
 }
 
-package "Browser Layer" {
-    [Browser] as browser
+package "DevBrowser Layer" {
+    [DevBrowser] as browser
     [Auto Reload] as reload
 }
 
@@ -109,7 +109,7 @@ server_h --> int_server : static files
 server_h --> ext_server : custom server
 server_h --> gorun : process management
 
-' Browser Flow
+' DevBrowser Flow
 assets_h --> reload : triggers
 wasm_h --> reload : triggers
 reload --> browser : executes
