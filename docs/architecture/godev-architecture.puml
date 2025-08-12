@@ -12,7 +12,7 @@ package "Core Application" {
         - serverHandler: *ServerHandler
         - assetsHandler: *AssetMin
         - wasmHandler: *TinyWasm
-        - watcher: *WatchHandler
+        - watcher: *DevWatch
         - browser: *Browser
         - exitChan: chan bool
         --
@@ -47,7 +47,7 @@ package "Configuration Management" {
 
 package "Server Management" {
     RECTANGLE ServerHandler {
-        - ServerConfig: *ServerConfig
+        - Config: *Config
         - mainFileExternalServer: string
         - internalServerRun: bool
         - server: *http.Server
@@ -71,7 +71,7 @@ package "Server Management" {
 }
 
 package "File Watching" {
-    RECTANGLE WatchHandler {
+    RECTANGLE DevWatch {
         - WatchConfig: *WatchConfig
         - watcher: *fsnotify.Watcher
         - no_add_to_watch: map[string]bool
@@ -184,7 +184,7 @@ Handler ||--|| AutoConfig : uses
 Handler ||--|| ServerHandler : orchestrates
 Handler ||--|| TinyWasm : controls
 Handler ||--|| AssetMin : handles
-Handler ||--|| WatchHandler : coordinates
+Handler ||--|| DevWatch : coordinates
 Handler ||--|| Browser : automates
 Handler ||--|| DevTUI : interfaces
 
@@ -195,10 +195,10 @@ ServerHandler ||--|| GoBuild : compiles_with
 
 TinyWasm ||--|| GoBuild : dual_builders
 
-WatchHandler ||--|| FolderEvent : implements
-WatchHandler ||--|| FileEvent : implements
-WatchHandler ||--|| GoFileType : uses
-WatchHandler ||--|| FSNotify : wraps
+DevWatch ||--|| FolderEvent : implements
+DevWatch ||--|| FileEvent : implements
+DevWatch ||--|| GoFileType : uses
+DevWatch ||--|| FSNotify : wraps
 
 Browser ||--|| ChromeDP : uses
 
@@ -208,14 +208,14 @@ AssetMin --|> FileEvent : implements
 AutoConfig --|> FolderEvent : implements
 
 ' Cross-cutting concerns
-WatchHandler ..> ServerHandler : file_events
-WatchHandler ..> TinyWasm : file_events
-WatchHandler ..> AssetMin : file_events
-WatchHandler ..> Browser : triggers_reload
+DevWatch ..> ServerHandler : file_events
+DevWatch ..> TinyWasm : file_events
+DevWatch ..> AssetMin : file_events
+DevWatch ..> Browser : triggers_reload
 
 note top of Handler : "Central orchestrator\nZero-configuration architecture\nUses cdvelop libraries"
 
-note right of WatchHandler : "File system observer\nDebounced event handling\nFolderEvent + FileEvent support"
+note right of DevWatch : "File system observer\nDebounced event handling\nFolderEvent + FileEvent support"
 
 note left of AutoConfig : "Zero-configuration\nDirectory structure detection\nNo YAML files required"
 

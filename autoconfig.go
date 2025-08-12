@@ -3,6 +3,7 @@ package godev
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -23,30 +24,29 @@ const (
 // AutoConfig handles automatic detection of application architecture
 // based on directory structure following convention over configuration
 type AutoConfig struct {
-	rootDir    string                // Root directory to scan (default: ".")
-	print      func(messages ...any) // Logging function
-	AppName    string                // Application name (directory name)
-	Types      []AppType             // Detected application types
-	HasConsole bool                  // Has cmd/ directory
-	WebType    AppType               // Web architecture type (pwa, spa, or web if undefined)
+	rootDir    string    // Root directory to scan (default: ".")
+	logger     io.Writer // Logging writer
+	AppName    string    // Application name (directory name)
+	Types      []AppType // Detected application types
+	HasConsole bool      // Has cmd/ directory
+	WebType    AppType   // Web architecture type (pwa, spa, or web if undefined)
 }
 
 // NewAutoConfig creates a new auto configuration detector
-func NewAutoConfig(print func(messages ...any)) *AutoConfig {
-	rootDir := "." // Default to current directory
+func NewAutoConfig(rootDir string, logger io.Writer) *AutoConfig {
+	root := "." // Default to current directory
+
+	if rootDir != root {
+		root = rootDir
+	}
+
 	return &AutoConfig{
-		rootDir: rootDir,
-		print:   print,
-		AppName: filepath.Base(rootDir),
+		rootDir: root,
+		logger:  logger,
+		AppName: filepath.Base(root),
 		Types:   []AppType{},
 		WebType: AppTypeUnknown,
 	}
-}
-
-// SetRootDir sets the root directory for testing purposes
-func (ac *AutoConfig) SetRootDir(rootDir string) {
-	ac.rootDir = rootDir
-	ac.AppName = filepath.Base(rootDir)
 }
 
 // Configuration methods to replace config.go functionality
@@ -116,7 +116,7 @@ func (ac *AutoConfig) NewFolderEvent(folderName, path, event string) error {
 		return nil // Not a directory we care about
 	}
 
-	ac.print(fmt.Sprintf("AutoConfig: Directory %s detected (%s)", event, path))
+	fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Directory %s detected (%s)", event, path))
 
 	// Perform full architecture scan after any relevant directory change
 	return ac.ScanDirectoryStructure()
@@ -146,7 +146,7 @@ func (ac *AutoConfig) ScanDirectoryStructure() error {
 
 	// Check if architecture changed
 	if ac.hasArchitectureChanged(oldTypes, oldWebType, oldHasConsole) {
-		ac.print(fmt.Sprintf("AutoConfig: Architecture updated - App: %s, Types: %v", ac.AppName, ac.Types))
+		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Architecture updated - App: %s, Types: %v", ac.AppName, ac.Types))
 	}
 
 	return nil
@@ -161,7 +161,7 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 	if ac.directoryExists(cmdPath) {
 		detectedTypes = append(detectedTypes, AppTypeConsole)
 		ac.HasConsole = true
-		ac.print("AutoConfig: Found console application (cmd/)")
+		fmt.Fprintln(ac.logger, "AutoConfig: Found console application (cmd/)")
 	}
 
 	// Check for web architectures directly in root (pwa/, spa/, mpa/)
@@ -185,16 +185,16 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 	for _, webType := range webTypes {
 		switch webType {
 		case AppTypePWA:
-			ac.print("AutoConfig: Found Progressive Web App (pwa/)")
+			fmt.Fprintln(ac.logger, "AutoConfig: Found Progressive Web App (pwa/)")
 		case AppTypeSPA:
-			ac.print("AutoConfig: Found Single Page Application (spa/)")
+			fmt.Fprintln(ac.logger, "AutoConfig: Found Single Page Application (spa/)")
 		case AppTypeMPA:
-			ac.print("AutoConfig: Found Multi-Page Application (mpa/)")
+			fmt.Fprintln(ac.logger, "AutoConfig: Found Multi-Page Application (mpa/)")
 		}
 	}
 
 	if len(webTypes) == 0 {
-		ac.print("AutoConfig: No web architecture found - returning unknown")
+		fmt.Fprintln(ac.logger, "AutoConfig: No web architecture found - returning unknown")
 	}
 
 	ac.Types = detectedTypes
@@ -357,13 +357,13 @@ func (ac *AutoConfig) resolvePriorityConflict(webTypes []AppType) AppType {
 
 	// Apply priority order and warn about conflicts
 	if hasPWA {
-		ac.print(fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using PWA (highest priority)", conflicts))
+		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using PWA (highest priority)", conflicts))
 		return AppTypePWA
 	} else if hasSPA {
-		ac.print(fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using SPA (priority 2)", conflicts))
+		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using SPA (priority 2)", conflicts))
 		return AppTypeSPA
 	} else if hasMPA {
-		ac.print(fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using MPA (priority 3)", conflicts))
+		fmt.Fprintln(ac.logger, fmt.Sprintf("AutoConfig: Warning - Multiple web architectures found: %v. Using MPA (priority 3)", conflicts))
 		return AppTypeMPA
 	}
 

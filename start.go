@@ -6,29 +6,28 @@ import (
 
 	. "github.com/cdvelop/assetmin"
 	. "github.com/cdvelop/devtui"
-	"github.com/cdvelop/tinytranslator"
-	. "github.com/cdvelop/tinytranslator"
+	"github.com/cdvelop/devwatch"
+	"github.com/cdvelop/goserver"
 	"github.com/cdvelop/tinywasm"
 )
 
 type handler struct {
-	rootDir string      // Application root directory
-	config  *AutoConfig // Main configuration source
-	*Translator
+	rootDir       string      // Application root directory
+	config        *AutoConfig // Main configuration source
 	tui           *DevTUI
-	serverHandler *ServerHandler
+	serverHandler *goserver.ServerHandler
 	assetsHandler *AssetMin
 	wasmHandler   *tinywasm.TinyWasm
-	watcher       *WatchHandler
+	watcher       *devwatch.DevWatch
 	browser       *Browser
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
 
 func Start(rootDir string, logger func(messages ...any)) {
-	var err error
 	h := &handler{
 		rootDir:  rootDir,
 		exitChan: make(chan bool),
+		// goDepFind:  godepfind.New(rootDir),
 	}
 
 	// Validate we're not in system directories
@@ -38,29 +37,15 @@ func Start(rootDir string, logger func(messages ...any)) {
 		logger("Cannot run godev in user root directory. Please run in a Go project directory")
 		return
 	}
-	h.Translator, err = tinytranslator.NewTranslationEngine().WithCurrentDeviceLanguage()
-	if err != nil {
-		logger("Error initializing translator:", err)
-		return
-	}
+
 	h.NewBrowser()
 
 	h.tui = NewTUI(&TuiConfig{
-		AppName:  "GODEV",
-		ExitChan: h.exitChan,
-		Color: &ColorStyle{
-			Foreground: "#F4F4F4", // #F4F4F4
-			Background: "#000000", // #000000
-			Highlight:  "#FF6600", // #FF6600, FF6600  73ceddff
-			Lowlight:   "#666666", // #666666
-		},
+		AppName:   "GODEV",
+		ExitChan:  h.exitChan,
+		Color:     DefaultPalette(),
 		LogToFile: func(messages ...any) { logger(messages...) },
 	}) // Initialize AutoConfig FIRST - this will be our configuration source
-	h.config = NewAutoConfig(logger) // Use the provided logger
-	h.config.SetRootDir(h.rootDir)
-
-	// Scan initial architecture - this must happen before AddSectionBUILD
-	h.config.ScanDirectoryStructure()
 
 	h.AddSectionBUILD()
 

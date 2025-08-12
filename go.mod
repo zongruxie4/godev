@@ -3,30 +3,32 @@ module github.com/cdvelop/godev
 go 1.24.4
 
 require (
-	github.com/cdvelop/gobuild v0.0.4
-	github.com/cdvelop/tinywasm v0.0.13
-	github.com/chromedp/chromedp v0.14.0
+	github.com/cdvelop/tinywasm v0.0.15
+	github.com/chromedp/chromedp v0.14.1
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/tinyreflect v0.0.36 // indirect
-	github.com/cdvelop/tinystring v0.1.57 // indirect
-	github.com/cdvelop/tinytime v0.0.6 // indirect
-	github.com/cdvelop/unixid v0.0.105 // indirect
+	github.com/cdvelop/gobuild v0.0.5 // indirect
+	github.com/cdvelop/godepfind v0.0.4 // indirect
+	github.com/cdvelop/gorun v0.0.2 // indirect
+	github.com/cdvelop/tinyreflect v0.0.37 // indirect
+	github.com/cdvelop/tinystring v0.1.59 // indirect
+	github.com/cdvelop/tinytime v0.0.7 // indirect
+	github.com/cdvelop/unixid v0.0.108 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.6 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/lipgloss v1.1.0 // indirect
-	github.com/charmbracelet/x/ansi v0.9.3 // indirect
+	github.com/charmbracelet/x/ansi v0.10.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
-	github.com/go-json-experiment/json v0.0.0-20250725192818-e39067aee2d2 // indirect
+	github.com/go-json-experiment/json v0.0.0-20250811204210-4789234c3ea1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
@@ -39,20 +41,25 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/tdewolff/parse/v2 v2.8.1 // indirect
+	github.com/tdewolff/parse/v2 v2.8.2-0.20250806174018-50048bb39781 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
-	github.com/cdvelop/assetmin v0.0.45
-	github.com/cdvelop/devtui v0.0.166
-	github.com/cdvelop/tinytranslator v0.0.10
-	github.com/fsnotify/fsnotify v1.9.0
-	github.com/tdewolff/minify/v2 v2.23.10 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	github.com/cdvelop/assetmin v0.0.46
+	github.com/cdvelop/devtui v0.0.174
+	github.com/cdvelop/devwatch v0.0.5
+	github.com/cdvelop/goserver v0.0.4
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/tdewolff/minify/v2 v2.23.11 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 )
 
 replace github.com/cdvelop/devtui => ../devtui
+
+replace github.com/cdvelop/devwatch => ../devwatch
+
+replace github.com/cdvelop/assetmin => ../assetmin

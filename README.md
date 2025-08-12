@@ -6,7 +6,7 @@
 **Framework de desarrollo full stack con interfaz TUI** para aplicaciones web usando **solo Go estándar, HTML, CSS y JavaScript vanilla**. Elimina completamente los archivos de configuración usando **convenciones de estructura de directorios**.
 
 ⚠️ **Advertencia: Desarrollo en Progreso**
-Este proyecto está actualmente en desarrollo activo, especialmente la interfaz TUI. Puede contener características inestables. NO USAR EN PRODUCCIÓN.
+Este proyecto está actualmente en desarrollo activo, especialmente la interfaz TUI. Puede contener características inestables.
 
 ![vista previa de godev tui](docs/tui.JPG)
 
@@ -80,12 +80,7 @@ cd tu-proyecto-go
 godev
 ```
 
-### 🚀 **Instalación Futura (Planificada)**
-**Instalador web automático** que detectará e instalará todo automáticamente:
-- ✅ **Detección automática** de dependencias instaladas
-- ✅ **Instalación automática** de faltantes: Go, Git, TinyGo, Docker, GitHub CLI  
-- ✅ **Setup completo** con un solo comando
-- ✅ **Sin conocimiento técnico** requerido
+
 
 ## Uso
 ```bash
@@ -95,7 +90,6 @@ godev
 **Eso es todo.** GoDev detecta automáticamente la estructura y configura todo.
 
 GoDev detectará automáticamente la estructura de tu proyecto y configurará el entorno de desarrollo apropiado.
-
 
 
 
@@ -117,86 +111,6 @@ GoDev detectará automáticamente la estructura de tu proyecto y configurará el
 - **SPA (Prioridad 2)**: Segunda prioridad  
 - **MPA (Prioridad 3)**: Tercera prioridad
 
-### 🏷️ **Convención de Prefijos (OBLIGATORIA)**
-**Dentro del directorio `modules/`:**
-- **`b.archivo.go`**: Backend - Reinicia servidor y recarga navegador
-- **`f.archivo.go`**: Frontend - Compila a WebAssembly y recarga navegador  
-- **`archivo.go`**: Compartido - Reinicia servidor + WebAssembly + recarga navegador
-
-
-### 📂 **Estructura del Proyecto**
-```plaintext
-AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
-├── cmd/                        # 📋 Aplicación de consola (opcional)
-│   └── AppName/
-│       └── main.go             # Punto de entrada CLI
-│
-├── modules/                    # 🔧 Lógica modular (obligatorio)
-│   ├── modules.go              # Registro de módulos
-│   │
-│   ├── home/                   # 🏠 Módulo home con autenticación
-│   │   ├── auth.go             # Estructuras y lógica de autenticación
-│   │   ├── b.api.go            # 🔙 Backend API (// +build !wasm)
-│   │   ├── f.auth.go           # 🌐 Frontend autenticación (// +build wasm)
-│   │   └── handlers.go         # Handlers compartidos
-│   │
-│   ├── users/                  # 👥 Módulo de usuarios
-│   │   ├── user.go             # Modelos de datos
-│   │   ├── b.api.go            # 🔙 Backend API endpoints
-│   │   ├── f.users.go          # 🌐 Frontend usuarios (// +build wasm)
-│   │   └── f.events.go         # 🌐 Frontend eventos pub/sub
-│   │
-│   └── medical/                # 🏥 Módulo médico (ejemplo)
-│       ├── patient.go          # Modelo de paciente
-│       ├── b.api.go            # 🔙 Backend API
-│       ├── f.medical.go        # 🌐 Frontend médico (// +build wasm)
-│       └── handlers.go         # Handlers HTTP
-│
-├── pwa/                        # 📱 Progressive Web App (una de las 3)
-│   ├── theme/                  # 🎨 Assets de desarrollo
-│   │   ├── css/                # CSS sin procesar
-│   │   └── js/                 # JavaScript sin procesar
-│   │
-│   ├── public/                 # � Assets finales (generados)
-│   │   ├── img/                # Imágenes optimizadas
-│   │   ├── icons.svg           # Sprite de iconos SVG
-│   │   ├── main.js             # JavaScript minificado
-│   │   ├── style.css           # CSS minificado
-│   │   ├── AppName.wasm        # 🎯 WebAssembly compilado
-│   │   ├── manifest.json       # Manifiesto PWA
-│   │   ├── sw.js               # Service Worker
-│   │   ├── icons/              # Iconos PWA
-│   │   │   ├── icon-192x192.png
-│   │   │   └── icon-512x512.png
-│   │   ├── offline.html        # Página offline
-│   │   └── index.html          # HTML principal generado
-│   │
-│   ├── main.server.go          # 🔙 Servidor Go (opcional)
-│   └── main.wasm.go            # 🌐 Entry point WebAssembly (opcional)
-│
-├── spa/                        # 🌐 Single Page Application (alternativa)
-│   ├── theme/                  # 🎨 Assets de desarrollo
-│   ├── public/                 # 📁 Assets finales
-│   ├── main.server.go          # 🔙 Servidor Go (opcional)
-│   └── main.wasm.go            # 🌐 Entry point WebAssembly (opcional)
-│
-├── mpa/                        # 🌐 Multi-Page Application (alternativa)
-│   ├── theme/                  # 🎨 Assets de desarrollo
-│   ├── public/                 # 📁 Assets finales
-│   ├── main.server.go          # 🔙 Servidor Go (opcional)
-│   └── main.wasm.go            # 🌐 Entry point WebAssembly (opcional)
-│
-├── go.mod                      # 📦 Módulo Go
-├── env                         # 🔧 Variables de entorno
-└── .gitignore                  # 📋 Archivos ignorados por git
-```
-
-### 🎯 **Convenciones de Nomenclatura**
-| Prefijo | Tipo | Propósito | Build Tag |
-|---------|------|-----------|-----------|
-| `b.` | Backend | API, servidor, base de datos | `// +build !wasm` |
-| `f.` | Frontend | UI, eventos, interacciones | `// +build wasm` |
-| `*.go` | Compartido | Modelos, utilidades, tipos | Sin build tag |
 
 ### 📁 **Detección Automática**
 - **`cmd/`** presente → Aplicación híbrida (CLI + Web)
@@ -231,46 +145,7 @@ AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
 - ✅ **Aplicación híbrida**: `cmd/` + cualquier arquitectura web
 - ❌ **No múltiples**: `pwa/` + `spa/` (se aplica prioridad con warning)
 
-## 📌 Hoja de Ruta
 
-### ✅ MVP (Versión Mínima Viable)  
-### Frontend
-- [x] Unificación y minificación de archivos CSS y JavaScript 
-- [ ] cargar assets del directorio `web/theme` primero (assets handler)
-- [ ] Generación automática de `web/public/index.html` si este no existe  
-- [ ] Compilar iconos svg módulos en sprite único en `web/public/icons.svg`
-
-### Servidor de Desarrollo
-- [ ] Servidor de desarrollo integrado para servir archivos estáticos en `web/public`
-- [ ] https integrado en desarrollo local
-- [x] cerrar navegador al cerrar aplicación 
-- [x] Ejecución navegador Chrome (tecla `w`)  
-- [x] cambiar el tamaño de la ventana del navegador desde la tui
-
-### Hot Reload
-- [x] Detección de cambios en archivos HTML, CSS, y JS  
-- [x] detección de cambios en archivos GO frontend para webAssembly y servidor backend
-- [ ] detectar cambios en archivos SVG
-- [ ] Recarga en caliente del navegador (Hot Reload)
-
-### Backend
-- [x] Detección de cambios en archivos del servidor  
-- [ ] Reinicio automático si hay modificaciones  
-
-### Configuración
-- [x] Interfaz TUI minimalista para VS Code  
-- [x] **Detección automática por estructura de directorios** ✅
-- [x] **Eliminación completa de archivos de configuración** ✅
-- [ ] Finalizar especificación de interacción TUI
-- [ ] Agregar .gitignore automático
-
-
-### 🚀 Mejoras Futuras  
-- [ ] **Completar especificación TUI** para interacción final
-- [ ] Modo producción: Artefactos optimizados y deploy
-- [ ] Compatibilidad con servidores VPS
-- [ ] Compatibilidad con Docker  
-- [ ] Integrar ayudante IA
 
 ## 🎯 **¿Para Quién es GoDev?**
 
@@ -287,12 +162,8 @@ AppName/                        # ⚠️ ESTRUCTURA OBLIGATORIA
 - Proyectos que necesitan configuración granular
 
 
-## Arquitectura
-![arquitectura godev](docs/architecture/godev-architecture.svg)
-
-## Flujo de Componentes
-![componentes godev](docs/architecture/godev-component-flow.svg)
-
+# [ARCHITECTURE](docs/ARCHITECTURE.md) 
+# [ROADMAP](docs/ROADMAP.md)
 
 ## Agradecimientos
 Este proyecto no sería posible sin:

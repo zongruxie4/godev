@@ -24,7 +24,7 @@ package "User Interface Layer" {
 }
 
 package "File System Layer" {
-    [WatchHandler] as watcher
+    [DevWatch] as watcher
     [FSNotify] as fsnotify
     [File Events] as file_events
     [Folder Events] as folder_events
