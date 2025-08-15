@@ -1,5 +1,5 @@
 .env
 godev.exe
 *ISSUE*.md
-test/manual/*
+test/*
 *.log

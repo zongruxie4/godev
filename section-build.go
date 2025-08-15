@@ -18,15 +18,15 @@ func (h *handler) AddSectionBUILD() {
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 
 	// WRITERS
-	wasmWriter := sectionBuild.NewWriter("WASM", false)
-	serverWriter := sectionBuild.NewWriter("SERVER", false)
-	assetsWriter := sectionBuild.NewWriter("ASSETS", false)
-	watchWriter := sectionBuild.NewWriter("WATCH", false)
-	configWriter := sectionBuild.NewWriter("CONFIG", false)
-	browserLogWriter := sectionBuild.NewWriter("BrowserLOG", false)
+	wasmLogger := sectionBuild.NewLogger("WASM", false)
+	serverLogger := sectionBuild.NewLogger("SERVER", true)
+	assetsLogger := sectionBuild.NewLogger("ASSETS", false)
+	watchLogger := sectionBuild.NewLogger("WATCH", false)
+	configLogger := sectionBuild.NewLogger("CONFIG", true)
+	browserLogger := sectionBuild.NewLogger("BrowserLOG", false)
 
 	// CONFIG
-	h.config = NewAutoConfig(h.rootDir, configWriter) // Use the provided logger
+	h.config = NewAutoConfig(h.rootDir, configLogger) // Use the provided logger
 	// Scan initial architecture - this must happen before AddSectionBUILD
 	h.config.ScanDirectoryStructure()
 
@@ -38,7 +38,7 @@ func (h *handler) AddSectionBUILD() {
 		ArgumentsToRunServer:        nil,
 		PublicFolder:                h.config.GetPublicFolder(),
 		AppPort:                     h.config.GetServerPort(),
-		Writer:                      serverWriter,
+		Logger:                      serverLogger,
 		ExitChan:                    h.exitChan,
 	})
 
@@ -47,7 +47,7 @@ func (h *handler) AddSectionBUILD() {
 		WebFilesFolder: func() (string, string) {
 			return h.config.GetWebFilesFolder(), h.config.GetPublicFolder()
 		},
-		Writer: wasmWriter,
+		Logger: wasmLogger,
 	})
 
 	//ASSETS
@@ -58,14 +58,14 @@ func (h *handler) AddSectionBUILD() {
 		WebFilesFolder: func() string {
 			return path.Join(h.rootDir, h.config.GetOutputStaticsDirectory())
 		},
-		Writer: assetsWriter,
+		Logger: assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 	})
 
 	// BROWSER
-	h.browser = devbrowser.New(h.config, h.tui, h.exitChan, browserLogWriter)
+	h.browser = devbrowser.New(h.config, h.tui, h.exitChan, browserLogger)
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
@@ -74,7 +74,7 @@ func (h *handler) AddSectionBUILD() {
 		FilesEventGO:    []devwatch.GoFileHandler{h.serverHandler, h.wasmHandler},
 		FolderEvents:    h.config, // Architecture detection for directory changes
 		BrowserReload:   h.browser.Reload,
-		Writer:          watchWriter,
+		Logger:          watchLogger,
 		ExitChan:        h.exitChan,
 		UnobservedFiles: func() []string {
 
