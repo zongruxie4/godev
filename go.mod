@@ -10,7 +10,7 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.6 // indirect
-	github.com/cdvelop/godepfind v0.0.5 // indirect
+	github.com/cdvelop/godepfind v0.0.6 // indirect
 	github.com/cdvelop/gorun v0.0.9 // indirect
 	github.com/cdvelop/tinyreflect v0.0.37 // indirect
 	github.com/cdvelop/tinystring v0.1.59 // indirect
@@ -51,7 +51,7 @@ require (
 	github.com/cdvelop/devbrowser v0.0.7
 	github.com/cdvelop/devtui v0.0.176
 	github.com/cdvelop/devwatch v0.0.16
-	github.com/cdvelop/goserver v0.0.9
+	github.com/cdvelop/goserver v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.23.11 // indirect
 	golang.org/x/sys v0.35.0 // indirect
