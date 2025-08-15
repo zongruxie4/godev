@@ -10,7 +10,7 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.6 // indirect
-	github.com/cdvelop/godepfind v0.0.6 // indirect
+	github.com/cdvelop/godepfind v0.0.7 // indirect
 	github.com/cdvelop/gorun v0.0.9 // indirect
 	github.com/cdvelop/tinyreflect v0.0.37 // indirect
 	github.com/cdvelop/tinystring v0.1.59 // indirect
