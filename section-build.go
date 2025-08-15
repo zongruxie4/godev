@@ -32,7 +32,7 @@ func (h *handler) AddSectionBUILD() {
 
 	//SERVER
 	h.serverHandler = goserver.New(&goserver.Config{
-		RootFolder:                  h.config.GetWebFilesFolder(),
+		RootFolder:                  path.Join(h.rootDir, h.config.GetWebFilesFolder()),
 		MainFileWithoutExtension:    "main.server",
 		ArgumentsForCompilingServer: nil,
 		ArgumentsToRunServer:        nil,

@@ -55,7 +55,7 @@ func Start(rootDir string, logger func(messages ...any)) {
 	go h.tui.Start(&wg)
 
 	// Iniciar servidor
-	go h.serverHandler.Start(&wg)
+	go h.serverHandler.StartServer(&wg)
 
 	// Iniciar el watcher de archivos
 	go h.watcher.FileWatcherStart(&wg)
