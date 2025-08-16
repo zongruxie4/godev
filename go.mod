@@ -3,7 +3,7 @@ module github.com/cdvelop/godev
 go 1.24.4
 
 require (
-	github.com/cdvelop/tinywasm v0.0.16
+	github.com/cdvelop/tinywasm v0.0.17
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -13,9 +13,9 @@ require (
 	github.com/cdvelop/godepfind v0.0.7 // indirect
 	github.com/cdvelop/gorun v0.0.9 // indirect
 	github.com/cdvelop/tinyreflect v0.0.37 // indirect
-	github.com/cdvelop/tinystring v0.1.60 // indirect
-	github.com/cdvelop/tinytime v0.0.7 // indirect
-	github.com/cdvelop/unixid v0.0.108 // indirect
+	github.com/cdvelop/tinystring v0.1.61 // indirect
+	github.com/cdvelop/tinytime v0.0.8 // indirect
+	github.com/cdvelop/unixid v0.0.109 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.6 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
@@ -49,7 +49,7 @@ require (
 require (
 	github.com/cdvelop/assetmin v0.0.49
 	github.com/cdvelop/devbrowser v0.0.7
-	github.com/cdvelop/devtui v0.0.176
+	github.com/cdvelop/devtui v0.0.177
 	github.com/cdvelop/devwatch v0.0.16
 	github.com/cdvelop/goserver v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
