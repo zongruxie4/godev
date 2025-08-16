@@ -13,7 +13,7 @@ require (
 	github.com/cdvelop/godepfind v0.0.7 // indirect
 	github.com/cdvelop/gorun v0.0.9 // indirect
 	github.com/cdvelop/tinyreflect v0.0.37 // indirect
-	github.com/cdvelop/tinystring v0.1.59 // indirect
+	github.com/cdvelop/tinystring v0.1.60 // indirect
 	github.com/cdvelop/tinytime v0.0.7 // indirect
 	github.com/cdvelop/unixid v0.0.108 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
@@ -60,6 +60,8 @@ require (
 replace github.com/cdvelop/devtui => ../devtui
 
 replace github.com/cdvelop/devwatch => ../devwatch
+
+replace github.com/cdvelop/godepfind => ../godepfind
 
 replace github.com/cdvelop/assetmin => ../assetmin
 
