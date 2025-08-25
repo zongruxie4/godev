@@ -15,9 +15,11 @@ func main() {
 		return
 	}
 
+	exitChan := make(chan bool)
+
 	// Create a Logger instance
 	logger := godev.NewLogger()
 
-	godev.Start(rootDir, logger.LogToFile)
+	godev.Start(rootDir, logger.LogToFile, exitChan)
 
 }

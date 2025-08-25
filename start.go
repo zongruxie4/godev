@@ -24,10 +24,10 @@ type handler struct {
 	exitChan      chan bool // Canal global para señalizar el cierre
 }
 
-func Start(rootDir string, logger func(messages ...any)) {
+func Start(rootDir string, logger func(messages ...any), exitChan chan bool) {
 	h := &handler{
 		rootDir:  rootDir,
-		exitChan: make(chan bool),
+		exitChan: exitChan,
 		// goDepFind:  godepfind.New(rootDir),
 	}
 

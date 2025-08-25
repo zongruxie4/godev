@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../assetmin"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../devtui"
+		},
+		{
+			"path": "../devwatch"
+		}
+	],
+	"settings": {}
+}
