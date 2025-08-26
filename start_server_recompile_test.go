@@ -2,8 +2,6 @@ package godev
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,28 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
-
-func waitForServerContains(port, substr string, timeout time.Duration) error {
-	url := "http://127.0.0.1:" + port + "/h"
-	deadline := time.Now().Add(timeout)
-	lastErr := ""
-	for time.Now().Before(deadline) {
-		resp, err := http.Get(url)
-		if err == nil {
-			b, _ := io.ReadAll(resp.Body)
-			resp.Body.Close()
-			content := string(b)
-			if strings.Contains(content, substr) {
-				return nil
-			}
-			lastErr = fmt.Sprintf("got response: %q, waiting for %q", content, substr)
-		} else {
-			lastErr = fmt.Sprintf("connection error: %v", err)
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
-	return fmt.Errorf("timeout waiting for %q on %s (last status: %s)", substr, url, lastErr)
-}
 
 func TestServerRecompileOnChange(t *testing.T) {
 	// Do not run tests in parallel: they use a network port and Start().
@@ -91,10 +67,10 @@ func TestServerRecompileOnChange(t *testing.T) {
 	// - assert that watcher triggered a restart (observed via logs or reload callback)
 
 	var logMessages []string
+	// collect logs but don't print them to test output unless we hit an error
 	logger := func(v ...any) {
 		msg := fmt.Sprint(v...)
 		logMessages = append(logMessages, msg)
-		t.Log("[GODEV]", msg)
 	}
 
 	// Ensure port is free before starting
@@ -141,6 +117,12 @@ func TestServerRecompileOnChange(t *testing.T) {
 
 	// allow system to stabilize
 	time.Sleep(300 * time.Millisecond)
+
+	// Ensure the initial server responds with v1 before we modify files below.
+	// If this fails, show collected logs and fail immediately.
+	if err := waitForServerContains(port, "v1", 10*time.Second); err != nil {
+		t.Fatalf("initial server did not start with v1: %v; logs=%v", err, logMessages)
+	}
 
 	// write broken version
 	broken := fmt.Sprintf(serverTemplate, port, "BROKEN")
@@ -226,85 +208,7 @@ func TestServerRecompileOnChange(t *testing.T) {
 		t.Log("ActiveHandler was not set")
 	}
 
-	t.Log("waiting for initial server (v1)")
-	// Test manual compilation to diagnose issues BEFORE waiting for the godev server
-	t.Log("🔍 Testing manual compilation...")
-	cmd2 := exec.Command("go", "build", "-o", "main.server", "main.server.go")
-	cmd2.Dir = filepath.Join(tmp, "pwa")
-	output2, compileErr2 := cmd2.CombinedOutput()
-	if compileErr2 != nil {
-		t.Logf("❌ Manual compilation failed: %v", compileErr2)
-		t.Logf("❌ Compilation output: %s", string(output2))
-	} else {
-		t.Logf("✅ Manual compilation successful")
-
-		// Check if binary was created
-		binPath := filepath.Join(tmp, "pwa", "main.server")
-		if _, err := os.Stat(binPath); err == nil {
-			t.Logf("✅ Binary created at: %s", binPath)
-
-			// Try to run it manually for a brief test
-			runCmd := exec.Command("./main.server")
-			runCmd.Dir = filepath.Join(tmp, "pwa")
-			runCmd.Env = append(os.Environ(), "PORT="+port)
-
-			// Create a timeout context for manual test
-			go func() {
-				time.Sleep(3 * time.Second)
-				if runCmd.Process != nil {
-					runCmd.Process.Kill()
-				}
-			}()
-
-			runOutput, runErr := runCmd.CombinedOutput()
-			if runErr != nil {
-				t.Logf("❌ Manual run failed: %v", runErr)
-				t.Logf("❌ Run output: %s", string(runOutput))
-			} else {
-				t.Logf("✅ Manual run output: %s", string(runOutput))
-			}
-		} else {
-			t.Logf("❌ Binary not found at: %s", binPath)
-		}
-	}
-
-	// wait for first version to be available with shorter timeout first
-	err := waitForServerContains(port, "v1", 10*time.Second)
-	if err != nil {
-		t.Logf("Server startup failed: %v", err)
-		t.Logf("Final log messages count: %d", len(logMessages))
-
-		// Try to manually test different endpoints to understand what's running
-		endpoints := []string{"/", "/h", "/health"}
-		for _, endpoint := range endpoints {
-			url := "http://127.0.0.1:" + port + endpoint
-			if resp, httpErr := http.Get(url); httpErr == nil {
-				defer resp.Body.Close()
-				body, _ := io.ReadAll(resp.Body)
-				t.Logf("GET %s returned status %d, body: %q", endpoint, resp.StatusCode, string(body))
-			} else {
-				t.Logf("GET %s failed: %v", endpoint, httpErr)
-			}
-		}
-
-		// Try to gracefully shutdown and see what happens
-		select {
-		case exitChan <- true:
-			t.Log("Sent exit signal")
-		default:
-			t.Log("Exit channel blocked")
-		}
-
-		// Wait a bit for shutdown
-		select {
-		case <-startDone:
-			t.Log("Start() completed")
-		case <-time.After(2 * time.Second):
-			t.Log("Start() still running after exit signal")
-		}
-
-		require.NoError(t, err, "initial server did not start with v1")
-	}
+	// initial server verified above
 
 	t.Log("server started successfully, now testing recompilation")
 	// write updated source to trigger recompilation/restart
