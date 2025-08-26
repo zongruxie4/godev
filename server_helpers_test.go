@@ -5,15 +5,18 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
 	"time"
 )
 
-// logIfVerbose prints test logs directly to stdout (terminal).
+// logIfVerbose prints test logs only when GODEV_TEST_VERBOSE is set.
 func logIfVerbose(t *testing.T, format string, args ...any) {
-	fmt.Printf(format+"\n", args...)
+	if os.Getenv("GODEV_TEST_VERBOSE") != "" {
+		t.Logf(format, args...)
+	}
 }
 
 // checkRunningServerProcesses checks for any running main.server processes

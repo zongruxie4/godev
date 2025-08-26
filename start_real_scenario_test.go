@@ -62,7 +62,7 @@ func TestStartRealScenario(t *testing.T) {
 	// Set up browser reload tracking after starting godev
 	SetWatcherBrowserReload(func() error {
 		atomic.AddInt64(&reloadCount, 1)
-		fmt.Printf("DEBUG: BrowserReload called! Total count: %d\n", atomic.LoadInt64(&reloadCount))
+		// fmt.Printf("DEBUG: BrowserReload called! Total count: %d\n", atomic.LoadInt64(&reloadCount))
 		select {
 		case reloadCalled <- struct{}{}:
 		default: // non-blocking in case buffer is full
@@ -77,7 +77,7 @@ func TestStartRealScenario(t *testing.T) {
 
 	// Check if main.js was created
 	if _, err := os.Stat(mainJsPath); os.IsNotExist(err) {
-		t.Logf("main.js not created yet, triggering a write event...")
+		// t.Logf("main.js not created yet, triggering a write event...")
 		// Trigger a write event to make AssetMin write to disk
 		testFilePath := filepath.Join(tmp, "modules", "medical", "file1.js")
 		require.NoError(t, os.WriteFile(testFilePath, []byte("console.log('one1_modified');"), 0644))
@@ -87,7 +87,7 @@ func TestStartRealScenario(t *testing.T) {
 	}
 
 	// Trigger additional JS file modifications to test browser reload
-	t.Logf("Triggering JS file modifications to test browser reload...")
+	// t.Logf("Triggering JS file modifications to test browser reload...")
 
 	// Modify existing JS files to trigger reload events
 	jsFiles := []string{
@@ -99,7 +99,7 @@ func TestStartRealScenario(t *testing.T) {
 	initialReloadCount := atomic.LoadInt64(&reloadCount)
 	expectedAdditionalReloads := len(jsFiles)
 	for i, jsFile := range jsFiles {
-		t.Logf("Modifying %s (modification %d)", jsFile, i+1)
+		// t.Logf("Modifying %s (modification %d)", jsFile, i+1)
 		content := fmt.Sprintf("console.log('modified_%d');", i+1)
 		require.NoError(t, os.WriteFile(jsFile, []byte(content), 0644))
 		time.Sleep(200 * time.Millisecond) // Wait longer than 150ms debounce timer
@@ -120,15 +120,16 @@ func TestStartRealScenario(t *testing.T) {
 	t.Logf("main.js content: %s", content)
 	t.Logf("Full logs:\n%s", logs.String())
 
-	// Check what content is missing - these should all be present
+	// Check what content should be present in main.js
+	// Note: Files that were modified should contain their NEW content, not original
 	expectedContents := []string{
-		"H2",            // from users/newfile.js
-		"one1",          // from medical/file1.js
-		"two",           // from medical/file2.js
-		"three",         // from medical/file3.js
-		"file5",         // from medical/file5.js
-		"mainconten1",   // from medical/mainconten1.js
-		"Hello, PWA! 2", // from pwa/theme/main.js
+		"modified_1",  // from users/newfile.js (was modified)
+		"one1",        // from medical/file1.js (not modified)
+		"modified_2",  // from medical/file2.js (was modified)
+		"three",       // from medical/file3.js (not modified)
+		"file5",       // from medical/file5.js (not modified)
+		"mainconten1", // from medical/mainconten1.js (not modified)
+		"modified_3",  // from pwa/theme/main.js (was modified)
 	}
 
 	missing := []string{}
@@ -140,7 +141,9 @@ func TestStartRealScenario(t *testing.T) {
 
 	if len(missing) > 0 {
 		t.Errorf("Missing content in main.js: %v", missing)
-		t.Errorf("This reproduces the real bug where only the last file is kept")
+		t.Errorf("Expected content should reflect current state of files, not original content")
+	} else {
+		// t.Logf("✓ All expected content found in main.js (including modified files)")
 	}
 
 	// Verify browser reload was called during JS file modifications

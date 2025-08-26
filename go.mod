@@ -4,6 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.180
+	github.com/cdvelop/godepfind v0.0.8
 	github.com/cdvelop/tinywasm v0.0.22
 	github.com/stretchr/testify v1.11.0
 )
@@ -11,8 +12,7 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.9 // indirect
-	github.com/cdvelop/godepfind v0.0.8 // indirect
-	github.com/cdvelop/gorun v0.0.11 // indirect
+	github.com/cdvelop/gorun v0.0.12 // indirect
 	github.com/cdvelop/tinyreflect v0.0.41 // indirect
 	github.com/cdvelop/tinystring v0.4.0 // indirect
 	github.com/cdvelop/tinytime v0.0.11 // indirect
