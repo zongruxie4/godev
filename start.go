@@ -22,6 +22,10 @@ type handler struct {
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
 	exitChan      chan bool // Canal global para señalizar el cierre
+	// pendingBrowserReload is used by tests to set a custom BrowserReload
+	// before the watcher is created. If non-nil it will be applied when
+	// AddSectionBUILD creates the watcher.
+	pendingBrowserReload func() error
 }
 
 func Start(rootDir string, logger func(messages ...any), exitChan chan bool) {
@@ -30,6 +34,10 @@ func Start(rootDir string, logger func(messages ...any), exitChan chan bool) {
 		exitChan: exitChan,
 		// goDepFind:  godepfind.New(rootDir),
 	}
+
+	// Make the handler available to tests so they can override the
+	// BrowserReload callback when needed.
+	ActiveHandler = h
 
 	// Validate we're not in system directories
 	homeDir, _ := os.UserHomeDir()

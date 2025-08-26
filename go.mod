@@ -50,7 +50,7 @@ require (
 require (
 	github.com/cdvelop/assetmin v0.0.51
 	github.com/cdvelop/devbrowser v0.0.7
-	github.com/cdvelop/devwatch v0.0.16
+	github.com/cdvelop/devwatch v0.0.22
 	github.com/cdvelop/goserver v0.0.10
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.0 // indirect

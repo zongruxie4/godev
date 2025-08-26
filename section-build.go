@@ -1,6 +1,7 @@
 package godev
 
 import (
+	"fmt"
 	"path"
 	"time"
 
@@ -93,6 +94,16 @@ func (h *handler) AddSectionBUILD() {
 			return uf
 		},
 	})
+
+	// If tests set a pending browser reload callback before the watcher was
+	// created, apply it now so tests can observe reload calls.
+	if h.pendingBrowserReload != nil {
+		fmt.Println("DEBUG: Applying pendingBrowserReload to watcher")
+		// override the watcher callback
+		h.watcher.BrowserReload = h.pendingBrowserReload
+		// clear pending to avoid accidental reuse
+		h.pendingBrowserReload = nil
+	}
 
 	// Agregar manejadores que requieren interacción del desarrollador
 	// BROWSER

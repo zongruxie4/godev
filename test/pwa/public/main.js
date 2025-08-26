@@ -1,1 +1,1 @@
-"use strict";console.log("Hello, PWA! 2"),"use strict",console.log("hellow"),"use strict",console.log("hellow"),console.log("one"),console.log("two2"),console.log("three"),console.log("medical file5"),console.log("mainconten1"),console.log("H2")
+"use strict";console.log("Hello, PWA! 2"),"use strict",console.log("hellow"),"use strict",console.log("hellow"),console.log("onE"),console.log("two2"),console.log("three"),console.log("medical file5"),console.log("H2")
