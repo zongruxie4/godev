@@ -25,7 +25,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 			}
 			msg += fmt.Sprint(m)
 		}
-		fmt.Printf("LOG: %s\n", msg)
+		logIfVerbose(t, "LOG: %s", msg)
 	}
 
 	// Start godev
@@ -37,7 +37,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 	// Set up browser reload tracking
 	SetWatcherBrowserReload(func() error {
 		count := atomic.AddInt64(&reloadCount, 1)
-		fmt.Printf("*** BROWSER RELOAD CALLED! Count: %d ***\n", count)
+		logIfVerbose(t, "*** BROWSER RELOAD CALLED! Count: %d ***", count)
 		return nil
 	})
 
@@ -48,22 +48,22 @@ func TestSimpleBrowserReload(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Dir(jsFile), 0755))
 	require.NoError(t, os.WriteFile(jsFile, []byte("console.log('initial');"), 0644))
 
-	fmt.Printf("=== File created, waiting for initial processing ===\n")
+	logIfVerbose(t, "=== File created, waiting for initial processing ===")
 	time.Sleep(500 * time.Millisecond)
 
 	initialCount := atomic.LoadInt64(&reloadCount)
-	fmt.Printf("Reload count after initial creation: %d\n", initialCount)
+	logIfVerbose(t, "Reload count after initial creation: %d", initialCount)
 
 	// Modify the file ONCE
-	fmt.Printf("=== Single modification ===\n")
+	logIfVerbose(t, "=== Single modification ===")
 	require.NoError(t, os.WriteFile(jsFile, []byte("console.log('modified');"), 0644))
 
 	// Wait long enough for timer to definitely expire (much longer than 100ms debounce)
-	fmt.Printf("=== Waiting 1 second for timer to expire ===\n")
+	logIfVerbose(t, "=== Waiting 1 second for timer to expire ===")
 	time.Sleep(1 * time.Second)
 
 	finalCount := atomic.LoadInt64(&reloadCount)
-	fmt.Printf("Final reload count: %d\n", finalCount)
+	logIfVerbose(t, "Final reload count: %d", finalCount)
 
 	exitChan <- true
 

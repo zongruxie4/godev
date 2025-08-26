@@ -114,7 +114,7 @@ func main() {
 
 	// quick check logs exist
 	if logBuf.Len() == 0 {
-		t.Log("warning: no logs captured; but restart flow executed")
+		logIfVerbose(t, "warning: no logs captured; but restart flow executed")
 	}
 }
 

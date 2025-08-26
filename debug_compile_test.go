@@ -30,18 +30,18 @@ func TestDebugCompile(t *testing.T) {
 		t.Fatalf("Failed to create main.server.go: %v", err)
 	}
 
-	t.Logf("Created files in: %s", pwa)
-	t.Logf("main.server.go content preview: %s", serverContent[:100])
+	logIfVerbose(t, "Created files in: %s", pwa)
+	logIfVerbose(t, "main.server.go content preview: %s", serverContent[:100])
 
 	// Try manual compilation
 	cmd := exec.Command("go", "build", "-o", "main.server", "main.server.go")
 	cmd.Dir = pwa
 	output, err := cmd.CombinedOutput()
 
-	t.Logf("Command: %s", cmd.String())
-	t.Logf("Working dir: %s", cmd.Dir)
-	t.Logf("Output: %s", string(output))
-	t.Logf("Error: %v", err)
+	logIfVerbose(t, "Command: %s", cmd.String())
+	logIfVerbose(t, "Working dir: %s", cmd.Dir)
+	logIfVerbose(t, "Output: %s", string(output))
+	logIfVerbose(t, "Error: %v", err)
 
 	if err != nil {
 		t.Fatalf("Manual compilation failed: %v", err)
@@ -53,5 +53,5 @@ func TestDebugCompile(t *testing.T) {
 		t.Fatalf("Binary not created: %v", err)
 	}
 
-	t.Log("Manual compilation successful!")
+	logIfVerbose(t, "Manual compilation successful!")
 }

@@ -63,7 +63,7 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	initialContent, err := os.ReadFile(mainJsPath)
 	require.NoError(t, err, "main.js should exist")
 
-	t.Logf("Initial main.js content: %s", string(initialContent))
+	logIfVerbose(t, "Initial main.js content: %s", string(initialContent))
 
 	// Verify all files are present initially
 	require.Contains(t, string(initialContent), "file1", "file1 should be in main.js")
@@ -72,7 +72,7 @@ func TestStartDeleteFileScenario(t *testing.T) {
 
 	// Now DELETE file2
 	file2Path := filepath.Join(tmp, "modules", "file2.js")
-	t.Logf("Deleting file: %s", file2Path)
+	logIfVerbose(t, "Deleting file: %s", file2Path)
 	require.NoError(t, os.Remove(file2Path))
 
 	// Wait for delete event to be processed
@@ -82,8 +82,8 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	afterDeleteContent, err := os.ReadFile(mainJsPath)
 	require.NoError(t, err, "main.js should still exist")
 
-	t.Logf("After delete main.js content: %s", string(afterDeleteContent))
-	t.Logf("Full logs:\n%s", logs.String())
+	logIfVerbose(t, "After delete main.js content: %s", string(afterDeleteContent))
+	logIfVerbose(t, "Full logs:\n%s", logs.String())
 
 	// Verify file2 content is removed but file1 and file3 remain
 	require.Contains(t, string(afterDeleteContent), "file1", "file1 should still be in main.js")

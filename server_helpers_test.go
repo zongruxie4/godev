@@ -5,18 +5,15 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"os/exec"
 	"strings"
 	"testing"
 	"time"
 )
 
-// logIfVerbose prints test logs only when GODEV_TEST_VERBOSE is set.
+// logIfVerbose prints test logs directly to stdout (terminal).
 func logIfVerbose(t *testing.T, format string, args ...any) {
-	if os.Getenv("GODEV_TEST_VERBOSE") != "" {
-		t.Logf(format, args...)
-	}
+	fmt.Printf(format+"\n", args...)
 }
 
 // checkRunningServerProcesses checks for any running main.server processes
@@ -25,7 +22,7 @@ func checkRunningServerProcesses(t *testing.T, label string) {
 	cmd := exec.Command("pgrep", "-f", "main.server")
 	output, err := cmd.CombinedOutput()
 	if err == nil && len(output) > 0 {
-	logIfVerbose(t, "🔍 %s: Found running main.server processes: %s", label, strings.TrimSpace(string(output)))
+		logIfVerbose(t, "🔍 %s: Found running main.server processes: %s", label, strings.TrimSpace(string(output)))
 
 		// Get more details
 		cmd2 := exec.Command("ps", "-aux")
@@ -48,7 +45,7 @@ func checkPortUsage(t *testing.T, port, label string) {
 	cmd := exec.Command("lsof", "-i", ":"+port)
 	output, err := cmd.CombinedOutput()
 	if err == nil && len(output) > 0 {
-	logIfVerbose(t, "🔍 %s: Port %s is in use:\n%s", label, port, string(output))
+		logIfVerbose(t, "🔍 %s: Port %s is in use:\n%s", label, port, string(output))
 	} else {
 		logIfVerbose(t, "✅ %s: Port %s is free (err: %v)", label, port, err)
 	}
