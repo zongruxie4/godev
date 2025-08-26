@@ -1,7 +1,7 @@
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
-github.com/cdvelop/assetmin v0.0.51 h1:XBW8SV6J0xUGUikJ5HUZKAXNx8gXtPhcUxqN4+Dz/xE=
-github.com/cdvelop/assetmin v0.0.51/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
+github.com/cdvelop/assetmin v0.0.52 h1:4fmLyv9rENASdN1poySio11d4SR/aFnpTL2wPxTr5lo=
+github.com/cdvelop/assetmin v0.0.52/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
 github.com/cdvelop/gobuild v0.0.6 h1:iFFD/RdOH1bVorECzO42aH/VoZ6NFpkI+9mZ0Dpbq48=
 github.com/cdvelop/gobuild v0.0.6/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/gorun v0.0.9 h1:USHBSYduzeBzSrW2dKTRRquypZfHkzYI6P4C87XrQqc=
