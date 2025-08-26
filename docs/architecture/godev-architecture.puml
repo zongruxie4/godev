@@ -57,7 +57,7 @@ package "Server Management" {
         + Start()
         + NewFileEvent()
         + StartInternalServerFiles()
-        + StartExternalServer()
+        + startServer()
         + RestartServer()
     }
     
