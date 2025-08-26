@@ -4,10 +4,10 @@
             "path": "."
         },
         {
-            "path": "../assetmin"
+            "path": "../devwatch"
         },
         {
-            "path": "../devwatch"
+            "path": "../goserver"
         }
     ]
 }

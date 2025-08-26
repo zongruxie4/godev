@@ -1,0 +1,16 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "../goserver"
+        },
+        {
+            "path": "../gorun"
+        },
+        {
+            "path": "../gobuild"
+        }
+    ]
+}
