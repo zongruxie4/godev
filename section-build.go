@@ -3,6 +3,7 @@ package godev
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"time"
 
 	. "github.com/cdvelop/assetmin"
@@ -33,7 +34,7 @@ func (h *handler) AddSectionBUILD() {
 
 	//SERVER
 	h.serverHandler = goserver.New(&goserver.Config{
-		RootFolder:                  h.config.GetWebFilesFolder(),
+		RootFolder:                  filepath.Join(h.rootDir, h.config.GetWebFilesFolder()),
 		MainFileWithoutExtension:    "main.server",
 		ArgumentsForCompilingServer: nil,
 		ArgumentsToRunServer:        nil,
