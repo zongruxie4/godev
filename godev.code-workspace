@@ -2,24 +2,6 @@
     "folders": [
         {
             "path": "."
-        },
-        {
-            "path": "../goserver"
-        },
-        {
-            "path": "../gorun"
-        },
-        {
-            "path": "../gobuild"
-        },
-        {
-            "path": "../devtui"
-        },
-        {
-            "path": "../assetmin"
-        },
-        {
-            "path": "../devwatch"
         }
     ]
 }

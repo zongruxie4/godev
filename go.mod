@@ -51,22 +51,8 @@ require (
 	github.com/cdvelop/assetmin v0.0.52
 	github.com/cdvelop/devbrowser v0.0.7
 	github.com/cdvelop/devwatch v0.0.25
-	github.com/cdvelop/goserver v0.0.18
+	github.com/cdvelop/goserver v0.0.19
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-)
-
-replace github.com/cdvelop/devtui => ../devtui
-
-replace github.com/cdvelop/devwatch => ../devwatch
-
-replace github.com/cdvelop/godepfind => ../godepfind
-
-replace github.com/cdvelop/devbrowser => ../devbrowser
-
-replace (
-	github.com/cdvelop/gobuild => ../gobuild
-	github.com/cdvelop/gorun => ../gorun
-	github.com/cdvelop/goserver => ../goserver
 )
