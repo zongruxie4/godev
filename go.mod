@@ -5,13 +5,13 @@ go 1.24.4
 require (
 	github.com/cdvelop/devtui v0.0.180
 	github.com/cdvelop/tinywasm v0.0.22
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.9 // indirect
-	github.com/cdvelop/godepfind v0.0.10 // indirect
+	github.com/cdvelop/godepfind v0.0.11 // indirect
 	github.com/cdvelop/gorun v0.0.12 // indirect
 	github.com/cdvelop/tinyreflect v0.0.41 // indirect
 	github.com/cdvelop/tinystring v0.4.0 // indirect
@@ -56,3 +56,5 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 )
+
+replace github.com/cdvelop/devwatch => ../devwatch

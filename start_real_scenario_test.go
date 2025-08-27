@@ -62,7 +62,6 @@ func TestStartRealScenario(t *testing.T) {
 	// Set up browser reload tracking after starting godev
 	SetWatcherBrowserReload(func() error {
 		atomic.AddInt64(&reloadCount, 1)
-		// fmt.Printf("DEBUG: BrowserReload called! Total count: %d\n", atomic.LoadInt64(&reloadCount))
 		select {
 		case reloadCalled <- struct{}{}:
 		default: // non-blocking in case buffer is full

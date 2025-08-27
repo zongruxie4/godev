@@ -2,6 +2,18 @@
     "folders": [
         {
             "path": "."
+        },
+        {
+            "path": "../goserver"
+        },
+        {
+            "path": "../devwatch"
+        },
+        {
+            "path": "../godepfind"
+        },
+        {
+            "path": "../gorun"
         }
     ]
 }
