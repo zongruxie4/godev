@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.180
-	github.com/cdvelop/godepfind v0.0.9
+	github.com/cdvelop/godepfind v0.0.10
 	github.com/cdvelop/tinywasm v0.0.22
 	github.com/stretchr/testify v1.11.0
 )
@@ -50,7 +50,7 @@ require (
 require (
 	github.com/cdvelop/assetmin v0.0.52
 	github.com/cdvelop/devbrowser v0.0.7
-	github.com/cdvelop/devwatch v0.0.22
+	github.com/cdvelop/devwatch v0.0.23
 	github.com/cdvelop/goserver v0.0.18
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.0 // indirect
