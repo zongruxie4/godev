@@ -2,4 +2,4 @@
 godev.exe
 *ISSUE*.md
 test/*
-*.log
+*.log/test/
