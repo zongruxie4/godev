@@ -1,1 +1,1 @@
-console.log("Hello, PWA! 5");
+console.log("Hello, PWA! 1");

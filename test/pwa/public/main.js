@@ -1,1 +1,1 @@
-"use strict";console.log("Hello, PWA! 5"),console.log("one"),console.log("two"),console.log("three "),console.log("medical file"),console.log("new file here")
+"use strict";console.log("Hello, PWA! 1"),console.log("one"),console.log("two"),console.log("three "),console.log("medical file"),console.log("new file here")

@@ -15,27 +15,31 @@ import (
 // where WASM handler without main.wasm.go incorrectly claims database/db.go
 // when it should belong to the server handler.
 //
+// The issue occurs because godepfind.ThisFileIsMine doesn't validate if the
+// mainInputFile (main.wasm.go) actually exists before claiming ownership of
+// other files that could potentially depend on it.
+//
 // This test directly uses the DevWatch component to isolate the routing issue
 // without the full godev application startup overhead.
 func TestGoHandlerRoutingIssue(t *testing.T) {
-	// Setup temporary project layout that mirrors the real scenario
+	// 1. Crear un directorio temporal que represente el proyecto
 	tmp := t.TempDir()
 
-	// Create directory structure
+	// 2. Crear la estructura de carpetas: pwa (servidor) y database (paquete)
 	serverDir := filepath.Join(tmp, "pwa")
 	databaseDir := filepath.Join(tmp, "database")
 
 	require.NoError(t, os.MkdirAll(serverDir, 0755))
 	require.NoError(t, os.MkdirAll(databaseDir, 0755))
 
-	// Create go.mod
+	// 3. Escribir el archivo go.mod básico para el módulo de prueba
 	goModContent := `module testproject
 
 go 1.21
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644))
 
-	// Create main.server.go WITH database import
+	// 4. Crear main.server.go que importa el paquete database (representa el server)
 	serverMainPath := filepath.Join(serverDir, "main.server.go")
 	serverContent := `package main
 
@@ -50,7 +54,7 @@ func main() {
 `
 	require.NoError(t, os.WriteFile(serverMainPath, []byte(serverContent), 0644))
 
-	// Create database/db.go
+	// 5. Crear database/db.go con una función Connect (archivo que debe pertenecer al servidor)
 	dbPath := filepath.Join(databaseDir, "db.go")
 	dbContent := `package database
 
@@ -60,50 +64,52 @@ func Connect() {
 `
 	require.NoError(t, os.WriteFile(dbPath, []byte(dbContent), 0644))
 
-	// Create tracking handlers to capture which handler claims db.go
+	// 6. Preparar contadores para capturar llamadas registradas por cada handler
 	var serverCalls []string
 	var wasmCalls []string
 
-	// Create server handler (like goserver.New would do)
+	// 7. Crear un handler de servidor simulado (como goserver.New)
 	serverHandler := &TestServerHandler{
 		mainPath: "pwa/main.server.go",
 		calls:    &serverCalls,
 	}
 
-	// Create WASM handler WITHOUT main.wasm.go (this simulates the issue)
+	// 8. Crear un handler WASM simulado SIN main.wasm.go (simula el fallo)
+	// Simulamos el comportamiento real de TinyWasm que construye dinámicamente la ruta
 	wasmHandler := &TestWasmHandler{
-		mainPath: "pwa/main.wasm.go", // Note: this file doesn't exist
-		calls:    &wasmCalls,
+		webFilesRootRelative: "pwa",          // Como en TinyWasm real
+		mainInputFile:        "main.wasm.go", // Como en TinyWasm real
+		calls:                &wasmCalls,
 	}
 
-	// Create DevWatch with both handlers
+	// 9. Construir DevWatch con ambos handlers (no se usa activamente aquí pero es contexto)
 	logOutput := &strings.Builder{}
 	watcher := devwatch.New(&devwatch.WatchConfig{
 		AppRootDir:      tmp,
-		FileEventAssets: &NoOpAssetHandler{}, // Not relevant for this test
+		FileEventAssets: &NoOpAssetHandler{}, // No relevante para este test
 		FilesEventGO:    []devwatch.GoFileHandler{serverHandler, wasmHandler},
-		FolderEvents:    &NoOpFolderHandler{}, // Not relevant for this test
+		FolderEvents:    &NoOpFolderHandler{}, // No relevante para este test
 		BrowserReload:   func() error { return nil },
 		Logger:          logOutput,
 		ExitChan:        make(chan bool, 1),
 	})
 
-	// Simulate file event on database/db.go (this is where the routing issue occurs)
-	// We'll simulate this by directly calling the internal logic instead of
-	// setting up the full file watching system
+	// 10. Simular el evento sobre database/db.go (punto donde ocurre el routing)
+	// En vez de iniciar el watcher se usa directamente el depFinder
 
-	// Get the dependency finder that DevWatch uses internally
+	// 11. Obtener el buscador de dependencias que DevWatch usa internamente
 	depFinder := godepfind.New(tmp)
 
-	// Test the routing logic: which handler should claim database/db.go?
+	// 12. Comprobar la lógica de enrutamiento: ¿qué handler reclama database/db.go?
 	t.Logf("Testing file ownership detection for database/db.go")
 
-	// Check server handler
+	// 13. Preguntarle al depFinder si el handler del servidor reclama db.go
 	serverShouldClaim, err := depFinder.ThisFileIsMine(serverHandler.MainInputFileRelativePath(), dbPath, "write")
 	require.NoError(t, err)
 	t.Logf("Server handler (main: %s) claims db.go: %v", serverHandler.MainInputFileRelativePath(), serverShouldClaim)
 
-	// Check WASM handler (this should fail since main.wasm.go doesn't exist)
+	// 14. Preguntarle al depFinder si el handler WASM reclama db.go
+	//     (se espera error/false porque main.wasm.go no existe)
 	wasmShouldClaim, err := depFinder.ThisFileIsMine(wasmHandler.MainInputFileRelativePath(), dbPath, "write")
 	if err != nil {
 		t.Logf("WASM handler (main: %s) error claiming db.go: %v", wasmHandler.MainInputFileRelativePath(), err)
@@ -112,7 +118,7 @@ func Connect() {
 		t.Logf("WASM handler (main: %s) claims db.go: %v", wasmHandler.MainInputFileRelativePath(), wasmShouldClaim)
 	}
 
-	// Analyze the results
+	// 15. Analizar resultados y fallos esperados
 	if wasmShouldClaim && !serverShouldClaim {
 		t.Errorf("ISSUE REPRODUCED: WASM handler incorrectly claims database/db.go")
 		t.Errorf("WASM handler main file: %s (does not exist)", wasmHandler.MainInputFileRelativePath())
@@ -131,7 +137,7 @@ func Connect() {
 		t.Errorf("Actual: Neither handler claims it")
 	}
 
-	// Clean up
+	// 16. Limpiar: señalizar salida del watcher simulado
 	watcher.ExitChan <- true
 }
 
@@ -153,12 +159,15 @@ func (h *TestServerHandler) NewFileEvent(fileName, extension, filePath, event st
 
 // TestWasmHandler simulates tinywasm.TinyWasm for testing
 type TestWasmHandler struct {
-	mainPath string
-	calls    *[]string
+	webFilesRootRelative string // Simula Config.WebFilesRootRelative de TinyWasm
+	mainInputFile        string // Simula mainInputFile de TinyWasm ("main.wasm.go")
+	calls                *[]string
 }
 
 func (h *TestWasmHandler) MainInputFileRelativePath() string {
-	return h.mainPath
+	// Simula el comportamiento real de TinyWasm.MainInputFileRelativePath()
+	// return path.Join(rootFolder, w.mainInputFile)
+	return h.webFilesRootRelative + "/" + h.mainInputFile
 }
 
 func (h *TestWasmHandler) NewFileEvent(fileName, extension, filePath, event string) error {

@@ -10,15 +10,15 @@ var ActiveHandler *handler
 // otherwise it stores it in the handler so AddSectionBUILD can apply it.
 func SetWatcherBrowserReload(f func() error) {
 	if ActiveHandler == nil {
-		fmt.Println("DEBUG: SetWatcherBrowserReload called but ActiveHandler is nil")
+		fmt.Println("SetWatcherBrowserReload called but ActiveHandler is nil")
 		return
 	}
 	if ActiveHandler.watcher != nil {
-		fmt.Println("DEBUG: SetWatcherBrowserReload applying to existing watcher")
+		fmt.Println("SetWatcherBrowserReload applying to existing watcher")
 		ActiveHandler.watcher.BrowserReload = f
 		return
 	}
-	fmt.Println("DEBUG: SetWatcherBrowserReload storing as pending")
+	fmt.Println("SetWatcherBrowserReload storing as pending")
 	ActiveHandler.pendingBrowserReload = f
 }
 
@@ -26,6 +26,6 @@ func SetWatcherBrowserReload(f func() error) {
 func EnableDebugWatchEvents() {
 	if ActiveHandler != nil && ActiveHandler.watcher != nil {
 		// We can't easily switch the running watchEvents, but we can log more
-		fmt.Println("DEBUG: Debug watch events requested (limited implementation)")
+		fmt.Println("Debug watch events requested (limited implementation)")
 	}
 }

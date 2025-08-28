@@ -21,7 +21,7 @@ func (h *handler) AddSectionBUILD() {
 
 	// WRITERS
 	wasmLogger := sectionBuild.NewLogger("WASM", false)
-	serverLogger := sectionBuild.NewLogger("SERVER", true)
+	serverLogger := sectionBuild.NewLogger("SERVER", false)
 	assetsLogger := sectionBuild.NewLogger("ASSETS", false)
 	watchLogger := sectionBuild.NewLogger("WATCH", false)
 	configLogger := sectionBuild.NewLogger("CONFIG", true)
@@ -98,7 +98,7 @@ func (h *handler) AddSectionBUILD() {
 	// If tests set a pending browser reload callback before the watcher was
 	// created, apply it now so tests can observe reload calls.
 	if h.pendingBrowserReload != nil {
-		fmt.Println("DEBUG: Applying pendingBrowserReload to watcher")
+		fmt.Println("Applying pendingBrowserReload to watcher")
 		// override the watcher callback
 		h.watcher.BrowserReload = h.pendingBrowserReload
 		// clear pending to avoid accidental reuse
