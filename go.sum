@@ -8,10 +8,10 @@ github.com/cdvelop/devtui v0.0.180 h1:i3mzzLlZr/pH5MfvKVjkxSHk4xi3v2Io6A8Cgcg8gz
 github.com/cdvelop/devtui v0.0.180/go.mod h1:f2rxlAaoo2W0kuKrcYKFvFAUcJRb3Wae1Hq6NFYRFY8=
 github.com/cdvelop/gobuild v0.0.11 h1:aayjtRrKJHXlCdd7DtHHYjOESDMb/dw/Y54CbN/AtIQ=
 github.com/cdvelop/gobuild v0.0.11/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
+github.com/cdvelop/godepfind v0.0.14 h1:feexgGZuc09CBvXK08G+1eHa7BNIH0FuhnT0ctC47Ao=
+github.com/cdvelop/godepfind v0.0.14/go.mod h1:7NRwbtsqQjy3bL6Jqmr+UlevqYDsYLLlMUqTFh0tO9c=
 github.com/cdvelop/gorun v0.0.13 h1:xCYOSP7Udiz3/OXAK3wky5KuOJjmYLdy4vxi+aUoqug=
 github.com/cdvelop/gorun v0.0.13/go.mod h1:DhTPzWzM2D7QqZdZYDHulyYwFegovWaH7r0bX/6nRJQ=
-github.com/cdvelop/goserver v0.0.21 h1:1aKlHnX8mOgl6gS12qhO+Kqxq8pOvgnETNRVZQvja3Y=
-github.com/cdvelop/goserver v0.0.21/go.mod h1:kdZP14v+fLzEKZMq4lG1SxmiQ3D0VZEhzfqILJ7mTz4=
 github.com/cdvelop/tinyreflect v0.0.41 h1:Y5nekdxcBmnGnTKgqoZADsm36Dzl3PaunlbQqCXvbmc=
 github.com/cdvelop/tinyreflect v0.0.41/go.mod h1:FQCL/NAjZA549Gqz2sy4JX8eSK45h6ClEdq/w2+AaII=
 github.com/cdvelop/tinystring v0.4.0 h1:B5dDgj8mztu3U+RRvAOmB1s3eWbjlt50bjl3iRbwlEA=

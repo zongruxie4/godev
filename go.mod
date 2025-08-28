@@ -4,7 +4,6 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.180
-	github.com/cdvelop/godepfind v0.0.13
 	github.com/cdvelop/tinywasm v0.0.26
 	github.com/stretchr/testify v1.11.1
 )
@@ -12,6 +11,7 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.11 // indirect
+	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.13 // indirect
 	github.com/cdvelop/tinyreflect v0.0.41 // indirect
 	github.com/cdvelop/tinystring v0.4.0 // indirect
@@ -50,7 +50,7 @@ require (
 require (
 	github.com/cdvelop/assetmin v0.0.52
 	github.com/cdvelop/devbrowser v0.0.7
-	github.com/cdvelop/devwatch v0.0.27
+	github.com/cdvelop/devwatch v0.0.28
 	github.com/cdvelop/goserver v0.0.21
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.0 // indirect
@@ -59,6 +59,6 @@ require (
 
 replace github.com/cdvelop/devwatch => ../devwatch
 
-replace github.com/cdvelop/godepfind => ../godepfind
-
 replace github.com/cdvelop/tinywasm => ../tinywasm
+
+replace github.com/cdvelop/goserver => ../goserver
