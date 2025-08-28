@@ -46,10 +46,9 @@ func (h *handler) AddSectionBUILD() {
 
 	//WASM
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
-		WebFilesFolder: func() (string, string) {
-			return h.config.GetWebFilesFolder(), h.config.GetPublicFolder()
-		},
-		Logger: wasmLogger,
+		WebFilesRootRelative: h.config.GetWebFilesFolder(),
+		WebFilesSubRelative:  h.config.GetPublicFolder(),
+		Logger:               wasmLogger,
 	})
 
 	//ASSETS
@@ -109,5 +108,7 @@ func (h *handler) AddSectionBUILD() {
 	// Agregar manejadores que requieren interacción del desarrollador
 	// BROWSER
 	sectionBuild.AddExecutionHandler(h.browser, time.Millisecond*500)
+	// WASM compilar wasm de forma dinámica
+	sectionBuild.AddEditHandler(h.wasmHandler, time.Millisecond*500)
 
 }

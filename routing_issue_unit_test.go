@@ -99,24 +99,24 @@ func Connect() {
 	t.Logf("Testing file ownership detection for database/db.go")
 
 	// Check server handler
-	serverShouldClaim, err := depFinder.ThisFileIsMine(serverHandler.MainFileRelativePath(), dbPath, "write")
+	serverShouldClaim, err := depFinder.ThisFileIsMine(serverHandler.MainInputFileRelativePath(), dbPath, "write")
 	require.NoError(t, err)
-	t.Logf("Server handler (main: %s) claims db.go: %v", serverHandler.MainFileRelativePath(), serverShouldClaim)
+	t.Logf("Server handler (main: %s) claims db.go: %v", serverHandler.MainInputFileRelativePath(), serverShouldClaim)
 
 	// Check WASM handler (this should fail since main.wasm.go doesn't exist)
-	wasmShouldClaim, err := depFinder.ThisFileIsMine(wasmHandler.MainFileRelativePath(), dbPath, "write")
+	wasmShouldClaim, err := depFinder.ThisFileIsMine(wasmHandler.MainInputFileRelativePath(), dbPath, "write")
 	if err != nil {
-		t.Logf("WASM handler (main: %s) error claiming db.go: %v", wasmHandler.MainFileRelativePath(), err)
+		t.Logf("WASM handler (main: %s) error claiming db.go: %v", wasmHandler.MainInputFileRelativePath(), err)
 		wasmShouldClaim = false
 	} else {
-		t.Logf("WASM handler (main: %s) claims db.go: %v", wasmHandler.MainFileRelativePath(), wasmShouldClaim)
+		t.Logf("WASM handler (main: %s) claims db.go: %v", wasmHandler.MainInputFileRelativePath(), wasmShouldClaim)
 	}
 
 	// Analyze the results
 	if wasmShouldClaim && !serverShouldClaim {
 		t.Errorf("ISSUE REPRODUCED: WASM handler incorrectly claims database/db.go")
-		t.Errorf("WASM handler main file: %s (does not exist)", wasmHandler.MainFileRelativePath())
-		t.Errorf("Server handler main file: %s (imports testproject/database)", serverHandler.MainFileRelativePath())
+		t.Errorf("WASM handler main file: %s (does not exist)", wasmHandler.MainInputFileRelativePath())
+		t.Errorf("Server handler main file: %s (imports testproject/database)", serverHandler.MainInputFileRelativePath())
 		t.Errorf("Expected: Only server handler should claim db.go")
 		t.Errorf("Actual: WASM handler claims db.go despite missing main.wasm.go")
 	} else if wasmShouldClaim && serverShouldClaim {
@@ -141,7 +141,7 @@ type TestServerHandler struct {
 	calls    *[]string
 }
 
-func (h *TestServerHandler) MainFileRelativePath() string {
+func (h *TestServerHandler) MainInputFileRelativePath() string {
 	return h.mainPath
 }
 
@@ -157,7 +157,7 @@ type TestWasmHandler struct {
 	calls    *[]string
 }
 
-func (h *TestWasmHandler) MainFileRelativePath() string {
+func (h *TestWasmHandler) MainInputFileRelativePath() string {
 	return h.mainPath
 }
 
