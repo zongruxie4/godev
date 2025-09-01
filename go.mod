@@ -62,5 +62,3 @@ replace github.com/cdvelop/devwatch => ../devwatch
 replace github.com/cdvelop/tinywasm => ../tinywasm
 
 replace github.com/cdvelop/goserver => ../goserver
-
-replace github.com/cdvelop/gobuild => ../gobuild

@@ -47,6 +47,7 @@ func (h *handler) AddSectionBUILD() {
 
 	//WASM
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
+		AppRootDir:           h.rootDir,
 		WebFilesRootRelative: h.config.GetWebFilesFolder(),
 		WebFilesSubRelative:  h.config.GetPublicFolder(),
 		Logger:               wasmLogger,

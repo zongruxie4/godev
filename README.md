@@ -137,7 +137,7 @@ GoDev detectará automáticamente la estructura de tu proyecto y configurará el
 | `pwa/` | Progressive Web App | `main.server.go`, `main.wasm.go` |
 | `spa/` | Single Page App | `main.server.go`, `main.wasm.go` |
 | `mpa/` | Multi-Page App | `main.server.go`, `main.wasm.go` |
-| `modules/` | Lógica modular | `b.*.go`, `f.*.go` |
+| `modules/` | Lógica modular | `*.go`|
 
 **Reglas de Arquitectura:**
 - ✅ **Una sola arquitectura web** permitida por proyecto
@@ -178,7 +178,5 @@ Para problemas o soporte, por favor visita [GitHub Issues](https://github.com/cd
 si quieres participar en el proyecto puedes contactarme con un mensaje privado 
 
 
-## Contribuir
-
-Si encuentras útil este proyecto y te gustaría apoyarlo, puedes hacer una donación [aquí con paypal](https://paypal.me/cdvelop?country.x=CL&locale.x=es_XC)
+## [Contributing](https://github.com/cdvelop/cdvelop/blob/main/CONTRIBUTING.md)
 
