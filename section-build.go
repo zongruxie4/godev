@@ -25,7 +25,7 @@ func (h *handler) AddSectionBUILD() {
 	assetsLogger := sectionBuild.NewLogger("ASSETS", false)
 	watchLogger := sectionBuild.NewLogger("WATCH", false)
 	configLogger := sectionBuild.NewLogger("CONFIG", true)
-	browserLogger := sectionBuild.NewLogger("BrowserLOG", false)
+	browserLogger := sectionBuild.NewLogger("BROWSER", true)
 
 	// CONFIG
 	h.config = NewAutoConfig(h.rootDir, configLogger) // Use the provided logger
