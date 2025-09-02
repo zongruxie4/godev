@@ -26,6 +26,9 @@
         },
         {
             "path": "../devbrowser"
+        },
+        {
+            "path": "../assetmin"
         }
     ]
 }
