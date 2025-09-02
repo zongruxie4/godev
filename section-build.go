@@ -61,10 +61,8 @@ func (h *handler) AddSectionBUILD() {
 		WebFilesFolder: func() string {
 			return path.Join(h.rootDir, h.config.GetOutputStaticsDirectory())
 		},
-		Logger: assetsLogger,
-		GetRuntimeInitializerJS: func() (string, error) {
-			return h.wasmHandler.JavascriptForInitializing()
-		},
+		Logger:                  assetsLogger,
+		GetRuntimeInitializerJS: h.wasmHandler.JavascriptForInitializing,
 	})
 
 	// BROWSER
