@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/gobuild v0.0.11 // indirect
+	github.com/cdvelop/gobuild v0.0.12 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.13 // indirect
 	github.com/cdvelop/tinyreflect v0.0.41 // indirect
@@ -40,7 +40,6 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.3 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	github.com/ysmood/fetchup v0.5.2 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/got v0.41.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
@@ -51,10 +50,13 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
+// fetchup do not change the version v0.2.3
+require github.com/ysmood/fetchup v0.5.2 // indirect
+
 require (
 	github.com/cdvelop/assetmin v0.0.52
 	github.com/cdvelop/devbrowser v0.0.8
-	github.com/cdvelop/devwatch v0.0.29
+	github.com/cdvelop/devwatch v0.0.30
 	github.com/cdvelop/goserver v0.0.21
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.2 // indirect
@@ -67,4 +69,4 @@ replace github.com/cdvelop/tinywasm => ../tinywasm
 
 replace github.com/cdvelop/goserver => ../goserver
 
-replace github.com/cdvelop/devbrowser => ../devbrowser
+replace github.com/cdvelop/assetmin => ../assetmin

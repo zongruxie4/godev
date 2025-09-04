@@ -70,13 +70,12 @@ func (h *handler) AddSectionBUILD() {
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
-		AppRootDir:      h.config.GetRootDir(),
-		FileEventAssets: h.assetsHandler,
-		FilesEventGO:    []devwatch.GoFileHandler{h.serverHandler, h.wasmHandler},
-		FolderEvents:    h.config, // Architecture detection for directory changes
-		BrowserReload:   h.browser.Reload,
-		Logger:          watchLogger,
-		ExitChan:        h.exitChan,
+		AppRootDir:         h.config.GetRootDir(),
+		FilesEventHandlers: []devwatch.FilesEventHandlers{h.assetsHandler, h.wasmHandler, h.serverHandler},
+		FolderEvents:       h.config, // Architecture detection for directory changes
+		BrowserReload:      h.browser.Reload,
+		Logger:             watchLogger,
+		ExitChan:           h.exitChan,
 		UnobservedFiles: func() []string {
 
 			uf := []string{

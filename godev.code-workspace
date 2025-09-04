@@ -19,16 +19,10 @@
             "path": "../tinywasm"
         },
         {
-            "path": "../gobuild"
-        },
-        {
-            "path": "../devtui"
-        },
-        {
-            "path": "../devbrowser"
-        },
-        {
             "path": "../assetmin"
+        },
+        {
+            "path": "../gobuild"
         }
     ]
 }
