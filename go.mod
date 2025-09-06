@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.184
-	github.com/cdvelop/tinywasm v0.0.0-00010101000000-000000000000
+	github.com/cdvelop/tinywasm v0.0.32
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -13,10 +13,10 @@ require (
 	github.com/cdvelop/gobuild v0.0.12 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
-	github.com/cdvelop/tinyreflect v0.0.40 // indirect
+	github.com/cdvelop/tinyreflect v0.0.41 // indirect
 	github.com/cdvelop/tinystring v0.4.0 // indirect
-	github.com/cdvelop/tinytime v0.0.10 // indirect
-	github.com/cdvelop/unixid v0.0.111 // indirect
+	github.com/cdvelop/tinytime v0.1.0 // indirect
+	github.com/cdvelop/unixid v0.1.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.7 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.3 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
@@ -50,15 +50,15 @@ require (
 )
 
 // fetchup do not change the version v0.2.3
-require github.com/ysmood/fetchup v0.2.3 // indirect
+require github.com/ysmood/fetchup v0.5.2 // indirect
 
 require (
 	github.com/cdvelop/assetmin v0.0.53
-	github.com/cdvelop/devbrowser v0.0.8
+	github.com/cdvelop/devbrowser v0.0.9
 	github.com/cdvelop/devwatch v0.0.30
 	github.com/cdvelop/goserver v0.0.25
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/tdewolff/minify/v2 v2.24.2 // indirect
+	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 )
 
