@@ -3,7 +3,7 @@ module github.com/cdvelop/godev
 go 1.24.4
 
 require (
-	github.com/cdvelop/devtui v0.0.180
+	github.com/cdvelop/devtui v0.0.181
 	github.com/cdvelop/tinywasm v0.0.32
 	github.com/stretchr/testify v1.11.1
 )

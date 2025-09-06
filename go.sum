@@ -2,8 +2,8 @@ github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiE
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/cdvelop/devbrowser v0.0.8 h1:HqqMs/8z1jupW2ZN4CxRqbhJgVafwOOXja0ULU3vfwM=
 github.com/cdvelop/devbrowser v0.0.8/go.mod h1:Xc4rssantGi4zObnkcs8SXYo7lf6Q/w7uVjRgRF+Uyk=
-github.com/cdvelop/devtui v0.0.180 h1:i3mzzLlZr/pH5MfvKVjkxSHk4xi3v2Io6A8Cgcg8gzY=
-github.com/cdvelop/devtui v0.0.180/go.mod h1:f2rxlAaoo2W0kuKrcYKFvFAUcJRb3Wae1Hq6NFYRFY8=
+github.com/cdvelop/devtui v0.0.181 h1:CbOsL3kh1U7rak9RjbEQNTTXdD0G24N7WVSlttxptzw=
+github.com/cdvelop/devtui v0.0.181/go.mod h1:f2rxlAaoo2W0kuKrcYKFvFAUcJRb3Wae1Hq6NFYRFY8=
 github.com/cdvelop/gobuild v0.0.12 h1:tNlKdDXZk/Vnxts2Cnb22FrD3rC9ZdVcPHbMdfHoorc=
 github.com/cdvelop/gobuild v0.0.12/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/godepfind v0.0.14 h1:feexgGZuc09CBvXK08G+1eHa7BNIH0FuhnT0ctC47Ao=
