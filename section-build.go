@@ -20,12 +20,12 @@ func (h *handler) AddSectionBUILD() {
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 
 	// WRITERS
-	wasmLogger := sectionBuild.NewLogger("WASM", false)
-	serverLogger := sectionBuild.NewLogger("SERVER", false)
-	assetsLogger := sectionBuild.NewLogger("ASSETS", false)
-	watchLogger := sectionBuild.NewLogger("WATCH", false)
-	configLogger := sectionBuild.NewLogger("CONFIG", true)
-	browserLogger := sectionBuild.NewLogger("BROWSER", true)
+	wasmLogger := sectionBuild.NewLogger("WASM", false, colorPurpleMedium)
+	serverLogger := sectionBuild.NewLogger("SERVER", false, colorBlueMedium)
+	assetsLogger := sectionBuild.NewLogger("ASSETS", false, colorGreenMedium)
+	watchLogger := sectionBuild.NewLogger("WATCH", false, colorYellowMedium)
+	configLogger := sectionBuild.NewLogger("CONFIG", true, colorTealMedium)
+	browserLogger := sectionBuild.NewLogger("BROWSER", true, colorPinkMedium)
 
 	// CONFIG
 	h.config = NewAutoConfig(h.rootDir, configLogger) // Use the provided logger
@@ -106,8 +106,8 @@ func (h *handler) AddSectionBUILD() {
 
 	// Agregar manejadores que requieren interacción del desarrollador
 	// BROWSER
-	sectionBuild.AddExecutionHandler(h.browser, time.Millisecond*500)
+	sectionBuild.AddExecutionHandler(h.browser, time.Millisecond*500, colorPinkMedium)
 	// WASM compilar wasm de forma dinámica
-	sectionBuild.AddEditHandler(h.wasmHandler, time.Millisecond*500)
+	sectionBuild.AddEditHandler(h.wasmHandler, time.Millisecond*500, colorPurpleMedium)
 
 }
