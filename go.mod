@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.180
-	github.com/cdvelop/tinywasm v0.0.30
+	github.com/cdvelop/tinywasm v0.0.31
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -12,13 +12,13 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.12 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
-	github.com/cdvelop/gorun v0.0.13 // indirect
+	github.com/cdvelop/gorun v0.0.14 // indirect
 	github.com/cdvelop/tinyreflect v0.0.41 // indirect
 	github.com/cdvelop/tinystring v0.4.0 // indirect
 	github.com/cdvelop/tinytime v0.1.0 // indirect
 	github.com/cdvelop/unixid v0.1.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
-	github.com/charmbracelet/bubbletea v1.3.6 // indirect
+	github.com/charmbracelet/bubbletea v1.3.7 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
 	github.com/charmbracelet/lipgloss v1.1.0 // indirect
 	github.com/charmbracelet/x/ansi v0.10.1 // indirect
@@ -44,7 +44,6 @@ require (
 	github.com/ysmood/got v0.41.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
