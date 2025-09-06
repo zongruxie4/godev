@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.184
-	github.com/cdvelop/tinywasm v0.0.0-00010101000000-000000000000
+	github.com/cdvelop/tinywasm v0.0.33
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -13,10 +13,10 @@ require (
 	github.com/cdvelop/gobuild v0.0.12 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
-	github.com/cdvelop/tinyreflect v0.0.40 // indirect
-	github.com/cdvelop/tinystring v0.1.65 // indirect
-	github.com/cdvelop/tinytime v0.0.10 // indirect
-	github.com/cdvelop/unixid v0.0.111 // indirect
+	github.com/cdvelop/tinyreflect v0.0.42 // indirect
+	github.com/cdvelop/tinystring v0.5.0 // indirect
+	github.com/cdvelop/tinytime v0.1.0 // indirect
+	github.com/cdvelop/unixid v0.1.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.7 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
