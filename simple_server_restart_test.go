@@ -2,6 +2,7 @@ package godev
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -43,11 +44,17 @@ func main() {
 	requireNoErr(t, os.WriteFile(serverFile, []byte(initial), 0644))
 
 	var logBuf bytes.Buffer
+	logFunc := func(message ...any) {
+		for _, msg := range message {
+			logBuf.WriteString(fmt.Sprintf("%v", msg))
+		}
+		logBuf.WriteString("\n")
+	}
 
 	cfg := &gs.Config{
 		RootFolder:               pwa,
 		MainFileWithoutExtension: "main.server",
-		Logger:                   &logBuf,
+		Logger:                   logFunc,
 		ExitChan:                 make(chan bool, 1),
 	}
 

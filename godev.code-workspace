@@ -26,6 +26,9 @@
         },
         {
             "path": "../devtui"
+        },
+        {
+            "path": "../devbrowser"
         }
     ]
 }

@@ -3,7 +3,7 @@ module github.com/cdvelop/godev
 go 1.24.4
 
 require (
-	github.com/cdvelop/devtui v0.0.181
+	github.com/cdvelop/devtui v0.0.182
 	github.com/cdvelop/tinywasm v0.0.32
 	github.com/stretchr/testify v1.11.1
 )
@@ -69,3 +69,7 @@ replace github.com/cdvelop/tinywasm => ../tinywasm
 replace github.com/cdvelop/goserver => ../goserver
 
 replace github.com/cdvelop/assetmin => ../assetmin
+
+replace github.com/cdvelop/devtui => ../devtui
+
+replace github.com/cdvelop/devbrowser => ../devbrowser

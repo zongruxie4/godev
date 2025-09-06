@@ -3,7 +3,6 @@ package godev
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -24,16 +23,16 @@ const (
 // AutoConfig handles automatic detection of application architecture
 // based on directory structure following convention over configuration
 type AutoConfig struct {
-	rootDir    string    // Root directory to scan (default: ".")
-	logger     io.Writer // Logging writer
-	AppName    string    // Application name (directory name)
-	Types      []AppType // Detected application types
-	HasConsole bool      // Has cmd/ directory
-	WebType    AppType   // Web architecture type (pwa, spa, or web if undefined)
+	rootDir    string               // Root directory to scan (default: ".")
+	logger     func(message ...any) // Logging function
+	AppName    string               // Application name (directory name)
+	Types      []AppType            // Detected application types
+	HasConsole bool                 // Has cmd/ directory
+	WebType    AppType              // Web architecture type (pwa, spa, or web if undefined)
 }
 
 // NewAutoConfig creates a new auto configuration detector
-func NewAutoConfig(rootDir string, logger io.Writer) *AutoConfig {
+func NewAutoConfig(rootDir string, logger func(message ...any)) *AutoConfig {
 	root := "." // Default to current directory
 
 	if rootDir != root {
@@ -116,7 +115,7 @@ func (ac *AutoConfig) NewFolderEvent(folderName, path, event string) error {
 		return nil // Not a directory we care about
 	}
 
-	fmt.Fprintf(ac.logger, "Directory %s detected (%s)\n", event, path)
+	ac.logger(fmt.Sprintf("Directory %s detected (%s)", event, path))
 
 	// Perform full architecture scan after any relevant directory change
 	return ac.ScanDirectoryStructure()
@@ -146,7 +145,7 @@ func (ac *AutoConfig) ScanDirectoryStructure() error {
 
 	// Check if architecture changed
 	if ac.hasArchitectureChanged(oldTypes, oldWebType, oldHasConsole) {
-		fmt.Fprintf(ac.logger, "Architecture updated - App: %s, Types: %v\n", ac.AppName, ac.Types)
+		ac.logger(fmt.Sprintf("Architecture updated - App: %s, Types: %v", ac.AppName, ac.Types))
 	}
 
 	return nil
@@ -161,7 +160,7 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 	if ac.directoryExists(cmdPath) {
 		detectedTypes = append(detectedTypes, AppTypeConsole)
 		ac.HasConsole = true
-		fmt.Fprintln(ac.logger, "Found console application (cmd/)")
+		ac.logger("Found console application (cmd/)")
 	}
 
 	// Check for web architectures directly in root (pwa/, spa/, mpa/)
@@ -185,16 +184,16 @@ func (ac *AutoConfig) scanDirectoryStructure() error {
 	for _, webType := range webTypes {
 		switch webType {
 		case AppTypePWA:
-			fmt.Fprintln(ac.logger, "Found Progressive Web App (pwa/)")
+			ac.logger("Found Progressive Web App (pwa/)")
 		case AppTypeSPA:
-			fmt.Fprintln(ac.logger, "Found Single Page Application (spa/)")
+			ac.logger("Found Single Page Application (spa/)")
 		case AppTypeMPA:
-			fmt.Fprintln(ac.logger, "Found Multi-Page Application (mpa/)")
+			ac.logger("Found Multi-Page Application (mpa/)")
 		}
 	}
 
 	if len(webTypes) == 0 {
-		fmt.Fprintln(ac.logger, "No web architecture found - returning unknown")
+		ac.logger("No web architecture found - returning unknown")
 	}
 
 	ac.Types = detectedTypes
@@ -357,13 +356,13 @@ func (ac *AutoConfig) resolvePriorityConflict(webTypes []AppType) AppType {
 
 	// Apply priority order and warn about conflicts
 	if hasPWA {
-		fmt.Fprintf(ac.logger, "Warning - Multiple web architectures found: %v. Using PWA (highest priority)\n", conflicts)
+		ac.logger(fmt.Sprintf("Warning - Multiple web architectures found: %v. Using PWA (highest priority)", conflicts))
 		return AppTypePWA
 	} else if hasSPA {
-		fmt.Fprintf(ac.logger, "Warning - Multiple web architectures found: %v. Using SPA (priority 2)\n", conflicts)
+		ac.logger(fmt.Sprintf("Warning - Multiple web architectures found: %v. Using SPA (priority 2)", conflicts))
 		return AppTypeSPA
 	} else if hasMPA {
-		fmt.Fprintf(ac.logger, "Warning - Multiple web architectures found: %v. Using MPA (priority 3)\n", conflicts)
+		ac.logger(fmt.Sprintf("Warning - Multiple web architectures found: %v. Using MPA (priority 3)", conflicts))
 		return AppTypeMPA
 	}
 

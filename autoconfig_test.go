@@ -1,7 +1,7 @@
 package godev
 
 import (
-	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,8 +11,13 @@ import (
 
 // TestNewAutoConfig tests the constructor
 func TestNewAutoConfig(t *testing.T) {
-	var buf bytes.Buffer
-	detector := NewAutoConfig(".", &buf)
+	var logs []string
+	logger := func(message ...any) {
+		if len(message) > 0 {
+			logs = append(logs, fmt.Sprintf("%v", message[0]))
+		}
+	}
+	detector := NewAutoConfig(".", logger)
 
 	assert.NotNil(t, detector)
 	assert.Equal(t, ".", detector.rootDir)
@@ -25,9 +30,11 @@ func TestNewAutoConfig(t *testing.T) {
 
 // TestSetRootDir tests setting root directory
 func TestSetRootDir(t *testing.T) {
-	var buf bytes.Buffer
+	logger := func(message ...any) {
+		// Test logger - do nothing
+	}
 	testDir := "/test/project"
-	detector := NewAutoConfig(testDir, &buf)
+	detector := NewAutoConfig(testDir, logger)
 
 	assert.Equal(t, testDir, detector.rootDir)
 	assert.Equal(t, "project", detector.AppName)
@@ -418,8 +425,10 @@ func TestArchDetector_CMD_MPA_Hybrid(t *testing.T) {
 // Helper functions
 
 func createTestDetector(tempDir string, t *testing.T) *AutoConfig {
-	var buf bytes.Buffer
-	detector := NewAutoConfig(tempDir, &buf)
+	logger := func(message ...any) {
+		// Test logger - do nothing for most tests
+	}
+	detector := NewAutoConfig(tempDir, logger)
 	return detector
 }
 
