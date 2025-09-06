@@ -48,10 +48,10 @@ func Start(rootDir string, logger func(messages ...any), exitChan chan bool) {
 	}
 
 	h.tui = NewTUI(&TuiConfig{
-		AppName:   "GODEV",
-		ExitChan:  h.exitChan,
-		Color:     DefaultPalette(),
-		LogToFile: func(messages ...any) { logger(messages...) },
+		AppName:  "GODEV",
+		ExitChan: h.exitChan,
+		Color:    DefaultPalette(),
+		Logger:   func(messages ...any) { logger(messages...) },
 	}) // Initialize AutoConfig FIRST - this will be our configuration source
 
 	h.AddSectionBUILD()

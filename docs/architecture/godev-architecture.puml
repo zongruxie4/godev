@@ -41,7 +41,7 @@ package "Configuration Management" {
     
     RECTANGLE Logger {
         --
-        + LogToFile(messages ...any)
+        + Logger(messages ...any)
     }
 }
 

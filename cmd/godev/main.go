@@ -20,6 +20,6 @@ func main() {
 	// Create a Logger instance
 	logger := godev.NewLogger()
 
-	godev.Start(rootDir, logger.LogToFile, exitChan)
+	godev.Start(rootDir, logger.Logger, exitChan)
 
 }

@@ -39,10 +39,10 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 
 	// minimal tui so AddSectionBUILD can proceed
 	h.tui = devtui.NewTUI(&devtui.TuiConfig{
-		AppName:   "GODEV-TEST",
-		ExitChan:  h.exitChan,
-		Color:     devtui.DefaultPalette(),
-		LogToFile: func(messages ...any) {},
+		AppName:  "GODEV-TEST",
+		ExitChan: h.exitChan,
+		Color:    devtui.DefaultPalette(),
+		Logger:   func(messages ...any) {},
 	})
 
 	// Initialize the build section which constructs the asset handler

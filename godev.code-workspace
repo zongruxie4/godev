@@ -23,6 +23,9 @@
         },
         {
             "path": "../gobuild"
+        },
+        {
+            "path": "../devtui"
         }
     ]
 }

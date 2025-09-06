@@ -14,8 +14,8 @@ func NewLogger() *Logger {
 	return &Logger{}
 }
 
-// LogToFile writes messages to a log file
-func (l *Logger) LogToFile(messages ...any) {
+// Logger writes messages to a log file
+func (l *Logger) Logger(messages ...any) {
 	logFile, err := os.OpenFile("logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err == nil {
 		defer logFile.Close()
