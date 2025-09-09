@@ -29,12 +29,6 @@
         },
         {
             "path": "../devbrowser"
-        },
-        {
-            "path": "../unixid"
-        },
-        {
-            "path": "../tinystring"
         }
     ]
 }
