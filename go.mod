@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/gobuild v0.0.14 // indirect
+	github.com/cdvelop/gobuild v0.0.15 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
 	github.com/cdvelop/tinyreflect v0.0.43 // indirect
@@ -67,6 +67,8 @@ replace github.com/cdvelop/devwatch => ../devwatch
 replace github.com/cdvelop/tinywasm => ../tinywasm
 
 replace github.com/cdvelop/goserver => ../goserver
+
+replace github.com/cdvelop/gobuild => ../gobuild
 
 replace github.com/cdvelop/assetmin => ../assetmin
 
