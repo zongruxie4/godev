@@ -3,4 +3,4 @@ godev.exe
 *ISSUE*.md
 test/*
 *.log/test/
-/test/
+/example/

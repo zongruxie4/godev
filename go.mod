@@ -4,13 +4,13 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.185
-	github.com/cdvelop/tinywasm v0.0.37
+	github.com/cdvelop/tinywasm v0.0.38
 	github.com/stretchr/testify v1.11.1
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cdvelop/gobuild v0.0.12 // indirect
+	github.com/cdvelop/gobuild v0.0.14 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
 	github.com/cdvelop/tinyreflect v0.0.43 // indirect
@@ -50,13 +50,13 @@ require (
 )
 
 // fetchup do not change the version v0.2.3
-require github.com/ysmood/fetchup v0.5.2 // indirect
+require github.com/ysmood/fetchup v0.2.3 // indirect
 
 require (
-	github.com/cdvelop/assetmin v0.0.54
+	github.com/cdvelop/assetmin v0.0.55
 	github.com/cdvelop/devbrowser v0.0.9
-	github.com/cdvelop/devwatch v0.0.30
-	github.com/cdvelop/goserver v0.0.25
+	github.com/cdvelop/devwatch v0.0.31
+	github.com/cdvelop/goserver v0.0.26
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
