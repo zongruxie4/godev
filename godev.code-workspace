@@ -1,34 +1,13 @@
 {
     "folders": [
         {
-            "path": "."
+            "path": "../../../Modules/module_patientcare"
         },
         {
-            "path": "../goserver"
+            "path": "../../../Modules/module_patientcareLOCAL"
         },
         {
-            "path": "../devwatch"
-        },
-        {
-            "path": "../godepfind"
-        },
-        {
-            "path": "../gorun"
-        },
-        {
-            "path": "../tinywasm"
-        },
-        {
-            "path": "../assetmin"
-        },
-        {
-            "path": "../gobuild"
-        },
-        {
-            "path": "../devtui"
-        },
-        {
-            "path": "../devbrowser"
+            "path": "../../../Modules/patientCare"
         }
     ]
 }
