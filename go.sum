@@ -12,8 +12,8 @@ github.com/cdvelop/goserver v0.0.29 h1:ATpUiEorAA8dk95l9gy0U9UBJ6xAFLil0xxsMjacW
 github.com/cdvelop/goserver v0.0.29/go.mod h1:GJUlfzhtehy1vyO8HA60cLqx90JP3o2esSl9qnU4Qa8=
 github.com/cdvelop/tinyreflect v0.0.43 h1:DPYYvauOyDxQF50ykIoAsg51p0n4VLQ9NpXvImWvI4s=
 github.com/cdvelop/tinyreflect v0.0.43/go.mod h1:IXU8KoTQuggw274WKLwFGiRRYLQhGUar4NroslW4Lys=
-github.com/cdvelop/tinystring v0.6.0 h1:811MinpQIrCASP7qS/Gm7Ilmu05ys8pU6nZV9z3FjE4=
-github.com/cdvelop/tinystring v0.6.0/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
+github.com/cdvelop/tinystring v0.7.0 h1:2zgg/yAPktAUMrjEu7qZeKEXG5dbEjERfLwAsvnm2lg=
+github.com/cdvelop/tinystring v0.7.0/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
 github.com/cdvelop/tinytime v0.1.4 h1:BIh28l/slraT2kkIYjtoLxFFs+9FmP2frTNTEq4JqaA=
 github.com/cdvelop/tinytime v0.1.4/go.mod h1:N1JvbWasiGgipDVPwA0ysFldxwYehWliMkr+YZZaf2M=
 github.com/cdvelop/unixid v0.1.0 h1:9CN59L7NqmXWgSH4sMpoRsy4H2yMsLlIrGMjYyc4A3Y=
