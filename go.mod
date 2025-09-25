@@ -13,7 +13,7 @@ require (
 	github.com/cdvelop/gobuild v0.0.15 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
-	github.com/cdvelop/tinyreflect v0.0.48 // indirect
+	github.com/cdvelop/tinyreflect v0.1.3 // indirect
 	github.com/cdvelop/tinystring v0.8.1 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect
 	github.com/cdvelop/unixid v0.0.120 // indirect
