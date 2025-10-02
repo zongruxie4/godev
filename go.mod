@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cdvelop/devtui v0.0.185
-	github.com/cdvelop/tinywasm v0.0.38
+	github.com/cdvelop/tinywasm v0.0.41
 	github.com/stretchr/testify v1.11.1
 )
 
