@@ -1,9 +1,10 @@
 module github.com/cdvelop/godev
 
-go 1.24.4
+go 1.25.2
 
 require (
 	github.com/cdvelop/devtui v0.0.185
+	github.com/cdvelop/goflare v0.0.6
 	github.com/cdvelop/tinywasm v0.0.45
 	github.com/stretchr/testify v1.11.1
 )
@@ -65,6 +66,8 @@ require (
 replace github.com/cdvelop/devwatch => ../devwatch
 
 replace github.com/cdvelop/tinywasm => ../tinywasm
+
+replace github.com/cdvelop/goflare => ../goflare
 
 replace github.com/cdvelop/assetmin => ../assetmin
 

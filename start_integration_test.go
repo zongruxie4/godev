@@ -20,7 +20,7 @@ func TestStartJSEventFlow(t *testing.T) {
 
 	file1Path := filepath.Join(tmp, "modules", "module1", "script1.js")
 	file2Path := filepath.Join(tmp, "extras", "module2", "script2.js")
-	file3Path := filepath.Join(tmp, "pwa", "theme", "theme.js")
+	file3Path := filepath.Join(tmp, "src", "webclient", "ui", "theme.js")
 
 	require.NoError(t, os.MkdirAll(filepath.Dir(file1Path), 0755))
 	require.NoError(t, os.MkdirAll(filepath.Dir(file2Path), 0755))
@@ -63,7 +63,7 @@ func TestStartJSEventFlow(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	require.NoError(t, os.WriteFile(file1Path, []byte(file1Content), 0644)) // restore content
 
-	mainJsPath := filepath.Join(tmp, "pwa", "public", "main.js")
+	mainJsPath := filepath.Join(tmp, "src", "webclient", "public", "main.js")
 
 	// Wait for main.js to be created after write events
 	initialMain := waitForFile(t, mainJsPath, 3*time.Second)

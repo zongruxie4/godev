@@ -28,14 +28,13 @@ func (h *handler) AddSectionBUILD() {
 	browserLogger := sectionBuild.NewLogger("BROWSER", true, colorPinkMedium)
 
 	// CONFIG
-	h.config = NewAutoConfig(h.rootDir, configLogger) // Use the provided logger
-	// Scan initial architecture - this must happen before AddSectionBUILD
-	h.config.ScanDirectoryStructure()
+	h.config = NewConfig(h.rootDir, configLogger) // Use the provided logger
+	// ✅ No scanning needed - using conventional paths
 
 	//SERVER
 	h.serverHandler = goserver.New(&goserver.Config{
 		AppRootDir:                  h.rootDir,
-		RootFolder:                  filepath.Join(h.rootDir, h.config.GetWebFilesFolder()),
+		RootFolder:                  filepath.Join(h.rootDir, h.config.GetWebFilesFolder(), "appserver"),
 		MainFileWithoutExtension:    "main.server",
 		ArgumentsForCompilingServer: nil,
 		ArgumentsToRunServer:        nil,
@@ -48,7 +47,7 @@ func (h *handler) AddSectionBUILD() {
 	//WASM
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
 		AppRootDir:           h.rootDir,
-		WebFilesRootRelative: h.config.GetWebFilesFolder(),
+		WebFilesRootRelative: filepath.Join(h.config.GetWebFilesFolder(), "webclient"),
 		WebFilesSubRelative:  h.config.GetPublicFolder(),
 		Logger:               wasmLogger,
 	})
@@ -56,7 +55,7 @@ func (h *handler) AddSectionBUILD() {
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
 		ThemeFolder: func() string {
-			return path.Join(h.rootDir, h.config.GetWebFilesFolder(), "theme")
+			return path.Join(h.rootDir, h.config.GetWebFilesFolder(), "webclient", "ui")
 		},
 		WebFilesFolder: func() string {
 			return path.Join(h.rootDir, h.config.GetOutputStaticsDirectory())
@@ -72,7 +71,7 @@ func (h *handler) AddSectionBUILD() {
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
 		AppRootDir:         h.config.GetRootDir(),
 		FilesEventHandlers: []devwatch.FilesEventHandlers{h.assetsHandler, h.wasmHandler, h.serverHandler},
-		FolderEvents:       h.config, // Architecture detection for directory changes
+		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
 		BrowserReload:      h.browser.Reload,
 		Logger:             watchLogger,
 		ExitChan:           h.exitChan,
