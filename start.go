@@ -6,74 +6,67 @@ import (
 
 	. "github.com/cdvelop/assetmin"
 	"github.com/cdvelop/devbrowser"
-	. "github.com/cdvelop/devtui"
 	"github.com/cdvelop/devwatch"
 	"github.com/cdvelop/goflare"
 	"github.com/cdvelop/goserver"
 	"github.com/cdvelop/tinywasm"
 )
 
+// handler contains application state and dependencies
+// CRITICAL: This struct does NOT import DevTUI
 type handler struct {
-	rootDir       string  // Application root directory
-	config        *Config // Main configuration source
-	tui           *DevTUI
+	rootDir   string
+	config    *Config
+	tui       TuiInterface // Interface defined in GODEV, not DevTUI
+	exitChan  chan bool
+
+	// Build dependencies
 	serverHandler *goserver.ServerHandler
 	assetsHandler *AssetMin
 	wasmHandler   *tinywasm.TinyWasm
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
 
+	// Deploy dependencies
 	deployCloudflare *goflare.Goflare
 
-	exitChan chan bool // Canal global para señalizar el cierre
-	// pendingBrowserReload is used by tests to set a custom BrowserReload
-	// before the watcher is created. If non-nil it will be applied when
-	// AddSectionBUILD creates the watcher.
+	// Test hooks
 	pendingBrowserReload func() error
 }
 
-func Start(rootDir string, logger func(messages ...any), exitChan chan bool) {
+// Start is called from main.go with UI passed as parameter
+// CRITICAL: UI instance created in main.go, passed here as interface
+func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool) {
 	h := &handler{
 		rootDir:  rootDir,
+		tui:      ui, // UI passed from main.go
 		exitChan: exitChan,
-		// goDepFind:  godepfind.New(rootDir),
 	}
 
-	// Make the handler available to tests so they can override the
-	// BrowserReload callback when needed.
 	ActiveHandler = h
 
-	// Validate we're not in system directories
+	// Validate directory
 	homeDir, _ := os.UserHomeDir()
 	if rootDir == homeDir || rootDir == "/" {
-		// Use the provided logger since Translator is not initialized yet
 		logger("Cannot run godev in user root directory. Please run in a Go project directory")
 		return
 	}
 
-	h.tui = NewTUI(&TuiConfig{
-		AppName:  "GODEV",
-		ExitChan: h.exitChan,
-		Color:    DefaultPalette(),
-		Logger:   func(messages ...any) { logger(messages...) },
-	}) // Initialize AutoConfig FIRST - this will be our configuration source
-
-	// ADD SECTIONS
+	// ADD SECTIONS using the passed UI interface
 	h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
 
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	// Start the tui in a goroutine
+	// Start the UI (passed from main.go)
 	go h.tui.Start(&wg)
 
-	// Iniciar servidor
+	// Start server
 	go h.serverHandler.StartServer(&wg)
 
-	// Iniciar el watcher de archivos
+	// Start file watcher
 	go h.watcher.FileWatcherStart(&wg)
 
-	// Esperar a que todas las goroutines terminen
 	wg.Wait()
 }

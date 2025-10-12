@@ -17,7 +17,7 @@ require (
 	github.com/cdvelop/tinyreflect v0.2.0 // indirect
 	github.com/cdvelop/tinystring v0.8.1 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect
-	github.com/cdvelop/unixid v0.0.120 // indirect
+	github.com/cdvelop/unixid v0.1.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.8 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
@@ -62,13 +62,3 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 )
-
-replace github.com/cdvelop/devwatch => ../devwatch
-
-replace github.com/cdvelop/tinywasm => ../tinywasm
-
-replace github.com/cdvelop/goflare => ../goflare
-
-replace github.com/cdvelop/assetmin => ../assetmin
-
-replace github.com/cdvelop/devtui => ../devtui

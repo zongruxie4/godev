@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/cdvelop/godev"
+	"github.com/cdvelop/devtui" // ONLY import DevTUI in main.go
 )
 
 func main() {
@@ -20,6 +21,14 @@ func main() {
 	// Create a Logger instance
 	logger := godev.NewLogger()
 
-	godev.Start(rootDir, logger.Logger, exitChan)
+	// Create DevTUI instance (ONLY in main.go)
+	ui := devtui.NewTUI(&devtui.TuiConfig{
+		AppName:  "GODEV",
+		ExitChan: exitChan,
+		Color:    devtui.DefaultPalette(),
+		Logger:   func(messages ...any) { logger.Logger(messages...) },
+	})
 
+	// Pass UI as interface to Start - GODEV doesn't know it's DevTUI
+	godev.Start(rootDir, logger.Logger, ui, exitChan)
 }
