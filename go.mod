@@ -15,9 +15,8 @@ require (
 	github.com/cdvelop/gobuild v0.0.16 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
-	github.com/cdvelop/tinyreflect v0.2.0 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect
-	github.com/cdvelop/unixid v0.1.0 // indirect
+	github.com/cdvelop/unixid v0.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.8 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
