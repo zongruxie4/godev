@@ -79,7 +79,6 @@ func main() {
 		timestamp := time.Now().Format("15:04:05.000")
 		event := fmt.Sprintf("[%s] BrowserReload called (count: %d)", timestamp, count)
 		eventMessages = append(eventMessages, event)
-		t.Logf("*** %s ***", event)
 		return nil
 	})
 

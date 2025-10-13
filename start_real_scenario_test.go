@@ -95,8 +95,6 @@ func TestStartRealScenario(t *testing.T) {
 		filepath.Join(tmp, "src", "webclient", "ui", "theme.js"),
 	}
 
-	initialReloadCount := atomic.LoadInt64(&reloadCount)
-	expectedAdditionalReloads := len(jsFiles)
 	for i, jsFile := range jsFiles {
 		// t.Logf("Modifying %s (modification %d)", jsFile, i+1)
 		content := fmt.Sprintf("console.log('modified_%d');", i+1)
@@ -107,17 +105,9 @@ func TestStartRealScenario(t *testing.T) {
 	// Wait for final timer to expire
 	time.Sleep(200 * time.Millisecond)
 
-	// Log reload activity for debugging
-	reloadsFromModifications := atomic.LoadInt64(&reloadCount) - initialReloadCount
-	t.Logf("Additional reloads from %d JS modifications: %d", expectedAdditionalReloads, reloadsFromModifications)
-
 	// Read main.js content
 	mainJsContent, err := os.ReadFile(mainJsPath)
 	require.NoError(t, err, "main.js should exist")
-
-	content := string(mainJsContent)
-	t.Logf("main.js content: %s", content)
-	t.Logf("Full logs:\n%s", logs.String())
 
 	// Check what content should be present in main.js
 	// Note: Files that were modified should contain their NEW content, not original
@@ -147,14 +137,11 @@ func TestStartRealScenario(t *testing.T) {
 
 	// Verify browser reload was called during JS file modifications
 	finalReloadCount := atomic.LoadInt64(&reloadCount)
-	t.Logf("Browser reload was called %d times during the test", finalReloadCount)
 
 	// We expect at least some reload calls since we modified JS files
 	// The exact number may vary due to debouncing and initial registration
 	if finalReloadCount == 0 {
 		t.Errorf("Browser reload was never called, but JS files were modified")
-	} else {
-		t.Logf("✓ Browser reload working correctly - called %d times", finalReloadCount)
 	}
 
 	// Stop the application

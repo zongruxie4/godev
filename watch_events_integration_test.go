@@ -67,7 +67,6 @@ func main() {
 		}
 		logs.WriteString(msg + "\n")
 		allLogMessages = append(allLogMessages, msg)
-		t.Logf("LOG: %s", msg)
 	}
 
 	var reloadCount int64
@@ -84,7 +83,6 @@ func main() {
 		timestamp := time.Now().Format("15:04:05.000")
 		event := fmt.Sprintf("[%s] BrowserReload #%d", timestamp, count)
 		eventTimestamps = append(eventTimestamps, event)
-		t.Logf("*** RELOAD: %s ***", event)
 		return nil
 	})
 

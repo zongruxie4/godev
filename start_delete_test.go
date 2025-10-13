@@ -1,8 +1,6 @@
 package godev
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,22 +28,9 @@ func TestStartDeleteFileScenario(t *testing.T) {
 		require.NoError(t, os.WriteFile(fullPath, []byte(content), 0644))
 	}
 
-	// Capture logs
-	var logs bytes.Buffer
-	logger := func(messages ...any) {
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
-	}
-
 	// Start godev
 	exitChan := make(chan bool)
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+	go Start(tmp, nil, newUiMockTest(nil), exitChan)
 
 	// Give time to initialize and process initial files
 	time.Sleep(500 * time.Millisecond)
@@ -63,8 +48,6 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	initialContent, err := os.ReadFile(mainJsPath)
 	require.NoError(t, err, "main.js should exist")
 
-	logIfVerbose(t, "Initial main.js content: %s", string(initialContent))
-
 	// Verify all files are present initially
 	require.Contains(t, string(initialContent), "file1", "file1 should be in main.js")
 	require.Contains(t, string(initialContent), "file2", "file2 should be in main.js")
@@ -72,7 +55,6 @@ func TestStartDeleteFileScenario(t *testing.T) {
 
 	// Now DELETE file2
 	file2Path := filepath.Join(tmp, "modules", "file2.js")
-	logIfVerbose(t, "Deleting file: %s", file2Path)
 	require.NoError(t, os.Remove(file2Path))
 
 	// Wait for delete event to be processed
@@ -81,9 +63,6 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	// Read main.js content after deletion
 	afterDeleteContent, err := os.ReadFile(mainJsPath)
 	require.NoError(t, err, "main.js should still exist")
-
-	logIfVerbose(t, "After delete main.js content: %s", string(afterDeleteContent))
-	logIfVerbose(t, "Full logs:\n%s", logs.String())
 
 	// Verify file2 content is removed but file1 and file3 remain
 	require.Contains(t, string(afterDeleteContent), "file1", "file1 should still be in main.js")

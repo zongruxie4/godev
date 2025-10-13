@@ -78,7 +78,6 @@ func main() {
 			msg += fmt.Sprint(m)
 		}
 		logs.WriteString(msg + "\n")
-		t.Logf("LOG: %s", msg)
 	}
 
 	var reloadCount int64
@@ -99,7 +98,6 @@ func main() {
 		count := atomic.AddInt64(&reloadCount, 1)
 		event := fmt.Sprintf("BrowserReload called at %s (count: %d)", time.Now().Format("15:04:05.000"), count)
 		serverRestartEvents = append(serverRestartEvents, event)
-		t.Logf("*** %s ***", event)
 		return nil
 	})
 

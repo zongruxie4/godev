@@ -10,15 +10,12 @@ var ActiveHandler *handler
 // otherwise it stores it in the handler so AddSectionBUILD can apply it.
 func SetWatcherBrowserReload(f func() error) {
 	if ActiveHandler == nil {
-		fmt.Println("SetWatcherBrowserReload called but ActiveHandler is nil")
 		return
 	}
 	if ActiveHandler.watcher != nil {
-		fmt.Println("SetWatcherBrowserReload applying to existing watcher")
 		ActiveHandler.watcher.BrowserReload = f
 		return
 	}
-	fmt.Println("SetWatcherBrowserReload storing as pending")
 	ActiveHandler.pendingBrowserReload = f
 }
 
