@@ -85,7 +85,7 @@ func main() {
 	var serverRestartEvents []string
 
 	exitChan := make(chan bool)
-	go Start(tmp, logger, exitChan)
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	time.Sleep(100 * time.Millisecond)
 

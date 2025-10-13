@@ -45,7 +45,7 @@ func TestStartJSEventFlow(t *testing.T) {
 
 	// Start the application in a goroutine FIRST
 	exitChan := make(chan bool)
-	go Start(tmp, logger, exitChan)
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	// Give the services some time to initialize
 	time.Sleep(250 * time.Millisecond)

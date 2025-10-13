@@ -75,7 +75,7 @@ func main() {
 
 	// Start godev
 	exitChan := make(chan bool)
-	go Start(tmp, logger, exitChan)
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	time.Sleep(200 * time.Millisecond)
 

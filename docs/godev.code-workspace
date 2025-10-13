@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../devtui"
+		},
+		{
+			"path": "../../../Test/gotestlab"
+		},
+		{
+			"path": "../../devbrowser"
+		},
+		{
+			"path": "../../tinywasm"
+		},
+		{
+			"path": "../../goflare"
+		}
+	],
+	"settings": {}
+}

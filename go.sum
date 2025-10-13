@@ -4,8 +4,8 @@ github.com/cdvelop/assetmin v0.0.55 h1:hrT60uJMpvVTPBB+Hn5QeHRl1TwVIu9tpFC71ZE0a
 github.com/cdvelop/assetmin v0.0.55/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
 github.com/cdvelop/devbrowser v0.0.10 h1:+vdg4MBA5aMuduSc7oFQaMxdJqEVdsujQnwFxviNgDU=
 github.com/cdvelop/devbrowser v0.0.10/go.mod h1:Xc4rssantGi4zObnkcs8SXYo7lf6Q/w7uVjRgRF+Uyk=
-github.com/cdvelop/devtui v0.0.185 h1:fCFYLsE6P7YI9/L2dGfk9bneNxJGzBoijs0F71h8vmw=
-github.com/cdvelop/devtui v0.0.185/go.mod h1:HKGobdRciD9eKAMHMao6SqQ6PYrFuP31icExKLeTJl0=
+github.com/cdvelop/devtui v0.1.0 h1:DZKNj1snavtPCgrwyV+jBRA/db5QS1w4DJ1HK4IVXms=
+github.com/cdvelop/devtui v0.1.0/go.mod h1:YDntkIRtcqoNXlsihb0+ZT3N1++i5v1OXs0UVrKoCwM=
 github.com/cdvelop/devwatch v0.0.31 h1:ZenEdb9HV6KDVB5qZUeC1qHFuPDlI/6pKPvDhJ4Yo1c=
 github.com/cdvelop/devwatch v0.0.31/go.mod h1:ZgiO4dcOmu2ixRte5aOANZ44/ffzds6/PFuU40Qjm34=
 github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qFQ=
@@ -24,8 +24,8 @@ github.com/cdvelop/tinystring v0.8.1 h1:xpwgkT+V+bkDERu8hIHa4AZt/IB+Bn3XCXflO7nn
 github.com/cdvelop/tinystring v0.8.1/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
 github.com/cdvelop/tinytime v0.1.4 h1:BIh28l/slraT2kkIYjtoLxFFs+9FmP2frTNTEq4JqaA=
 github.com/cdvelop/tinytime v0.1.4/go.mod h1:N1JvbWasiGgipDVPwA0ysFldxwYehWliMkr+YZZaf2M=
-github.com/cdvelop/tinywasm v0.0.45 h1:QLIz0dCNsja2l7qKY+IklUIdLd0MptxfONFEWyk6Kc0=
-github.com/cdvelop/tinywasm v0.0.45/go.mod h1:ZYJqxOdKpf/PW+hc44ZxR1Y3ZGWQ4AGLeLbY7dP9ZBw=
+github.com/cdvelop/tinywasm v0.0.46 h1:cITCLk48kPXhmSw4u4tprgGM2XJnb2cJfdU62Wc8T38=
+github.com/cdvelop/tinywasm v0.0.46/go.mod h1:ZYJqxOdKpf/PW+hc44ZxR1Y3ZGWQ4AGLeLbY7dP9ZBw=
 github.com/cdvelop/unixid v0.1.0 h1:9CN59L7NqmXWgSH4sMpoRsy4H2yMsLlIrGMjYyc4A3Y=
 github.com/cdvelop/unixid v0.1.0/go.mod h1:kzMb0SKhMuLzuelJ5x4mdRYmy5UzkhVRWee0T1SGCOA=
 github.com/cdvelop/wasmtest v0.0.9 h1:R17RYOaGEF+ji4x602C+BLL4Ha33PszV6Tz6D3odXTA=

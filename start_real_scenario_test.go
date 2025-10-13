@@ -54,7 +54,7 @@ func TestStartRealScenario(t *testing.T) {
 
 	// Start godev like in real scenario
 	exitChan := make(chan bool)
-	go Start(tmp, logger, exitChan)
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	// Give a moment for Start to initialize and set ActiveHandler
 	time.Sleep(50 * time.Millisecond)

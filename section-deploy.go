@@ -18,6 +18,6 @@ func (h *handler) AddSectionDEPLOY() {
 		RelativeOutputDirectory: path.Join(h.config.GetWebFilesFolder(), "edgeworker", "deploy"),
 	})
 
-	sectionDeploy.AddHandler(h.deployCloudflare, time.Millisecond*500, colorYellowLight)
+	h.tui.AddHandler(h.deployCloudflare, time.Millisecond*500, colorYellowLight, sectionDeploy)
 
 }

@@ -45,7 +45,7 @@ func TestStartDeleteFileScenario(t *testing.T) {
 
 	// Start godev
 	exitChan := make(chan bool)
-	go Start(tmp, logger, exitChan)
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	// Give time to initialize and process initial files
 	time.Sleep(500 * time.Millisecond)
