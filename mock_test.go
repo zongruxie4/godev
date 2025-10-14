@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import "time"
 

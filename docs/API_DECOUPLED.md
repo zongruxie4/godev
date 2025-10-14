@@ -2,21 +2,21 @@
 
 ## Executive Summary
 
-**Objective**: Create a fully decoupled interface for DevTUI to enable clean testing and zero UI dependencies in consumer applications like `godev`.
+**Objective**: Create a fully decoupled interface for DevTUI to enable clean testing and zero UI dependencies in consumer applications like `golite`.
 
-**Problem**: Current architecture tightly couples `godev` with DevTUI. GODEV imports DevTUI directly, making tests expensive (too many tokens for LLMs), difficult to maintain, and polluted with unnecessary UI implementation details.
+**Problem**: Current architecture tightly couples `golite` with DevTUI. GOLITE imports DevTUI directly, making tests expensive (too many tokens for LLMs), difficult to maintain, and polluted with unnecessary UI implementation details.
 
 **Solution**: 
 1. Single universal registration method `AddHandler(handler any, timeout time.Duration, color string)` with internal type casting
-2. **CRITICAL**: GODEV must NOT import DevTUI at all - UI passed as interface parameter in `Start()`
-3. All UI interaction through minimal interfaces defined in GODEV
+2. **CRITICAL**: GOLITE must NOT import DevTUI at all - UI passed as interface parameter in `Start()`
+3. All UI interaction through minimal interfaces defined in GOLITE
 4. DevTUI initialization ONLY in `main.go`
 
 ---
 
 ## Core Design Principles
 
-1. **Zero UI Imports in GODEV**: GODEV package NEVER imports DevTUI
+1. **Zero UI Imports in GOLITE**: GOLITE package NEVER imports DevTUI
 2. **UI as Parameter**: UI instance passed to `Start()` from `main.go`
 3. **Single Entry Point**: ONE method `AddHandler()` for ALL handler types
 4. **No Return Value**: `AddHandler()` returns nothing - enforces true decoupling
@@ -204,7 +204,7 @@ func (ts *tabSection) AddLogger(name string, enableTracking bool, color string) 
 
 ### 1.3 DevTUI Implements Interfaces (Consumer Defines Them)
 
-**IMPORTANT**: DevTUI does NOT define the interfaces. Consumer applications (like GODEV) define their own interfaces, and DevTUI simply implements them through its existing methods.
+**IMPORTANT**: DevTUI does NOT define the interfaces. Consumer applications (like GOLITE) define their own interfaces, and DevTUI simply implements them through its existing methods.
 
 **File**: `/home/cesar/Dev/Pkg/Mine/devtui/init.go` (add compile-time verification)
 
@@ -213,7 +213,7 @@ func (ts *tabSection) AddLogger(name string, enableTracking bool, color string) 
 // INTERFACE COMPLIANCE VERIFICATION
 // ============================================================================
 // These verify that DevTUI can satisfy consumer-defined interfaces.
-// The actual interface definitions live in consumer packages (like godev.TuiInterface).
+// The actual interface definitions live in consumer packages (like golite.TuiInterface).
 // This is just a documentation example - actual verification happens when consumer compiles.
 
 // Example of what a consumer interface might look like (NOT defined here):
@@ -261,14 +261,14 @@ func (ts *tabSection) AddInteractiveHandler(handler HandlerInteractive, timeout 
 
 ---
 
-## PART 2: GODEV Application Refactoring
+## PART 2: GOLITE Application Refactoring
 
 ### 2.1 Create UI Interface Abstraction (NO DevTUI Import)
 
-**File**: `/home/cesar/Dev/Pkg/Mine/godev/ui_interface.go` (new file)
+**File**: `/home/cesar/Dev/Pkg/Mine/golite/ui_interface.go` (new file)
 
 ```go
-package godev
+package golite
 
 import (
 	"sync"
@@ -276,12 +276,12 @@ import (
 )
 
 // ============================================================================
-// UI INTERFACES - GODEV defines its own interfaces, NO DevTUI import
+// UI INTERFACES - GOLITE defines its own interfaces, NO DevTUI import
 // ============================================================================
 
-// TuiInterface defines the minimal UI interface needed by GODEV.
-// This interface is implemented by DevTUI but GODEV doesn't know that.
-// GODEV never imports DevTUI package.
+// TuiInterface defines the minimal UI interface needed by GOLITE.
+// This interface is implemented by DevTUI but GOLITE doesn't know that.
+// GOLITE never imports DevTUI package.
 type TuiInterface interface {
 	// NewTabSection creates a new tab section
 	NewTabSection(title, description string) TabSectionInterface
@@ -303,10 +303,10 @@ type TabSectionInterface interface {
 
 ### 2.2 Update Handler Struct (NO DevTUI Import)
 
-**File**: `/home/cesar/Dev/Pkg/Mine/godev/start.go`
+**File**: `/home/cesar/Dev/Pkg/Mine/golite/start.go`
 
 ```go
-package godev
+package golite
 
 import (
 	"os"
@@ -319,7 +319,7 @@ import (
 type handler struct {
 	rootDir   string
 	config    *Config
-	tui       TuiInterface // Interface defined in GODEV, not DevTUI
+	tui       TuiInterface // Interface defined in GOLITE, not DevTUI
 	exitChan  chan bool
 	
 	// Build dependencies
@@ -350,7 +350,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	// Validate directory
 	homeDir, _ := os.UserHomeDir()
 	if rootDir == homeDir || rootDir == "/" {
-		logger("Cannot run godev in user root directory. Please run in a Go project directory")
+		logger("Cannot run golite in user root directory. Please run in a Go project directory")
 		return
 	}
 
@@ -376,7 +376,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 
 ### 2.3 Update main.go to Create and Pass UI
 
-**File**: `/home/cesar/Dev/Pkg/Mine/godev/cmd/godev/main.go`
+**File**: `/home/cesar/Dev/Pkg/Mine/golite/cmd/golite/main.go`
 
 **CRITICAL**: This is the ONLY file that imports DevTUI
 
@@ -387,7 +387,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cdvelop/godev"
+	"github.com/cdvelop/golite"
 	"github.com/cdvelop/devtui" // ONLY import DevTUI in main.go
 )
 
@@ -402,28 +402,28 @@ func main() {
 	exitChan := make(chan bool)
 
 	// Create a Logger instance
-	logger := godev.NewLogger()
+	logger := golite.NewLogger()
 
 	// Create DevTUI instance (ONLY in main.go)
 	ui := devtui.NewTUI(&devtui.TuiConfig{
-		AppName:  "GODEV",
+		AppName:  "GOLITE",
 		ExitChan: exitChan,
 		Color:    devtui.DefaultPalette(),
 		Logger:   func(messages ...any) { logger.Logger(messages...) },
 	})
 
-	// Pass UI as interface to Start - GODEV doesn't know it's DevTUI
-	godev.Start(rootDir, logger.Logger, ui, exitChan)
+	// Pass UI as interface to Start - GOLITE doesn't know it's DevTUI
+	golite.Start(rootDir, logger.Logger, ui, exitChan)
 }
 ```
 
 ### 2.4 Update section-build.go (Uses Interface, NO DevTUI Import)
 
-**File**: `/home/cesar/Dev/Pkg/Mine/godev/section-build.go`
+**File**: `/home/cesar/Dev/Pkg/Mine/golite/section-build.go`
 
 **BEFORE** (tight coupling):
 ```go
-package godev
+package golite
 
 import (
 	// ... other imports
@@ -441,7 +441,7 @@ func (h *handler) AddSectionBUILD() {
 
 **AFTER** (decoupled via interface):
 ```go
-package godev
+package golite
 
 import (
 	// ... other imports
@@ -449,7 +449,7 @@ import (
 )
 
 func (h *handler) AddSectionBUILD() {
-	// h.tui is TuiInterface defined in GODEV, not DevTUI
+	// h.tui is TuiInterface defined in GOLITE, not DevTUI
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 	
 	// Logger creation returns func(message ...any)
@@ -464,7 +464,7 @@ func (h *handler) AddSectionBUILD() {
 	h.config = NewConfig(h.rootDir, configLogger)
 	
 	// Initialize handlers - these use the loggers above
-	// Loggers are anonymous functions, implementation unknown to GODEV
+	// Loggers are anonymous functions, implementation unknown to GOLITE
 	
 	// If there are any direct handler registrations, update them:
 	// OLD: tab.AddEditHandler(handler, timeout, color)
@@ -474,11 +474,11 @@ func (h *handler) AddSectionBUILD() {
 
 ### 2.5 Update section-deploy.go Similarly
 
-**File**: `/home/cesar/Dev/Pkg/Mine/godev/section-deploy.go`
+**File**: `/home/cesar/Dev/Pkg/Mine/golite/section-deploy.go`
 
 Apply same pattern as section-build.go:
 - NO DevTUI import
-- Use `h.tui` as `TuiInterface` (defined in GODEV)
+- Use `h.tui` as `TuiInterface` (defined in GOLITE)
 - Use `AddHandler()` for any handler registrations
 - Logger creation returns `func(message ...any)` - simple functions
 
@@ -488,12 +488,12 @@ Apply same pattern as section-build.go:
 
 ### 3.1 Mock TUI Interface for Tests
 
-**File**: `/home/cesar/Dev/Pkg/Mine/godev/ui_mock_test.go` (new file)
+**File**: `/home/cesar/Dev/Pkg/Mine/golite/ui_mock_test.go` (new file)
 
-**CRITICAL**: Mock implementation in GODEV, NO DevTUI import needed!
+**CRITICAL**: Mock implementation in GOLITE, NO DevTUI import needed!
 
 ```go
-package godev
+package golite
 
 import (
 	"fmt"
@@ -506,7 +506,7 @@ import (
 // ============================================================================
 
 // mockTui implements TuiInterface for testing
-// This is defined in GODEV, not DevTUI
+// This is defined in GOLITE, not DevTUI
 type mockTui struct {
 	sections []*mockTabSection
 }
@@ -580,7 +580,7 @@ func TestAddSectionBUILD(t *testing.T) {
 	// Create handler with mock - completely decoupled
 	h := &handler{
 		rootDir:  "/test/dir",
-		tui:      mockTUI,  // TuiInterface defined in GODEV
+		tui:      mockTUI,  // TuiInterface defined in GOLITE
 		exitChan: make(chan bool),
 	}
 	
@@ -642,7 +642,7 @@ func NewMockTUI() TuiInterface {
 5. Run all DevTUI tests to ensure functionality
 6. Update DevTUI README with new API examples
 
-### Step 2: Update GODEV Application
+### Step 2: Update GOLITE Application
 1. **Create `ui_interface.go`** with interface definitions (TuiInterface, TabSectionInterface)
 2. **Update `start.go`**:
    - Change `Start()` signature to accept `TuiInterface` parameter
@@ -662,8 +662,8 @@ func NewMockTUI() TuiInterface {
 7. **Write clean tests**: Using mocks with NO DevTUI imports
 
 ### Step 3: Verify Complete Decoupling
-1. **Verify GODEV has NO DevTUI imports** except in `cmd/godev/main.go`
-2. Run `go list -f '{{.Imports}}' ./...` to verify no DevTUI in GODEV package
+1. **Verify GOLITE has NO DevTUI imports** except in `cmd/golite/main.go`
+2. Run `go list -f '{{.Imports}}' ./...` to verify no DevTUI in GOLITE package
 3. Run all tests to ensure mocks work correctly
 4. Verify test files have NO DevTUI imports
 5. Measure test code size reduction
@@ -671,7 +671,7 @@ func NewMockTUI() TuiInterface {
 ### Step 4: Cleanup and Documentation
 1. Remove any unused builder patterns in DevTUI
 2. Update DevTUI README emphasizing decoupled architecture
-3. Update GODEV documentation
+3. Update GOLITE documentation
 4. Add migration guide for other consumers
 5. Document interface pattern for other projects
 
@@ -687,9 +687,9 @@ func NewMockTUI() TuiInterface {
 - ✅ Better encapsulation - internal details hidden from consumers
 - ✅ **Consumer-agnostic** - doesn't know or care who uses it
 
-### For GODEV Application:
-- ✅ **ZERO coupling** - GODEV package has NO DevTUI import
-- ✅ **Consumer defines interfaces** - GODEV controls its own contracts
+### For GOLITE Application:
+- ✅ **ZERO coupling** - GOLITE package has NO DevTUI import
+- ✅ **Consumer defines interfaces** - GOLITE controls its own contracts
 - ✅ **Testable** - easy to mock TUI for unit tests
 - ✅ **No UI pollution in tests** - test only business logic
 - ✅ **Cheaper tests** - fewer tokens for LLMs (>50% reduction)
@@ -722,19 +722,19 @@ func NewMockTUI() TuiInterface {
 - `AddLogger()` returns `func(message ...any)` - simple function
 - **Consistent API**: All registration methods start with `Add` prefix
 
-### API Changes (GODEV):
+### API Changes (GOLITE):
 - **CRITICAL**: `Start()` signature changed to accept UI parameter
-- **CRITICAL**: GODEV package has NO DevTUI import
+- **CRITICAL**: GOLITE package has NO DevTUI import
 - Consumer defines own interfaces (TuiInterface, TabSectionInterface)
 - Logger creation uses `AddLogger()` instead of `NewLogger()`
 - Logger usage remains `log("message")` - NO changes needed
 
 ### Migration Example:
 
-**OLD CODE** (GODEV):
+**OLD CODE** (GOLITE):
 ```go
 // start.go
-package godev
+package golite
 import "github.com/cdvelop/devtui" // ❌ BAD
 
 func Start(rootDir string, logger func(messages ...any), exitChan chan bool) {
@@ -749,10 +749,10 @@ log := tab.NewLogger("Builder", true, "#10b981") // ❌ OLD: NewLogger
 log("Building project...")
 ```
 
-**NEW CODE** (GODEV):
+**NEW CODE** (GOLITE):
 ```go
 // ui_interface.go (NEW FILE)
-package godev
+package golite
 // NO DevTUI import!
 type TuiInterface interface {
     NewTabSection(title, description string) TabSectionInterface
@@ -764,17 +764,17 @@ type TabSectionInterface interface {
 }
 
 // start.go
-package godev
+package golite
 // NO DevTUI import!
 func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool) {
 	h.tui = ui // UI passed from main.go
 }
 
-// main.go (cmd/godev/main.go)
+// main.go (cmd/golite/main.go)
 package main
 import "github.com/cdvelop/devtui" // ✅ ONLY import here
 ui := devtui.NewTUI(...)
-godev.Start(rootDir, logger.Logger, ui, exitChan) // Pass UI
+golite.Start(rootDir, logger.Logger, ui, exitChan) // Pass UI
 
 // section-build.go
 // NO DevTUI import!
@@ -789,15 +789,15 @@ log("Building project...") // ✅ Simple function call, no .Log()
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ main.go (cmd/godev/main.go)                                 │
+│ main.go (cmd/golite/main.go)                                 │
 │ - ONLY file that imports DevTUI                             │
 │ - Creates concrete DevTUI instance                          │
-│ - Passes as TuiInterface to godev.Start()                   │
+│ - Passes as TuiInterface to golite.Start()                   │
 └─────────────────────────────────────────────────────────────┘
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ GODEV Package (github.com/cdvelop/godev)                    │
+│ GOLITE Package (github.com/cdvelop/golite)                    │
 │ - NO DevTUI import!                                         │
 │ - Defines own interfaces (ui_interface.go):                 │
 │   • TuiInterface                                            │
@@ -841,10 +841,10 @@ log("Building project...") // ✅ Simple function call, no .Log()
 ## Implementation Priority
 
 ### Phase 1 (Critical - Enables Testing):
-1. Create minimal interfaces in GODEV (TuiInterface, TabSectionInterface)
+1. Create minimal interfaces in GOLITE (TuiInterface, TabSectionInterface)
 2. Implement AddHandler() method in DevTUI
-3. Update GODEV to receive UI as parameter in Start()
-4. Update GODEV to use interfaces (no DevTUI import)
+3. Update GOLITE to receive UI as parameter in Start()
+4. Update GOLITE to use interfaces (no DevTUI import)
 
 ### Phase 2 (Cleanup):
 5. Remove deprecated methods
@@ -862,10 +862,10 @@ log("Building project...") // ✅ Simple function call, no .Log()
 
 - ✅ Single AddHandler() method handles all handler types
 - ✅ No method returns *tabSection (full decoupling)
-- ✅ **GODEV package has ZERO DevTUI imports** (except cmd/godev/main.go)
-- ✅ **GODEV defines its own interfaces** (TuiInterface, TabSectionInterface)
+- ✅ **GOLITE package has ZERO DevTUI imports** (except cmd/golite/main.go)
+- ✅ **GOLITE defines its own interfaces** (TuiInterface, TabSectionInterface)
 - ✅ **UI passed as parameter to Start()** from main.go
-- ✅ GODEV tests can run without creating real DevTUI instance
+- ✅ GOLITE tests can run without creating real DevTUI instance
 - ✅ Test code size reduced by >50%
 - ✅ Mock implementation is <100 lines of code
 - ✅ All existing functionality preserved
@@ -877,15 +877,15 @@ log("Building project...") // ✅ Simple function call, no .Log()
 ## Key Architectural Decision
 
 **CRITICAL POINT**: 
-- **GODEV does NOT import DevTUI** (except in main.go)
-- **GODEV defines its own interfaces** that describe what it needs
+- **GOLITE does NOT import DevTUI** (except in main.go)
+- **GOLITE defines its own interfaces** that describe what it needs
 - **DevTUI implements methods** that happen to match those interfaces
 - **main.go** is the only place that knows about DevTUI concrete type
 - **This enables true decoupling** - business logic knows nothing about UI
 
 This is the **Dependency Inversion Principle** in action:
-- High-level module (GODEV) does NOT depend on low-level module (DevTUI)
-- Both depend on abstractions (interfaces defined by GODEV)
+- High-level module (GOLITE) does NOT depend on low-level module (DevTUI)
+- Both depend on abstractions (interfaces defined by GOLITE)
 - UI implementation is injected at runtime (in main.go)
 
 ---
@@ -894,8 +894,8 @@ This is the **Dependency Inversion Principle** in action:
 
 **Por favor, revisa este plan ACTUALIZADO y responde:**
 
-1. ✅ ¿Ahora está claro que GODEV NO importa DevTUI? (excepto main.go)
-2. ✅ ¿Entiendes que GODEV define sus propias interfaces?
+1. ✅ ¿Ahora está claro que GOLITE NO importa DevTUI? (excepto main.go)
+2. ✅ ¿Entiendes que GOLITE define sus propias interfaces?
 3. ✅ ¿Está claro que la UI se pasa como parámetro a Start()?
 4. ✅ ¿Está claro que AddLogger() retorna función anónima, NO interfaz?
 5. ✅ ¿El renombre de NewLogger → AddLogger mantiene consistencia con AddHandler?
@@ -921,11 +921,11 @@ Una vez apruebes este plan:
 
 1. Implementaremos el método `AddHandler()` universal en DevTUI
 2. Renombraremos `NewLogger()` a `AddLogger()` en DevTUI
-3. Crearemos las interfaces en `godev/ui_interface.go`
-4. Actualizaremos `godev/start.go` para recibir UI como parámetro
-5. Actualizaremos `godev/cmd/godev/main.go` para crear y pasar UI
-6. Eliminaremos imports de DevTUI en todo godev (excepto main.go)
-7. Crearemos los mocks para testing en `godev/ui_mock_test.go`
+3. Crearemos las interfaces en `golite/ui_interface.go`
+4. Actualizaremos `golite/start.go` para recibir UI como parámetro
+5. Actualizaremos `golite/cmd/golite/main.go` para crear y pasar UI
+6. Eliminaremos imports de DevTUI en todo golite (excepto main.go)
+7. Crearemos los mocks para testing en `golite/ui_mock_test.go`
 8. Migraremos todos los handlers a usar `AddHandler()`
 9. Migraremos todos los loggers a usar `AddLogger()`
 

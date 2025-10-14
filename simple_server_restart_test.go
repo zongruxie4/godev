@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ import (
 func TestSimpleServerRestart(t *testing.T) {
 	tmp := t.TempDir()
 
-	// Create minimal project folder `pwa` to mimic godev layout
+	// Create minimal project folder `pwa` to mimic golite layout
 	pwa := filepath.Join(tmp, "pwa")
 	requireNoErr(t, os.MkdirAll(pwa, 0755))
 

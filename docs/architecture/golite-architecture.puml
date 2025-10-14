@@ -1,4 +1,4 @@
-@startuml godev-architecture
+@startuml golite-architecture
 !define RECTANGLE class
 
 title GoDev - Arquitectura del Sistema

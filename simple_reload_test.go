@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 		logIfVerbose(t, "LOG: %s", msg)
 	}
 
-	// Start godev
+	// Start golite
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 

@@ -1,4 +1,4 @@
-@startuml godev-component-flow
+@startuml golite-component-flow
 !define RECTANGLE class
 
 title GoDev - Flujo de Componentes y Dependencias

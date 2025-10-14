@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"os"
@@ -17,7 +17,7 @@ import (
 type handler struct {
 	rootDir   string
 	config    *Config
-	tui       TuiInterface // Interface defined in GODEV, not DevTUI
+	tui       TuiInterface // Interface defined in GOLITE, not DevTUI
 	exitChan  chan bool
 
 	// Build dependencies
@@ -48,7 +48,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	// Validate directory
 	homeDir, _ := os.UserHomeDir()
 	if rootDir == homeDir || rootDir == "/" {
-		logger("Cannot run godev in user root directory. Please run in a Go project directory")
+		logger("Cannot run golite in user root directory. Please run in a Go project directory")
 		return
 	}
 

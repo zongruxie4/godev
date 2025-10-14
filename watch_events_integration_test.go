@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"bytes"
@@ -72,7 +72,7 @@ func main() {
 	var reloadCount int64
 	var eventTimestamps []string
 
-	// Start godev
+	// Start golite
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
