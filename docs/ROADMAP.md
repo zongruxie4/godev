@@ -3,25 +3,25 @@
 ### ✅ MVP (Versión Mínima Viable)  
 ### Frontend
 - [x] Unificación y minificación de archivos CSS y JavaScript 
-- [ ] cargar assets del directorio `web/theme` primero (assets handler)
-- [ ] Generación automática de `web/public/index.html` si este no existe  
-- [ ] Compilar iconos svg módulos en sprite único en `web/public/icons.svg`
+- [ ] cargar assets del directorio `src/web/ui` primero (assets handler)
+- [ ] Generación automática de `src/web/public/index.html` si este no existe  
+- [ ] Compilar iconos svg módulos en sprite único en `src/web/public/icons.svg`
 
 ### Servidor de Desarrollo
-- [ ] Servidor de desarrollo integrado para servir archivos estáticos en `web/public`
+- [ ] Servidor de desarrollo integrado para servir archivos estáticos en `src/web/public`
 - [ ] https integrado en desarrollo local
 - [x] cerrar navegador al cerrar aplicación 
 - [x] Ejecución navegador Chrome (tecla `w`)  
 - [x] cambiar el tamaño de la ventana del navegador desde la tui
 
 ### Hot Reload
-- [x] Detección de cambios en archivos HTML, CSS, y JS  
-- [x] detección de cambios en archivos GO frontend para webAssembly y servidor backend
-- [ ] detectar cambios en archivos SVG
+- [x] Detección de cambios en archivos HTML, CSS, y JS (en `src/web/public` y `src/web/ui`)  
+- [x] detección de cambios en archivos GO frontend para webAssembly (`src/cmd/webclient/`) y servidor backend (`src/cmd/appserver/`)
+- [ ] detectar cambios en archivos SVG (en `src/web/ui`)
 - [ ] Recarga en caliente del navegador (Hot Reload)
 
 ### Backend
-- [x] Detección de cambios en archivos del servidor  
+- [x] Detección de cambios en archivos del servidor (`src/cmd/appserver/`)  
 - [ ] Reinicio automático si hay modificaciones  
 
 ### Configuración
@@ -34,10 +34,10 @@
 
 ### 🚀 Mejoras Futuras  
 - [ ] **Completar especificación TUI** para interacción final
-- [ ] Modo producción: Artefactos optimizados y deploy
+- [ ] Modo producción: Artefactos optimizados y despliegue
 - [ ] Compatibilidad con servidores VPS
 - [ ] Compatibilidad con Docker  
-- [ ] Integrar ayudante IA
+- [ ] Integrar MCP
 
 
 **Instalador web automático** que detectará e instalará todo automáticamente:
