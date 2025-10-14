@@ -35,43 +35,111 @@ func (c *Config) GetAppName() string {
 	return c.AppName
 }
 
-// GetWebFilesFolder returns the conventional web files folder path
-func (c *Config) GetWebFilesFolder() string {
-	return "src" // Fixed conventional path
+// === BASE DIRECTORIES ===
+
+// SrcDir returns the source directory path
+// Returns: "src"
+func (c *Config) SrcDir() string {
+	return "src"
 }
 
-// GetPublicFolder returns the public folder path
-func (c *Config) GetPublicFolder() string {
-	return "public" // Relative to webclient/
+// CmdDir returns the command directory path
+// Returns: "src/cmd"
+func (c *Config) CmdDir() string {
+	return filepath.Join(c.SrcDir(), "cmd")
 }
 
-// GetOutputStaticsDirectory returns the output directory for static files
-func (c *Config) GetOutputStaticsDirectory() string {
-	return filepath.Join(c.GetWebFilesFolder(), "webclient", c.GetPublicFolder())
-	// Returns: "src/webclient/public"
+// WebDir returns the web directory path
+// Returns: "src/web"
+func (c *Config) WebDir() string {
+	return filepath.Join(c.SrcDir(), "web")
 }
 
-// GetServerPort returns the default server port
-func (c *Config) GetServerPort() string {
+// DeployDir returns the deployment directory path
+// Returns: "deploy"
+func (c *Config) DeployDir() string {
+	return "deploy"
+}
+
+// === CMD ENTRY POINTS ===
+
+// CmdAppServerDir returns the appserver command directory path
+// Returns: "src/cmd/appserver"
+func (c *Config) CmdAppServerDir() string {
+	return filepath.Join(c.CmdDir(), "appserver")
+}
+
+// CmdWebClientDir returns the webclient command directory path
+// Returns: "src/cmd/webclient"
+func (c *Config) CmdWebClientDir() string {
+	return filepath.Join(c.CmdDir(), "webclient")
+}
+
+// CmdEdgeWorkerDir returns the edgeworker command directory path
+// Returns: "src/cmd/edgeworker"
+func (c *Config) CmdEdgeWorkerDir() string {
+	return filepath.Join(c.CmdDir(), "edgeworker")
+}
+
+// === WEB DIRECTORIES ===
+
+// WebPublicDir returns the web public directory path
+// Returns: "src/web/public"
+func (c *Config) WebPublicDir() string {
+	return filepath.Join(c.WebDir(), "public")
+}
+
+// WebUIDir returns the web UI directory path
+// Returns: "src/web/ui"
+func (c *Config) WebUIDir() string {
+	return filepath.Join(c.WebDir(), "ui")
+}
+
+// Js web directory path
+// Returns: "src/web/ui/js"
+func (c *Config) JsDir() string {
+	return filepath.Join(c.WebUIDir(), "js")
+}
+
+// WebPublicDirRelativeToWebClient returns the relative path from webclient to web/public
+// This is needed for tinywasm which expects relative paths from source to output
+// Returns: "../../web/public"
+func (c *Config) WebPublicDirRelativeToWebClient() string {
+	return filepath.Join("..", "..", "web", "public")
+}
+
+// === DEPLOY DIRECTORIES ===
+
+// DeployEdgeWorkerDir returns the edgeworker deployment directory path
+// Returns: "deploy/edgeworker"
+func (c *Config) DeployEdgeWorkerDir() string {
+	return filepath.Join(c.DeployDir(), "edgeworker")
+}
+
+// DeployAppServerDir returns the appserver deployment directory path
+// Returns: "deploy/appserver"
+func (c *Config) DeployAppServerDir() string {
+	return filepath.Join(c.DeployDir(), "appserver")
+}
+
+// === CONFIGURATION ===
+
+// ServerPort returns the default server port
+func (c *Config) ServerPort() string {
 	return "4430" // Default HTTPS development port
 }
 
-// GetRootDir returns the root directory
-func (c *Config) GetRootDir() string {
+// GetServerPort returns the default server port (alias for compatibility)
+func (c *Config) GetServerPort() string {
+	return c.ServerPort()
+}
+
+// RootDir returns the root directory
+func (c *Config) RootDir() string {
 	return c.rootDir
 }
 
-// GetWebServerFileName returns only the filename for web server
-func (c *Config) GetWebServerFileName() string {
-	return "main.server.go"
-}
-
-// GetWorkerFileName returns only the filename for edge worker
-func (c *Config) GetWorkerFileName() string {
-	return "main.worker.go"
-}
-
-// GetCMDFileName returns only the filename for console application
-func (c *Config) GetCMDFileName() string {
-	return "main.wasm.go"
+// GetRootDir returns the root directory (alias for compatibility)
+func (c *Config) GetRootDir() string {
+	return c.RootDir()
 }

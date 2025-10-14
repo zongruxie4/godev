@@ -63,7 +63,7 @@ func TestStartJSEventFlow(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	require.NoError(t, os.WriteFile(file1Path, []byte(file1Content), 0644)) // restore content
 
-	mainJsPath := filepath.Join(tmp, "src", "webclient", "public", "main.js")
+	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
 
 	// Wait for main.js to be created after write events
 	initialMain := waitForFile(t, mainJsPath, 3*time.Second)

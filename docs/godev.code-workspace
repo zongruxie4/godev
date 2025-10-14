@@ -7,9 +7,6 @@
 			"path": "../../devtui"
 		},
 		{
-			"path": "../../../Test/gotestlab"
-		},
-		{
 			"path": "../../devbrowser"
 		},
 		{

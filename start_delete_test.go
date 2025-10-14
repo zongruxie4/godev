@@ -35,7 +35,7 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	// Give time to initialize and process initial files
 	time.Sleep(500 * time.Millisecond)
 
-	mainJsPath := filepath.Join(tmp, "src", "webclient", "public", "main.js")
+	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
 
 	// Trigger initial write to create main.js
 	file1Path := filepath.Join(tmp, "modules", "file1.js")

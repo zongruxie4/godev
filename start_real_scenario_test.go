@@ -25,7 +25,7 @@ func TestStartRealScenario(t *testing.T) {
 		"modules/medical/file3.js":       "console.log(\"three\");",
 		"modules/medical/file5.js":       "console.log('file5');",
 		"modules/medical/mainconten1.js": "console.log('mainconten1');",
-		"src/webclient/ui/theme.js":      "console.log(\"Hello, PWA! 2\");",
+		"src/web/ui/theme.js":            "console.log(\"Hello, PWA! 2\");",
 	}
 
 	// Create directories and files BEFORE starting godev (like real scenario)
@@ -72,7 +72,7 @@ func TestStartRealScenario(t *testing.T) {
 	// Give time to initialize and scan existing files
 	time.Sleep(500 * time.Millisecond)
 
-	mainJsPath := filepath.Join(tmp, "src", "webclient", "public", "main.js")
+	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
 
 	// Check if main.js was created
 	if _, err := os.Stat(mainJsPath); os.IsNotExist(err) {
@@ -92,7 +92,7 @@ func TestStartRealScenario(t *testing.T) {
 	jsFiles := []string{
 		filepath.Join(tmp, "modules", "users", "newfile.js"),
 		filepath.Join(tmp, "modules", "medical", "file2.js"),
-		filepath.Join(tmp, "src", "webclient", "ui", "theme.js"),
+		filepath.Join(tmp, "src", "web", "ui", "theme.js"),
 	}
 
 	for i, jsFile := range jsFiles {

@@ -33,31 +33,32 @@ func (h *handler) AddSectionBUILD() {
 	//SERVER
 	h.serverHandler = goserver.New(&goserver.Config{
 		AppRootDir:                  h.rootDir,
-		RootFolder:                  filepath.Join(h.rootDir, h.config.GetWebFilesFolder(), "appserver"),
-		MainFileWithoutExtension:    "main.server",
+		RootFolder:                  filepath.Join(h.rootDir, h.config.CmdAppServerDir()),
+		MainFileWithoutExtension:    "main",
 		ArgumentsForCompilingServer: nil,
 		ArgumentsToRunServer:        nil,
-		PublicFolder:                h.config.GetPublicFolder(),
-		AppPort:                     h.config.GetServerPort(),
+		PublicFolder:                h.config.WebPublicDir(),
+		AppPort:                     h.config.ServerPort(),
 		Logger:                      serverLogger,
 		ExitChan:                    h.exitChan,
 	})
 
 	//WASM
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
-		AppRootDir:           h.rootDir,
-		WebFilesRootRelative: filepath.Join(h.config.GetWebFilesFolder(), "webclient"),
-		WebFilesSubRelative:  h.config.GetPublicFolder(),
-		Logger:               wasmLogger,
+		AppRootDir:          h.rootDir,
+		SourceDir:           h.config.CmdWebClientDir(),
+		OutputDir:           h.config.WebPublicDir(),
+		WasmExecJsOutputDir: h.config.JsDir(),
+		Logger:              wasmLogger,
 	})
 
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
 		ThemeFolder: func() string {
-			return path.Join(h.rootDir, h.config.GetWebFilesFolder(), "webclient", "ui")
+			return path.Join(h.rootDir, h.config.WebUIDir())
 		},
 		WebFilesFolder: func() string {
-			return path.Join(h.rootDir, h.config.GetOutputStaticsDirectory())
+			return path.Join(h.rootDir, h.config.WebPublicDir())
 		},
 		Logger:                  assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) { return "", nil },
@@ -68,7 +69,7 @@ func (h *handler) AddSectionBUILD() {
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
-		AppRootDir:         h.config.GetRootDir(),
+		AppRootDir:         h.config.RootDir(),
 		FilesEventHandlers: []devwatch.FilesEventHandlers{h.assetsHandler, h.wasmHandler, h.serverHandler},
 		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
 		BrowserReload:      h.browser.Reload,

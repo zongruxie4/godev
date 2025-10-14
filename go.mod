@@ -6,9 +6,13 @@ require (
 	github.com/cdvelop/devtui v0.1.0
 	github.com/cdvelop/goflare v0.0.6
 	github.com/cdvelop/tinystring v0.8.1
-	github.com/cdvelop/tinywasm v0.0.46
+	github.com/cdvelop/tinywasm v0.0.47
 	github.com/stretchr/testify v1.11.1
 )
+
+replace github.com/cdvelop/tinywasm v0.0.46 => ../tinywasm
+
+replace github.com/cdvelop/goflare v0.0.6 => ../goflare
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

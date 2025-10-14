@@ -53,7 +53,7 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 	require.NoError(t, h.assetsHandler.NewFileEvent("script2.js", ".js", file2Path, "write"))
 	require.NoError(t, h.assetsHandler.NewFileEvent("theme.js", ".js", file3Path, "write"))
 
-	mainJsPath := filepath.Join(tmp, "src", "webclient", "public", "main.js")
+	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
 
 	// Wait for main.js to be created
 	require.Eventually(t, func() bool {

@@ -1,7 +1,6 @@
 package godev
 
 import (
-	"path"
 	"time"
 
 	"github.com/cdvelop/goflare"
@@ -13,9 +12,13 @@ func (h *handler) AddSectionDEPLOY() {
 
 	// CLOUDFLARE (GOFLARE)
 	h.deployCloudflare = goflare.New(&goflare.Config{
-		AppRootDir:              h.rootDir,
-		RelativeInputDirectory:  path.Join(h.config.GetWebFilesFolder(), "edgeworker"),
-		RelativeOutputDirectory: path.Join(h.config.GetWebFilesFolder(), "edgeworker", "deploy"),
+		AppRootDir:              h.config.rootDir,
+		RelativeInputDirectory:  h.config.CmdEdgeWorkerDir(),
+		RelativeOutputDirectory: h.config.DeployEdgeWorkerDir(),
+		MainInputFile:           "main.go",
+		Logger:                  h.tui.AddLogger("CLOUDFLARE", false, colorOrangeMedium, sectionDeploy),
+		CompilingArguments:      nil,
+		OutputWasmFileName:      "app.wasm",
 	})
 
 	h.tui.AddHandler(h.deployCloudflare, time.Millisecond*500, colorYellowLight, sectionDeploy)
