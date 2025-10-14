@@ -1,5 +1,5 @@
 ## Arquitectura
-![arquitectura godev](architecture/godev-architecture.svg)
+![arquitectura golite](architecture/golite-architecture.svg)
 
 ## Flujo de Componentes
-![componentes godev](architecture/godev-component-flow.svg)
+![componentes golite](architecture/golite-component-flow.svg)

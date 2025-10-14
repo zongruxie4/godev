@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-// logIfVerbose prints test logs only when GODEV_TEST_VERBOSE is set.
+// logIfVerbose prints test logs only when GOLITE_TEST_VERBOSE is set.
 func logIfVerbose(t *testing.T, format string, args ...any) {
-	if os.Getenv("GODEV_TEST_VERBOSE") != "" {
+	if os.Getenv("GOLITE_TEST_VERBOSE") != "" {
 		t.Logf(format, args...)
 	}
 }

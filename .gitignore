@@ -1,5 +1,5 @@
 .env
-godev.exe
+golite.exe
 *ISSUE*.md
 test/*
 *.log/test/

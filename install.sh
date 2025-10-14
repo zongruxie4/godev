@@ -7,7 +7,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No color
 
 # Application name
-app_name="godev"
+app_name="golite"
 # app_name=$(basename "$(pwd)")
 
 
@@ -22,7 +22,7 @@ esac
 
 # Generate executable using go build
 echo -e "${YELLOW}Generating executable...${NC}"
-if go build -o "$HOME/go/bin/$app_name$exe_ext" ./cmd/godev; then
+if go build -o "$HOME/go/bin/$app_name$exe_ext" ./cmd/golite; then
   echo -e "${GREEN}The executable has been generated at $HOME/go/bin/$app_name$exe_ext.${NC}"
 else
   echo -e "${RED}An error occurred while generating the executable.${NC}"

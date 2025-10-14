@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"bytes"
@@ -39,7 +39,7 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 
 	// minimal tui so AddSectionBUILD can proceed
 	h.tui = devtui.NewTUI(&devtui.TuiConfig{
-		AppName:  "GODEV-TEST",
+		AppName:  "GOLITE-TEST",
 		ExitChan: h.exitChan,
 		Color:    devtui.DefaultPalette(),
 		Logger:   func(messages ...any) {},

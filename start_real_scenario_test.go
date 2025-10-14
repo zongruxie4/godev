@@ -1,4 +1,4 @@
-package godev
+package golite
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestStartRealScenario reproduces the exact scenario from godev/test directory
+// TestStartRealScenario reproduces the exact scenario from golite/test directory
 // where multiple JS files exist but only the last one remains in main.js
 func TestStartRealScenario(t *testing.T) {
 	tmp := t.TempDir()
@@ -28,7 +28,7 @@ func TestStartRealScenario(t *testing.T) {
 		"src/web/ui/theme.js":            "console.log(\"Hello, PWA! 2\");",
 	}
 
-	// Create directories and files BEFORE starting godev (like real scenario)
+	// Create directories and files BEFORE starting golite (like real scenario)
 	for filePath, content := range files {
 		fullPath := filepath.Join(tmp, filePath)
 		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0755))
@@ -52,14 +52,14 @@ func TestStartRealScenario(t *testing.T) {
 	var reloadCount int64
 	reloadCalled := make(chan struct{}, 10) // Buffer for multiple reload events
 
-	// Start godev like in real scenario
+	// Start golite like in real scenario
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	// Give a moment for Start to initialize and set ActiveHandler
 	time.Sleep(50 * time.Millisecond)
 
-	// Set up browser reload tracking after starting godev
+	// Set up browser reload tracking after starting golite
 	SetWatcherBrowserReload(func() error {
 		atomic.AddInt64(&reloadCount, 1)
 		select {

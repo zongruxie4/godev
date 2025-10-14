@@ -1,16 +1,16 @@
-package godev
+package golite
 
 import (
 	"time"
 )
 
 // ============================================================================
-// UI INTERFACES - GODEV defines its own interfaces, NO DevTUI import
+// UI INTERFACES - GOLITE defines its own interfaces, NO DevTUI import
 // ============================================================================
 
-// TuiInterface defines the minimal UI interface needed by GODEV.
-// This interface is implemented by DevTUI but GODEV doesn't know that.
-// GODEV never imports DevTUI package.
+// TuiInterface defines the minimal UI interface needed by GOLITE.
+// This interface is implemented by DevTUI but GOLITE doesn't know that.
+// GOLITE never imports DevTUI package.
 type TuiInterface interface {
 	NewTabSection(title, description string) any // returns *tabSection
 	AddHandler(handler any, timeout time.Duration, color string, tabSection any)

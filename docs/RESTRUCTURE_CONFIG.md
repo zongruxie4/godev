@@ -381,7 +381,7 @@ func TestNewConfig(t *testing.T) {
 
 ### Before:
 ```
-godev/
+golite/
 ├── autoconfig.go       # ~370 lines (heavy logic)
 ├── autoconfig_test.go  # ~450 lines (many tests)
 ├── start.go
@@ -391,7 +391,7 @@ godev/
 
 ### After:
 ```
-godev/
+golite/
 ├── config.go           # ~80 lines (simple config)
 ├── config_test.go      # ~50 lines (basic tests)
 ├── start.go
@@ -487,7 +487,7 @@ pwa/           → src/
 
 ## 📝 Notes
 
-- This restructuring aligns godev with the documented architecture in `example/README.md`
+- This restructuring aligns golite with the documented architecture in `example/README.md`
 - The new `Config` is a simple configuration holder, not a detector
 - Convention over configuration: `src/` is the expected structure
 - No more magic - explicit and predictable behavior

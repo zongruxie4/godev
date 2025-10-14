@@ -12,12 +12,14 @@ github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qF
 github.com/cdvelop/gobuild v0.0.16/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/godepfind v0.0.14 h1:feexgGZuc09CBvXK08G+1eHa7BNIH0FuhnT0ctC47Ao=
 github.com/cdvelop/godepfind v0.0.14/go.mod h1:7NRwbtsqQjy3bL6Jqmr+UlevqYDsYLLlMUqTFh0tO9c=
+github.com/cdvelop/goflare v0.0.8 h1:dwZqB0oij/n3scBQDZIVnXz+WieKsqkIfIjoN0l6w4g=
+github.com/cdvelop/goflare v0.0.8/go.mod h1:lE9HcT0B19iVeeXNrXuz+Sdd2xTCPoNPaQTQh01Qh14=
 github.com/cdvelop/gorun v0.0.14 h1:G1a6Nl/5W7IF9RHBGiULqQ+DbkEnS66CTh7yzUwuGJQ=
 github.com/cdvelop/gorun v0.0.14/go.mod h1:DhTPzWzM2D7QqZdZYDHulyYwFegovWaH7r0bX/6nRJQ=
 github.com/cdvelop/goserver v0.0.29 h1:ATpUiEorAA8dk95l9gy0U9UBJ6xAFLil0xxsMjacWv4=
 github.com/cdvelop/goserver v0.0.29/go.mod h1:GJUlfzhtehy1vyO8HA60cLqx90JP3o2esSl9qnU4Qa8=
-github.com/cdvelop/tinystring v0.8.1 h1:xpwgkT+V+bkDERu8hIHa4AZt/IB+Bn3XCXflO7nnvrM=
-github.com/cdvelop/tinystring v0.8.1/go.mod h1:85ltrACJtjf1Zu/o8kqwHGKAiN0oBwb+TR2tkXdURJo=
+github.com/cdvelop/tinystring v0.8.3 h1:ik2c9kb83WAos8cxXsmoQotAMwlSyhmLiFmvMWhr3jM=
+github.com/cdvelop/tinystring v0.8.3/go.mod h1:v6+hdP7eaOZn9qoaPm4GQnX8cRzUzD2mEjILAkPLkyo=
 github.com/cdvelop/tinytime v0.1.4 h1:BIh28l/slraT2kkIYjtoLxFFs+9FmP2frTNTEq4JqaA=
 github.com/cdvelop/tinytime v0.1.4/go.mod h1:N1JvbWasiGgipDVPwA0ysFldxwYehWliMkr+YZZaf2M=
 github.com/cdvelop/tinywasm v0.0.47 h1:ih+SRs/QJrmeuY0Z/ojxYdnWQBkUorA0CZDm54iDJRk=

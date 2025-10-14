@@ -8,7 +8,7 @@
 ⚠️ **Advertencia: Desarrollo en Progreso**
 Este proyecto está actualmente en desarrollo activo, especialmente la interfaz TUI. Puede contener características inestables.
 
-![vista previa de godev tui](docs/tui.JPG)
+![vista previa de golite tui](docs/tui.JPG)
 
 ## Tabla de Contenidos
 - [Motivación](#motivación)
@@ -37,7 +37,7 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 - No es un bundler como Webpack/Vite (aunque empaqueta assets)
 - No es compatible con frameworks frontend (React, Vue, etc.)  
 - No requiere conocimiento de WebAssembly (se maneja automáticamente)
-- No usa archivos de configuración (godev.yml ya no existe)
+- No usa archivos de configuración (golite.yml ya no existe)
 
 **Target**: Desarrolladores que aprenden Go o quieren simplicidad extrema con estructura `src/` convencional.
 
@@ -45,7 +45,7 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 
 ### 🏗️ **Framework por Convención**
 - **Estructura fija**: Directorio `src/` con subdirectorios convencionales
-- **Cero archivos de configuración**: No más `godev.yml`, `package.json`, `webpack.config.js`
+- **Cero archivos de configuración**: No más `golite.yml`, `package.json`, `webpack.config.js`
 - **Rutas predecibles**: `src/webclient/`, `src/appserver/`, `src/edgeworker/`
 
 ### 🔥 **Hot Reload Inteligente**
@@ -73,11 +73,11 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 go version
 
 # 2. Instalar GoDev
-go install -v github.com/cdvelop/godev/cmd/godev@latest
+go install -v github.com/cdvelop/golite/cmd/golite@latest
 
 # 3. Usar en cualquier proyecto
 cd tu-proyecto-go
-godev
+golite
 ```
 
 
@@ -85,7 +85,7 @@ godev
 ## Uso
 ```bash
 # Navega a tu directorio de proyecto y ejecuta:
-godev
+golite
 ```
 **Eso es todo.** GoDev usa la estructura `src/` convencional y configura automáticamente el entorno de desarrollo.
 
@@ -182,7 +182,7 @@ Este proyecto no sería posible sin:
 - github.com/tdewolff/minify
 - github.com/fstanis/screenresolution
 
-Para problemas o soporte, por favor visita [GitHub Issues](https://github.com/cdvelop/godev/issues).
+Para problemas o soporte, por favor visita [GitHub Issues](https://github.com/cdvelop/golite/issues).
 
 ## Participar
 si quieres participar en el proyecto puedes contactarme con un mensaje privado 
