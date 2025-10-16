@@ -12,7 +12,7 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cdvelop/gobuild v0.0.16 // indirect
-	github.com/cdvelop/godepfind v0.0.14 // indirect
+	github.com/cdvelop/godepfind v0.0.15 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
 	github.com/cdvelop/tinystring v0.8.3 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect

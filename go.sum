@@ -10,8 +10,8 @@ github.com/cdvelop/devwatch v0.0.31 h1:ZenEdb9HV6KDVB5qZUeC1qHFuPDlI/6pKPvDhJ4Yo
 github.com/cdvelop/devwatch v0.0.31/go.mod h1:ZgiO4dcOmu2ixRte5aOANZ44/ffzds6/PFuU40Qjm34=
 github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qFQ=
 github.com/cdvelop/gobuild v0.0.16/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
-github.com/cdvelop/godepfind v0.0.14 h1:feexgGZuc09CBvXK08G+1eHa7BNIH0FuhnT0ctC47Ao=
-github.com/cdvelop/godepfind v0.0.14/go.mod h1:7NRwbtsqQjy3bL6Jqmr+UlevqYDsYLLlMUqTFh0tO9c=
+github.com/cdvelop/godepfind v0.0.15 h1:auKW/UOQM/UEdRqHuY4GeM1mkrlSQR0hXy6HFD6jVL8=
+github.com/cdvelop/godepfind v0.0.15/go.mod h1:7NRwbtsqQjy3bL6Jqmr+UlevqYDsYLLlMUqTFh0tO9c=
 github.com/cdvelop/goflare v0.0.9 h1:fLhcryFSzQZTLD3/4p20FKpFoHe18AdukxK8Fw97RBs=
 github.com/cdvelop/goflare v0.0.9/go.mod h1:lE9HcT0B19iVeeXNrXuz+Sdd2xTCPoNPaQTQh01Qh14=
 github.com/cdvelop/gorun v0.0.14 h1:G1a6Nl/5W7IF9RHBGiULqQ+DbkEnS66CTh7yzUwuGJQ=
