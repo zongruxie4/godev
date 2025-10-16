@@ -37,25 +37,25 @@ func (c *Config) GetAppName() string {
 
 // === BASE DIRECTORIES ===
 
-// SrcDir returns the source directory path
+// SrcDir returns the relative source directory path
 // Returns: "src"
 func (c *Config) SrcDir() string {
 	return "src"
 }
 
-// CmdDir returns the command directory path
+// CmdDir returns the relative command directory path
 // Returns: "src/cmd"
 func (c *Config) CmdDir() string {
 	return filepath.Join(c.SrcDir(), "cmd")
 }
 
-// WebDir returns the web directory path
+// WebDir returns the relative web directory path
 // Returns: "src/web"
 func (c *Config) WebDir() string {
 	return filepath.Join(c.SrcDir(), "web")
 }
 
-// DeployDir returns the deployment directory path
+// DeployDir returns the relative deployment directory path
 // Returns: "deploy"
 func (c *Config) DeployDir() string {
 	return "deploy"
@@ -63,19 +63,19 @@ func (c *Config) DeployDir() string {
 
 // === CMD ENTRY POINTS ===
 
-// CmdAppServerDir returns the appserver command directory path
+// CmdAppServerDir returns the relative appserver command directory path
 // Returns: "src/cmd/appserver"
 func (c *Config) CmdAppServerDir() string {
 	return filepath.Join(c.CmdDir(), "appserver")
 }
 
-// CmdWebClientDir returns the webclient command directory path
+// CmdWebClientDir returns the relative webclient command directory path
 // Returns: "src/cmd/webclient"
 func (c *Config) CmdWebClientDir() string {
 	return filepath.Join(c.CmdDir(), "webclient")
 }
 
-// CmdEdgeWorkerDir returns the edgeworker command directory path
+// CmdEdgeWorkerDir returns the relative edgeworker command directory path
 // Returns: "src/cmd/edgeworker"
 func (c *Config) CmdEdgeWorkerDir() string {
 	return filepath.Join(c.CmdDir(), "edgeworker")
@@ -83,19 +83,19 @@ func (c *Config) CmdEdgeWorkerDir() string {
 
 // === WEB DIRECTORIES ===
 
-// WebPublicDir returns the web public directory path
+// WebPublicDir returns the relative web public directory path
 // Returns: "src/web/public"
 func (c *Config) WebPublicDir() string {
 	return filepath.Join(c.WebDir(), "public")
 }
 
-// WebUIDir returns the web UI directory path
+// WebUIDir returns the relative web UI directory path
 // Returns: "src/web/ui"
 func (c *Config) WebUIDir() string {
 	return filepath.Join(c.WebDir(), "ui")
 }
 
-// Js web directory path
+// JsDir returns the relative web JavaScript directory path
 // Returns: "src/web/ui/js"
 func (c *Config) JsDir() string {
 	return filepath.Join(c.WebUIDir(), "js")
@@ -103,13 +103,13 @@ func (c *Config) JsDir() string {
 
 // === DEPLOY DIRECTORIES ===
 
-// DeployEdgeWorkerDir returns the edgeworker deployment directory path
+// DeployEdgeWorkerDir returns the relative edgeworker deployment directory path
 // Returns: "deploy/edgeworker"
 func (c *Config) DeployEdgeWorkerDir() string {
 	return filepath.Join(c.DeployDir(), "edgeworker")
 }
 
-// DeployAppServerDir returns the appserver deployment directory path
+// DeployAppServerDir returns the relative appserver deployment directory path
 // Returns: "deploy/appserver"
 func (c *Config) DeployAppServerDir() string {
 	return filepath.Join(c.DeployDir(), "appserver")

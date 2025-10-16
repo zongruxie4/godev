@@ -1,7 +1,7 @@
 package golite
 
 import (
-	"path"
+	"path/filepath"
 	"time"
 
 	. "github.com/cdvelop/assetmin"
@@ -35,10 +35,15 @@ func (h *handler) AddSectionBUILD() {
 		SourceDir:                   h.config.CmdAppServerDir(),
 		OutputDir:                   h.config.DeployAppServerDir(),
 		ArgumentsForCompilingServer: func() []string { return []string{} },
-		ArgumentsToRunServer:        func() []string { return []string{} },
-		AppPort:                     h.config.ServerPort(),
-		Logger:                      serverLogger,
-		ExitChan:                    h.exitChan,
+		ArgumentsToRunServer: func() []string {
+			return []string{
+				"-public-dir=" + filepath.Join(h.rootDir, h.config.WebPublicDir()),
+				"-port=" + h.config.ServerPort(),
+			}
+		},
+		AppPort:  h.config.ServerPort(),
+		Logger:   serverLogger,
+		ExitChan: h.exitChan,
 	})
 
 	//WASM
@@ -46,17 +51,17 @@ func (h *handler) AddSectionBUILD() {
 		AppRootDir:          h.rootDir,
 		SourceDir:           h.config.CmdWebClientDir(),
 		OutputDir:           h.config.WebPublicDir(),
-		WasmExecJsOutputDir: h.config.JsDir(),
+		WasmExecJsOutputDir: filepath.Join(h.config.JsDir()),
 		Logger:              wasmLogger,
 	})
 
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
 		ThemeFolder: func() string {
-			return path.Join(h.rootDir, h.config.WebUIDir())
+			return filepath.Join(h.rootDir, h.config.WebUIDir())
 		},
 		WebFilesFolder: func() string {
-			return path.Join(h.rootDir, h.config.WebPublicDir())
+			return filepath.Join(h.rootDir, h.config.WebPublicDir())
 		},
 		Logger:                  assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) { return "", nil },

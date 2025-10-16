@@ -4,8 +4,7 @@ go 1.25.2
 
 require (
 	github.com/cdvelop/devtui v0.1.0
-	github.com/cdvelop/goflare v0.0.8
-	github.com/cdvelop/tinystring v0.8.3
+	github.com/cdvelop/goflare v0.0.9
 	github.com/cdvelop/tinywasm v0.0.47
 	github.com/stretchr/testify v1.11.1
 )
@@ -15,6 +14,7 @@ require (
 	github.com/cdvelop/gobuild v0.0.16 // indirect
 	github.com/cdvelop/godepfind v0.0.14 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
+	github.com/cdvelop/tinystring v0.8.3 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect
 	github.com/cdvelop/unixid v0.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect

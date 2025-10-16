@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/cdvelop/golite"
 	"github.com/cdvelop/devtui" // ONLY import DevTUI in main.go
+	"github.com/cdvelop/golite"
 )
 
 func main() {
