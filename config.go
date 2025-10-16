@@ -101,13 +101,6 @@ func (c *Config) JsDir() string {
 	return filepath.Join(c.WebUIDir(), "js")
 }
 
-// WebPublicDirRelativeToWebClient returns the relative path from webclient to web/public
-// This is needed for tinywasm which expects relative paths from source to output
-// Returns: "../../web/public"
-func (c *Config) WebPublicDirRelativeToWebClient() string {
-	return filepath.Join("..", "..", "web", "public")
-}
-
 // === DEPLOY DIRECTORIES ===
 
 // DeployEdgeWorkerDir returns the edgeworker deployment directory path
@@ -129,17 +122,7 @@ func (c *Config) ServerPort() string {
 	return "4430" // Default HTTPS development port
 }
 
-// GetServerPort returns the default server port (alias for compatibility)
-func (c *Config) GetServerPort() string {
-	return c.ServerPort()
-}
-
 // RootDir returns the root directory
 func (c *Config) RootDir() string {
 	return c.rootDir
-}
-
-// GetRootDir returns the root directory (alias for compatibility)
-func (c *Config) GetRootDir() string {
-	return c.RootDir()
 }

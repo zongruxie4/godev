@@ -2,7 +2,6 @@ package golite
 
 import (
 	"path"
-	"path/filepath"
 	"time"
 
 	. "github.com/cdvelop/assetmin"
@@ -33,11 +32,10 @@ func (h *handler) AddSectionBUILD() {
 	//SERVER
 	h.serverHandler = goserver.New(&goserver.Config{
 		AppRootDir:                  h.rootDir,
-		RootFolder:                  filepath.Join(h.rootDir, h.config.CmdAppServerDir()),
-		MainFileWithoutExtension:    "main",
-		ArgumentsForCompilingServer: nil,
-		ArgumentsToRunServer:        nil,
-		PublicFolder:                h.config.WebPublicDir(),
+		SourceDir:                   h.config.CmdAppServerDir(),
+		OutputDir:                   h.config.DeployAppServerDir(),
+		ArgumentsForCompilingServer: func() []string { return []string{} },
+		ArgumentsToRunServer:        func() []string { return []string{} },
 		AppPort:                     h.config.ServerPort(),
 		Logger:                      serverLogger,
 		ExitChan:                    h.exitChan,

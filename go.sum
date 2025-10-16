@@ -2,8 +2,8 @@ github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiE
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/cdvelop/assetmin v0.0.55 h1:hrT60uJMpvVTPBB+Hn5QeHRl1TwVIu9tpFC71ZE0aJc=
 github.com/cdvelop/assetmin v0.0.55/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
-github.com/cdvelop/devbrowser v0.0.10 h1:+vdg4MBA5aMuduSc7oFQaMxdJqEVdsujQnwFxviNgDU=
-github.com/cdvelop/devbrowser v0.0.10/go.mod h1:Xc4rssantGi4zObnkcs8SXYo7lf6Q/w7uVjRgRF+Uyk=
+github.com/cdvelop/devbrowser v0.1.0 h1:rn2oXjxBByIItCpGMOUoCTqXw4bZVtsuxcfjbOQiYyY=
+github.com/cdvelop/devbrowser v0.1.0/go.mod h1:Xc4rssantGi4zObnkcs8SXYo7lf6Q/w7uVjRgRF+Uyk=
 github.com/cdvelop/devtui v0.1.0 h1:DZKNj1snavtPCgrwyV+jBRA/db5QS1w4DJ1HK4IVXms=
 github.com/cdvelop/devtui v0.1.0/go.mod h1:YDntkIRtcqoNXlsihb0+ZT3N1++i5v1OXs0UVrKoCwM=
 github.com/cdvelop/devwatch v0.0.31 h1:ZenEdb9HV6KDVB5qZUeC1qHFuPDlI/6pKPvDhJ4Yo1c=

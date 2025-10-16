@@ -25,7 +25,7 @@ func TestSimpleServerRestart(t *testing.T) {
 	// write simple go.mod so `go build` works in that folder
 	requireNoErr(t, os.WriteFile(filepath.Join(pwa, "go.mod"), []byte("module temp/pwa\n\n go 1.20\n"), 0644))
 
-	serverFile := filepath.Join(pwa, "main.server.go")
+	serverFile := filepath.Join(pwa, "main.go")
 
 	initial := `package main
 
@@ -52,10 +52,14 @@ func main() {
 	}
 
 	cfg := &gs.Config{
-		RootFolder:               pwa,
-		MainFileWithoutExtension: "main.server",
-		Logger:                   logFunc,
-		ExitChan:                 make(chan bool, 1),
+		AppRootDir:                  tmp,
+		SourceDir:                   "pwa",
+		OutputDir:                   "pwa",
+		ArgumentsForCompilingServer: func() []string { return []string{} },
+		ArgumentsToRunServer:        func() []string { return []string{} },
+		AppPort:                     "0",
+		Logger:                      logFunc,
+		ExitChan:                    make(chan bool, 1),
 	}
 
 	handler := gs.New(cfg)
@@ -85,7 +89,7 @@ func main() {
 	requireNoErr(t, os.WriteFile(serverFile, []byte(broken), 0644))
 
 	// Trigger event: expect an error due to compile failure
-	if err := handler.NewFileEvent("main.server.go", "go", serverFile, "write"); err == nil {
+	if err := handler.NewFileEvent("main.go", "go", serverFile, "write"); err == nil {
 		t.Fatalf("expected error on restart with broken code")
 	}
 
@@ -109,7 +113,7 @@ func main() {
 	requireNoErr(t, os.WriteFile(serverFile, []byte(fixed), 0644))
 
 	// Trigger event again: should succeed
-	if err := handler.NewFileEvent("main.server.go", "go", serverFile, "write"); err != nil {
+	if err := handler.NewFileEvent("main.go", "go", serverFile, "write"); err != nil {
 		t.Fatalf("expected successful restart after fix, got: %v", err)
 	}
 
