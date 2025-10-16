@@ -23,4 +23,6 @@ func (h *handler) AddSectionDEPLOY() {
 
 	h.tui.AddHandler(h.deployCloudflare, time.Millisecond*500, colorYellowLight, sectionDeploy)
 
+	h.watcher.AddFilesEventHandlers(h.deployCloudflare)
+
 }
