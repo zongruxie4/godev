@@ -12,8 +12,8 @@ github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qF
 github.com/cdvelop/gobuild v0.0.16/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/godepfind v0.0.15 h1:auKW/UOQM/UEdRqHuY4GeM1mkrlSQR0hXy6HFD6jVL8=
 github.com/cdvelop/godepfind v0.0.15/go.mod h1:7NRwbtsqQjy3bL6Jqmr+UlevqYDsYLLlMUqTFh0tO9c=
-github.com/cdvelop/goflare v0.0.12 h1:q5eEAIdJxFq2G66u5Hub++dduqdGOtEg32oZ2rHEcSo=
-github.com/cdvelop/goflare v0.0.12/go.mod h1:4tTJyr/BIm4hjlvJDsevCmhU+QrTmArt9vmpRwcvnFM=
+github.com/cdvelop/goflare v0.0.13 h1:b6WySIoydgOefud0bECk8c0gdpF9EWquynVHaR/w8FI=
+github.com/cdvelop/goflare v0.0.13/go.mod h1:4tTJyr/BIm4hjlvJDsevCmhU+QrTmArt9vmpRwcvnFM=
 github.com/cdvelop/gorun v0.0.14 h1:G1a6Nl/5W7IF9RHBGiULqQ+DbkEnS66CTh7yzUwuGJQ=
 github.com/cdvelop/gorun v0.0.14/go.mod h1:DhTPzWzM2D7QqZdZYDHulyYwFegovWaH7r0bX/6nRJQ=
 github.com/cdvelop/goserver v0.1.0 h1:ZclQw8826RZ6ARUQ+VIvEdXqLy619uTkWmpuOsY5H4Q=
