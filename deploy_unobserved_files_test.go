@@ -67,6 +67,18 @@ go 1.21
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goMod), 0644))
 
+	// ⚠️ CRITICAL: Create _worker.js BEFORE starting golite
+	// This replicates the real scenario where the file already exists
+	workerJsPath := filepath.Join(tmp, "deploy/edgeworker/_worker.js")
+	workerContent := `// This is _worker.js content from goflare
+export default {
+	async fetch(request, env, ctx) {
+		return new Response("Edge Worker Response");
+	}
+};`
+	require.NoError(t, os.WriteFile(workerJsPath, []byte(workerContent), 0644))
+	t.Logf("PRE-CREATED _worker.js at: %s (BEFORE starting golite)", workerJsPath)
+
 	// Capture logs to verify what files are being processed
 	var logs bytes.Buffer
 	logger := func(messages ...any) {
@@ -121,20 +133,11 @@ go 1.21
 			"UnobservedFiles should contain relative paths, got: %s", path)
 	}
 
-	// Now manually trigger goflare to generate _worker.js
-	// (In real scenario this happens via TUI shortcut)
-	workerJsPath := filepath.Join(tmp, "deploy/edgeworker/_worker.js")
-	workerContent := `// This is _worker.js content from goflare
-export default {
-	async fetch(request, env, ctx) {
-		return new Response("Edge Worker Response");
-	}
-};`
-	require.NoError(t, os.WriteFile(workerJsPath, []byte(workerContent), 0644))
+	// File _worker.js was already created BEFORE starting golite
+	// Just verify it exists
+	require.FileExists(t, workerJsPath, "_worker.js should exist from pre-creation")
 
-	t.Logf("Created _worker.js at: %s", workerJsPath)
-
-	// Give time for file watcher to potentially detect the file
+	// Give time for initial registration to complete
 	time.Sleep(500 * time.Millisecond)
 
 	// Check main.js path
