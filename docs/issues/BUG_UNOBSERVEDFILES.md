@@ -1,7 +1,10 @@
 # Bug Report: UnobservedFiles Not Properly Excluding Goflare Output Files
 
 ## Status
-**PENDING APPROVAL** - Requires approval before refactoring
+**BUG CONFIRMED VIA UNIT TEST** ✅
+- Test: `golite/deploy_unobserved_files_test.go`
+- Root cause: `tinywasm.OutputRelativePath()` returns ABSOLUTE path instead of RELATIVE
+- Next steps documented in: `BUG_UNOBSERVEDFILES_NEXT_STEPS.md`
 
 ## Problem Statement
 
