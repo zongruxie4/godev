@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/cdvelop/devtui v0.1.0
 	github.com/cdvelop/goflare v0.0.13
-	github.com/cdvelop/tinywasm v0.0.50
+	github.com/cdvelop/tinywasm v0.1.0
 	github.com/stretchr/testify v1.11.1
 )
 
