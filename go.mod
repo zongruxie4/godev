@@ -55,7 +55,7 @@ require github.com/ysmood/fetchup v0.2.3 // indirect
 require (
 	github.com/cdvelop/assetmin v0.0.55
 	github.com/cdvelop/devbrowser v0.1.0
-	github.com/cdvelop/devwatch v0.0.37
+	github.com/cdvelop/devwatch v0.0.38
 	github.com/cdvelop/goserver v0.1.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
