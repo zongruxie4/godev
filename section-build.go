@@ -18,7 +18,7 @@ func (h *handler) AddSectionBUILD() {
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 
 	// WRITERS
-	wasmLogger := h.tui.AddLogger("WASM", false, colorPurpleMedium, sectionBuild)
+	wasmLogger := h.tui.AddLogger("WASM", true, colorPurpleMedium, sectionBuild)
 	serverLogger := h.tui.AddLogger("SERVER", false, colorBlueMedium, sectionBuild)
 	assetsLogger := h.tui.AddLogger("ASSETS", false, colorGreenMedium, sectionBuild)
 	watchLogger := h.tui.AddLogger("WATCH", false, colorYellowMedium, sectionBuild)
