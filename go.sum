@@ -16,8 +16,8 @@ github.com/cdvelop/goflare v0.0.13 h1:b6WySIoydgOefud0bECk8c0gdpF9EWquynVHaR/w8F
 github.com/cdvelop/goflare v0.0.13/go.mod h1:4tTJyr/BIm4hjlvJDsevCmhU+QrTmArt9vmpRwcvnFM=
 github.com/cdvelop/gorun v0.0.14 h1:G1a6Nl/5W7IF9RHBGiULqQ+DbkEnS66CTh7yzUwuGJQ=
 github.com/cdvelop/gorun v0.0.14/go.mod h1:DhTPzWzM2D7QqZdZYDHulyYwFegovWaH7r0bX/6nRJQ=
-github.com/cdvelop/goserver v0.1.0 h1:ZclQw8826RZ6ARUQ+VIvEdXqLy619uTkWmpuOsY5H4Q=
-github.com/cdvelop/goserver v0.1.0/go.mod h1:cf/1aIu0uGKQ9r8gQDIh/TSN8rUlqZaIcTp4PN6xr20=
+github.com/cdvelop/goserver v0.1.1 h1:QdS0gkHICwtLiLVxCSau7EQDwTHPbarQLpXpWLvnwxs=
+github.com/cdvelop/goserver v0.1.1/go.mod h1:cf/1aIu0uGKQ9r8gQDIh/TSN8rUlqZaIcTp4PN6xr20=
 github.com/cdvelop/tinystring v0.8.3 h1:ik2c9kb83WAos8cxXsmoQotAMwlSyhmLiFmvMWhr3jM=
 github.com/cdvelop/tinystring v0.8.3/go.mod h1:v6+hdP7eaOZn9qoaPm4GQnX8cRzUzD2mEjILAkPLkyo=
 github.com/cdvelop/tinytime v0.1.4 h1:BIh28l/slraT2kkIYjtoLxFFs+9FmP2frTNTEq4JqaA=
