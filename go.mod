@@ -53,7 +53,7 @@ require (
 require github.com/ysmood/fetchup v0.2.3 // indirect
 
 require (
-	github.com/cdvelop/assetmin v0.0.55
+	github.com/cdvelop/assetmin v0.0.56
 	github.com/cdvelop/devbrowser v0.1.0
 	github.com/cdvelop/devwatch v0.0.40
 	github.com/cdvelop/goserver v0.1.1
