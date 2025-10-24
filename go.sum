@@ -6,8 +6,8 @@ github.com/cdvelop/devbrowser v0.1.0 h1:rn2oXjxBByIItCpGMOUoCTqXw4bZVtsuxcfjbOQi
 github.com/cdvelop/devbrowser v0.1.0/go.mod h1:Xc4rssantGi4zObnkcs8SXYo7lf6Q/w7uVjRgRF+Uyk=
 github.com/cdvelop/devtui v0.2.0 h1:XGk3vu6SmWS2tMNfY1UoglrEisDFqjYy1TMvE8iUcA8=
 github.com/cdvelop/devtui v0.2.0/go.mod h1:Oe1YJBPJ6KiUWCJmse3cSJ3My8mkQ2fTY3hZQTKWmaQ=
-github.com/cdvelop/devwatch v0.0.40 h1:5kndweFJfce0O7az24MPjT4kC1h1yN7xep/vpYzk9qo=
-github.com/cdvelop/devwatch v0.0.40/go.mod h1:MBisHKIbg4NDB3Gpj/I+31Dz41oP21tXVN94D8/EqUY=
+github.com/cdvelop/devwatch v0.0.41 h1:v2NKK2inS7cEKluWw+5i6TGUuUl+KtOqbU4vQKp6AB4=
+github.com/cdvelop/devwatch v0.0.41/go.mod h1:MBisHKIbg4NDB3Gpj/I+31Dz41oP21tXVN94D8/EqUY=
 github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qFQ=
 github.com/cdvelop/gobuild v0.0.16/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
 github.com/cdvelop/godepfind v0.0.15 h1:auKW/UOQM/UEdRqHuY4GeM1mkrlSQR0hXy6HFD6jVL8=
