@@ -14,6 +14,7 @@ require (
 	github.com/cdvelop/gobuild v0.0.16 // indirect
 	github.com/cdvelop/godepfind v0.0.15 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
+	github.com/cdvelop/mdgo v0.0.3 // indirect
 	github.com/cdvelop/tinystring v0.10.0 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect
 	github.com/cdvelop/unixid v0.2.0 // indirect
@@ -56,7 +57,7 @@ require (
 	github.com/cdvelop/assetmin v0.0.57
 	github.com/cdvelop/devbrowser v0.1.0
 	github.com/cdvelop/devwatch v0.0.42
-	github.com/cdvelop/goserver v0.1.2
+	github.com/cdvelop/goserver v0.1.3
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
