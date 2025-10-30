@@ -53,7 +53,7 @@ func (h *handler) AddSectionBUILD() {
 		OutputDir:           h.config.WebPublicDir(),
 		WasmExecJsOutputDir: filepath.Join(h.config.JsDir()),
 		Logger:              wasmLogger,
-	})
+	}).CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
 	h.assetsHandler = NewAssetMin(&AssetConfig{
