@@ -1,13 +1,22 @@
 {
-    "folders": [
-        {
-            "path": "../../../Modules/module_patientcare"
-        },
-        {
-            "path": "../../../Modules/module_patientcareLOCAL"
-        },
-        {
-            "path": "../../../Modules/patientCare"
-        }
-    ]
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../tinywasm"
+		},
+		{
+			"path": "../goserver"
+		},
+		{
+			"path": "../mdgo"
+		},
+		{
+			"path": "../assetmin"
+		}
+	],
+	"settings": {
+		"github.gitProtocol": "ssh"
+	}
 }

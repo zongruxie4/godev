@@ -15,7 +15,7 @@ require (
 	github.com/cdvelop/godepfind v0.0.15 // indirect
 	github.com/cdvelop/gorun v0.0.14 // indirect
 	github.com/cdvelop/mdgo v0.0.3 // indirect
-	github.com/cdvelop/tinystring v0.10.0 // indirect
+	github.com/cdvelop/tinystring v0.10.1 // indirect
 	github.com/cdvelop/tinytime v0.1.4 // indirect
 	github.com/cdvelop/unixid v0.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
