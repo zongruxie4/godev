@@ -65,6 +65,7 @@ func (h *handler) AddSectionBUILD() {
 		},
 		Logger:                  assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) { return "", nil },
+		AppName:                 h.frameworkName,
 	}).CreateDefaultIndexHtmlIfNotExist().
 		CreateDefaultCssIfNotExist().
 		CreateDefaultJsIfNotExist().

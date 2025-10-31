@@ -15,10 +15,11 @@ import (
 // handler contains application state and dependencies
 // CRITICAL: This struct does NOT import DevTUI
 type handler struct {
-	rootDir   string
-	config    *Config
-	tui       TuiInterface // Interface defined in GOLITE, not DevTUI
-	exitChan  chan bool
+	frameworkName string // eg: "GOLITE", "DEVGO", etc.
+	rootDir       string
+	config        *Config
+	tui           TuiInterface // Interface defined in GOLITE, not DevTUI
+	exitChan      chan bool
 
 	// Build dependencies
 	serverHandler *goserver.ServerHandler
@@ -38,9 +39,10 @@ type handler struct {
 // CRITICAL: UI instance created in main.go, passed here as interface
 func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool) {
 	h := &handler{
-		rootDir:  rootDir,
-		tui:      ui, // UI passed from main.go
-		exitChan: exitChan,
+		frameworkName: "GOLITE",
+		rootDir:       rootDir,
+		tui:           ui, // UI passed from main.go
+		exitChan:      exitChan,
 	}
 
 	ActiveHandler = h
