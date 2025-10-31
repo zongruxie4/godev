@@ -65,7 +65,10 @@ func (h *handler) AddSectionBUILD() {
 		},
 		Logger:                  assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) { return "", nil },
-	}).CreateDefaultIndexHtmlIfNotExist()
+	}).CreateDefaultIndexHtmlIfNotExist().
+		CreateDefaultCssIfNotExist().
+		CreateDefaultJsIfNotExist().
+		CreateDefaultFaviconIfNotExist()
 
 	// BROWSER
 	h.browser = devbrowser.New(h.config, h.tui, h.exitChan, browserLogger)
