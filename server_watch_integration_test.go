@@ -20,9 +20,12 @@ func TestServerWatchIntegration(t *testing.T) {
 
 	tmp := t.TempDir()
 
-	pwaDir := filepath.Join(tmp, "pwa")
-	require.NoError(t, os.MkdirAll(pwaDir, 0755))
-	require.NoError(t, os.MkdirAll(filepath.Join(pwaDir, "public"), 0755))
+	// Create proper directory structure using Config methods (type-safe)
+	cfg := NewConfig(tmp, func(message ...any) {})
+	appServerDir := filepath.Join(tmp, cfg.CmdAppServerDir())
+	webPublicDir := filepath.Join(tmp, cfg.WebPublicDir())
+	require.NoError(t, os.MkdirAll(appServerDir, 0755))
+	require.NoError(t, os.MkdirAll(webPublicDir, 0755))
 
 	goModContent := `module testproject
 
@@ -30,7 +33,7 @@ go 1.20
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644))
 
-	serverFilePath := filepath.Join(pwaDir, "main.server.go")
+	serverFilePath := filepath.Join(appServerDir, "main.go")
 	initialServerContent := `package main
 
 import (
@@ -66,7 +69,7 @@ func main() {
 `
 
 	require.NoError(t, os.WriteFile(serverFilePath, []byte(initialServerContent), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(pwaDir, "public", "index.html"), []byte("<html>Test</html>"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
 
 	var logs bytes.Buffer
 	logger := func(messages ...any) {

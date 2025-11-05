@@ -14,6 +14,9 @@ import (
 func TestStartDeleteFileScenario(t *testing.T) {
 	tmp := t.TempDir()
 
+	// Create proper directory structure using Config methods (type-safe)
+	goliteCfg := NewConfig(tmp, func(message ...any) {})
+
 	// Create initial files
 	files := map[string]string{
 		"modules/file1.js": "console.log('file1');",
@@ -35,7 +38,8 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	// Give time to initialize and process initial files
 	time.Sleep(500 * time.Millisecond)
 
-	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
+	// AssetMin generates script.js (not main.js) in the public directory
+	scriptJsPath := filepath.Join(tmp, goliteCfg.WebPublicDir(), "script.js")
 
 	// Trigger initial write to create main.js
 	file1Path := filepath.Join(tmp, "modules", "file1.js")
@@ -44,14 +48,14 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	require.NoError(t, os.WriteFile(file1Path, []byte("console.log('file1');"), 0644))
 	time.Sleep(200 * time.Millisecond)
 
-	// Read initial main.js content
-	initialContent, err := os.ReadFile(mainJsPath)
-	require.NoError(t, err, "main.js should exist")
+	// Read initial script.js content
+	initialContent, err := os.ReadFile(scriptJsPath)
+	require.NoError(t, err, "script.js should exist")
 
 	// Verify all files are present initially
-	require.Contains(t, string(initialContent), "file1", "file1 should be in main.js")
-	require.Contains(t, string(initialContent), "file2", "file2 should be in main.js")
-	require.Contains(t, string(initialContent), "file3", "file3 should be in main.js")
+	require.Contains(t, string(initialContent), "file1", "file1 should be in script.js")
+	require.Contains(t, string(initialContent), "file2", "file2 should be in script.js")
+	require.Contains(t, string(initialContent), "file3", "file3 should be in script.js")
 
 	// Now DELETE file2
 	file2Path := filepath.Join(tmp, "modules", "file2.js")
@@ -60,14 +64,14 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	// Wait for delete event to be processed
 	time.Sleep(500 * time.Millisecond)
 
-	// Read main.js content after deletion
-	afterDeleteContent, err := os.ReadFile(mainJsPath)
-	require.NoError(t, err, "main.js should still exist")
+	// Read script.js content after deletion
+	afterDeleteContent, err := os.ReadFile(scriptJsPath)
+	require.NoError(t, err, "script.js should still exist")
 
 	// Verify file2 content is removed but file1 and file3 remain
-	require.Contains(t, string(afterDeleteContent), "file1", "file1 should still be in main.js")
-	require.NotContains(t, string(afterDeleteContent), "file2", "file2 should be REMOVED from main.js")
-	require.Contains(t, string(afterDeleteContent), "file3", "file3 should still be in main.js")
+	require.Contains(t, string(afterDeleteContent), "file1", "file1 should still be in script.js")
+	require.NotContains(t, string(afterDeleteContent), "file2", "file2 should be REMOVED from script.js")
+	require.Contains(t, string(afterDeleteContent), "file3", "file3 should still be in script.js")
 
 	// Stop the application
 	exitChan <- true

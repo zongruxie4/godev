@@ -17,6 +17,9 @@ import (
 func TestStartRealScenario(t *testing.T) {
 	tmp := t.TempDir()
 
+	// Create proper directory structure using Config methods (type-safe)
+	goliteCfg := NewConfig(tmp, func(message ...any) {})
+
 	// Create exact structure from real test directory
 	files := map[string]string{
 		"modules/users/newfile.js":       "console.log('H2');",
@@ -25,8 +28,8 @@ func TestStartRealScenario(t *testing.T) {
 		"modules/medical/file3.js":       "console.log(\"three\");",
 		"modules/medical/file5.js":       "console.log('file5');",
 		"modules/medical/mainconten1.js": "console.log('mainconten1');",
-		"src/web/ui/theme.js":            "console.log(\"Hello, PWA! 2\");",
 	}
+	files[filepath.Join(goliteCfg.WebUIDir(), "theme.js")] = "console.log(\"Hello, PWA! 2\");"
 
 	// Create directories and files BEFORE starting golite (like real scenario)
 	for filePath, content := range files {
@@ -72,11 +75,12 @@ func TestStartRealScenario(t *testing.T) {
 	// Give time to initialize and scan existing files
 	time.Sleep(500 * time.Millisecond)
 
-	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
+	// AssetMin generates script.js (not main.js) in the public directory
+	scriptJsPath := filepath.Join(tmp, goliteCfg.WebPublicDir(), "script.js")
 
-	// Check if main.js was created
-	if _, err := os.Stat(mainJsPath); os.IsNotExist(err) {
-		// t.Logf("main.js not created yet, triggering a write event...")
+	// Check if script.js was created
+	if _, err := os.Stat(scriptJsPath); os.IsNotExist(err) {
+		// t.Logf("script.js not created yet, triggering a write event...")
 		// Trigger a write event to make AssetMin write to disk
 		testFilePath := filepath.Join(tmp, "modules", "medical", "file1.js")
 		require.NoError(t, os.WriteFile(testFilePath, []byte("console.log('one1_modified');"), 0644))
@@ -92,7 +96,7 @@ func TestStartRealScenario(t *testing.T) {
 	jsFiles := []string{
 		filepath.Join(tmp, "modules", "users", "newfile.js"),
 		filepath.Join(tmp, "modules", "medical", "file2.js"),
-		filepath.Join(tmp, "src", "web", "ui", "theme.js"),
+		filepath.Join(tmp, goliteCfg.WebUIDir(), "theme.js"),
 	}
 
 	for i, jsFile := range jsFiles {
@@ -105,11 +109,11 @@ func TestStartRealScenario(t *testing.T) {
 	// Wait for final timer to expire
 	time.Sleep(200 * time.Millisecond)
 
-	// Read main.js content
-	mainJsContent, err := os.ReadFile(mainJsPath)
-	require.NoError(t, err, "main.js should exist")
+	// Read script.js content
+	scriptJsContent, err := os.ReadFile(scriptJsPath)
+	require.NoError(t, err, "script.js should exist")
 
-	// Check what content should be present in main.js
+	// Check what content should be present in script.js
 	// Note: Files that were modified should contain their NEW content, not original
 	expectedContents := []string{
 		"modified_1",  // from users/newfile.js (was modified)
@@ -118,21 +122,21 @@ func TestStartRealScenario(t *testing.T) {
 		"three",       // from medical/file3.js (not modified)
 		"file5",       // from medical/file5.js (not modified)
 		"mainconten1", // from medical/mainconten1.js (not modified)
-		"modified_3",  // from src/webclient/ui/theme.js (was modified)
+		"modified_3",  // from src/web/ui/theme.js (was modified)
 	}
 
 	missing := []string{}
 	for _, expected := range expectedContents {
-		if !bytes.Contains(mainJsContent, []byte(expected)) {
+		if !bytes.Contains(scriptJsContent, []byte(expected)) {
 			missing = append(missing, expected)
 		}
 	}
 
 	if len(missing) > 0 {
-		t.Errorf("Missing content in main.js: %v", missing)
+		t.Errorf("Missing content in script.js: %v", missing)
 		t.Errorf("Expected content should reflect current state of files, not original content")
 	} else {
-		// t.Logf("✓ All expected content found in main.js (including modified files)")
+		// t.Logf("✓ All expected content found in script.js (including modified files)")
 	}
 
 	// Verify browser reload was called during JS file modifications

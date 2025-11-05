@@ -18,9 +18,12 @@ func TestStartJSEventFlow(t *testing.T) {
 	// Setup temporary project layout
 	tmp := t.TempDir()
 
+	// Create proper directory structure using Config methods (type-safe)
+	goliteCfg := NewConfig(tmp, func(message ...any) {})
+
 	file1Path := filepath.Join(tmp, "modules", "module1", "script1.js")
 	file2Path := filepath.Join(tmp, "extras", "module2", "script2.js")
-	file3Path := filepath.Join(tmp, "src", "webclient", "ui", "theme.js")
+	file3Path := filepath.Join(tmp, goliteCfg.WebUIDir(), "theme.js")
 
 	require.NoError(t, os.MkdirAll(filepath.Dir(file1Path), 0755))
 	require.NoError(t, os.MkdirAll(filepath.Dir(file2Path), 0755))
@@ -63,11 +66,12 @@ func TestStartJSEventFlow(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	require.NoError(t, os.WriteFile(file1Path, []byte(file1Content), 0644)) // restore content
 
-	mainJsPath := filepath.Join(tmp, "src", "web", "public", "main.js")
+	// AssetMin generates script.js (not main.js) in the public directory
+	scriptJsPath := filepath.Join(tmp, goliteCfg.WebPublicDir(), "script.js")
 
-	// Wait for main.js to be created after write events
-	initialMain := waitForFile(t, mainJsPath, 3*time.Second)
-	require.NotNil(t, initialMain, "main.js must exist after write events")
+	// Wait for script.js to be created after write events
+	initialMain := waitForFile(t, scriptJsPath, 3*time.Second)
+	require.NotNil(t, initialMain, "script.js must exist after write events")
 
 	// Create new empty JS file and then write content to it, relying on watcher to send events
 	newFilePath := filepath.Join(tmp, "modules", "module3", "newfile.js")
@@ -80,10 +84,10 @@ func TestStartJSEventFlow(t *testing.T) {
 	addedContent := "console.log('New Module added');"
 	require.NoError(t, os.WriteFile(newFilePath, []byte(addedContent), 0644))
 
-	// Wait for main.js to contain all expected strings
+	// Wait for script.js to contain all expected strings
 	expect := []string{"Module One", "Module Two", "Theme Code", "New Module added"}
-	ok := waitForFileContains(t, mainJsPath, 5*time.Second, expect)
-	require.True(t, ok, "final main.js should contain all expected modules; logs:\n%s", logs.String())
+	ok := waitForFileContains(t, scriptJsPath, 5*time.Second, expect)
+	require.True(t, ok, "final script.js should contain all expected modules; logs:\n%s", logs.String())
 
 	// Stop the application
 	exitChan <- true

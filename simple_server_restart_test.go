@@ -18,14 +18,17 @@ import (
 func TestSimpleServerRestart(t *testing.T) {
 	tmp := t.TempDir()
 
-	// Create minimal project folder `pwa` to mimic golite layout
-	pwa := filepath.Join(tmp, "pwa")
-	requireNoErr(t, os.MkdirAll(pwa, 0755))
+	// Create proper directory structure using Config methods (type-safe)
+	goliteCfg := NewConfig(tmp, func(message ...any) {})
+	appServerDir := filepath.Join(tmp, goliteCfg.CmdAppServerDir())
+	deployDir := filepath.Join(tmp, goliteCfg.DeployAppServerDir())
+	requireNoErr(t, os.MkdirAll(appServerDir, 0755))
+	requireNoErr(t, os.MkdirAll(deployDir, 0755))
 
-	// write simple go.mod so `go build` works in that folder
-	requireNoErr(t, os.WriteFile(filepath.Join(pwa, "go.mod"), []byte("module temp/pwa\n\n go 1.20\n"), 0644))
+	// write simple go.mod so `go build` works
+	requireNoErr(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module temp/testproject\n\ngo 1.20\n"), 0644))
 
-	serverFile := filepath.Join(pwa, "main.go")
+	serverFile := filepath.Join(appServerDir, "main.go")
 
 	initial := `package main
 
@@ -53,8 +56,8 @@ func main() {
 
 	cfg := &gs.Config{
 		AppRootDir:                  tmp,
-		SourceDir:                   "pwa",
-		OutputDir:                   "pwa",
+		SourceDir:                   goliteCfg.CmdAppServerDir(),
+		OutputDir:                   goliteCfg.DeployAppServerDir(),
 		ArgumentsForCompilingServer: func() []string { return []string{} },
 		ArgumentsToRunServer:        func() []string { return []string{} },
 		AppPort:                     "0",
