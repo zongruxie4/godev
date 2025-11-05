@@ -36,6 +36,10 @@ func (m *mockTUI) Start(syncWaitGroup ...any) {
 	// no-op
 }
 
+func (m *mockTUI) RefreshUI() {
+	// no-op
+}
+
 func (m *mockTUI) ReturnFocus() error {
 	return nil
 }

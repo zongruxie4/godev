@@ -62,7 +62,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.63
-	github.com/cdvelop/devbrowser v0.1.1
+	github.com/cdvelop/devbrowser v0.1.2
 	github.com/cdvelop/devwatch v0.0.42
 	github.com/cdvelop/goserver v0.1.3
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

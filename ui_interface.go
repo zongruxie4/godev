@@ -16,5 +16,6 @@ type TuiInterface interface {
 	AddHandler(handler any, timeout time.Duration, color string, tabSection any)
 	AddLogger(name string, enableTracking bool, color string, tabSection any) func(message ...any)
 	Start(syncWaitGroup ...any) // syncWaitGroup is optional
-	ReturnFocus() error         // returns focus to main UI
+	RefreshUI()
+	ReturnFocus() error // returns focus to main UI
 }
