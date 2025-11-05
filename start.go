@@ -59,7 +59,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	h.AddSectionDEPLOY()
 
 	// Start MCP server for LLM integration
-	go h.ServeMCP()
+	//
 
 	var wg sync.WaitGroup
 	wg.Add(3)
