@@ -23,11 +23,13 @@ func TestMCPServerInitialization(t *testing.T) {
 		config:        NewConfig(tmp, func(...any) {}),
 	}
 
-	// Test that ServeMCP doesn't panic
-	// It starts in a goroutine, so we just verify no immediate errors
+	// Test that ServeMCP doesn't panic on initialization
 	require.NotPanics(t, func() {
 		go h.ServeMCP()
 	})
+
+	// Don't wait since ServeMCP blocks on stdio
+	// Just verify it started without panicking
 }
 
 func TestMCPToolGetStatus(t *testing.T) {

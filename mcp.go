@@ -11,6 +11,7 @@ import (
 
 // ServeMCP starts the Model Context Protocol server for LLM integration
 // This allows AI assistants to monitor and control the GoLite development environment
+// This function blocks on stdio, so it should be called in a goroutine
 func (h *handler) ServeMCP() {
 	// Create MCP server with tool capabilities
 	s := server.NewMCPServer(
@@ -100,16 +101,14 @@ func (h *handler) ServeMCP() {
 		mcp.WithDescription("Verify development environment (Go, TinyGo, Chrome)"),
 	), h.mcpToolCheckRequirements)
 
-	// Start the stdio server (non-blocking)
-	// This runs in its own goroutine since it blocks on stdio
-	go func() {
-		if err := server.ServeStdio(s); err != nil {
-			// Log error but don't crash golite
-			if h.config != nil && h.config.logger != nil {
-				h.config.logger("MCP server error:", err)
-			}
+	// Start the stdio server (blocks on stdio)
+	// ServeMCP is already called in a goroutine from start.go
+	if err := server.ServeStdio(s); err != nil {
+		// Log error but don't crash golite
+		if h.config != nil && h.config.logger != nil {
+			h.config.logger("MCP server error:", err)
 		}
-	}()
+	}
 }
 
 // === TOOL IMPLEMENTATIONS ===

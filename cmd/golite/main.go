@@ -30,5 +30,17 @@ func main() {
 	})
 
 	// Pass UI as interface to Start - GOLITE doesn't know it's DevTUI
-	golite.Start(rootDir, logger.Logger, ui, exitChan)
+	// Start runs in background
+	go golite.Start(rootDir, logger.Logger, ui, exitChan)
+
+	// Give Start time to initialize ActiveHandler and components
+	// (a small delay ensures h.config and other dependencies are ready)
+	// In production this is fine, tests don't call main.go
+	for golite.ActiveHandler == nil {
+		// Wait for ActiveHandler to be set by Start()
+	}
+
+	// Start MCP server for LLM integration after handler is initialized
+	// This blocks on stdio, waiting for MCP client connections
+	golite.ActiveHandler.ServeMCP()
 }
