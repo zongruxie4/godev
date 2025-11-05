@@ -14,6 +14,12 @@
 		},
 		{
 			"path": "../assetmin"
+		},
+		{
+			"path": "../devbrowser"
+		},
+		{
+			"path": "../devtui"
 		}
 	],
 	"settings": {

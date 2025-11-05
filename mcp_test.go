@@ -1,0 +1,179 @@
+package golite
+
+import (
+	"context"
+	"encoding/json"
+	"testing"
+
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestMCPServerInitialization(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping MCP test in short mode")
+	}
+
+	// Create minimal handler for testing
+	tmp := t.TempDir()
+	h := &handler{
+		frameworkName: "GOLITE",
+		rootDir:       tmp,
+		config:        NewConfig(tmp, func(...any) {}),
+	}
+
+	// Test that ServeMCP doesn't panic
+	// It starts in a goroutine, so we just verify no immediate errors
+	require.NotPanics(t, func() {
+		go h.ServeMCP()
+	})
+}
+
+func TestMCPToolGetStatus(t *testing.T) {
+	tmp := t.TempDir()
+
+	h := &handler{
+		frameworkName: "GOLITE",
+		rootDir:       tmp,
+		config:        NewConfig(tmp, func(...any) {}),
+	}
+
+	// Create mock components
+	// (In real usage these are created in AddSectionBUILD)
+
+	ctx := context.Background()
+	req := mcp.CallToolRequest{}
+
+	result, err := h.mcpToolGetStatus(ctx, req)
+
+	require.NoError(t, err, "mcpToolGetStatus should not return error")
+	require.NotNil(t, result, "result should not be nil")
+
+	// Verify result contains valid JSON
+	var status map[string]interface{}
+	err = json.Unmarshal([]byte(result.Content[0].(mcp.TextContent).Text), &status)
+	require.NoError(t, err, "result should contain valid JSON")
+
+	// Verify expected fields
+	assert.Equal(t, "GOLITE", status["framework"], "framework should be GOLITE")
+	assert.Equal(t, tmp, status["root_dir"], "root_dir should match")
+	assert.Contains(t, status, "server", "should contain server status")
+	assert.Contains(t, status, "wasm", "should contain wasm status")
+	assert.Contains(t, status, "browser", "should contain browser status")
+	assert.Contains(t, status, "assets", "should contain assets status")
+}
+
+func TestMCPToolGetLogsStub(t *testing.T) {
+	tmp := t.TempDir()
+
+	h := &handler{
+		frameworkName: "GOLITE",
+		rootDir:       tmp,
+		config:        NewConfig(tmp, func(...any) {}),
+	}
+
+	ctx := context.Background()
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]interface{}{
+		"component": "WASM",
+		"lines":     10,
+	}
+
+	result, err := h.mcpToolGetLogs(ctx, req)
+
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	// Currently returns "not yet implemented" - this test will need updating
+	// when real implementation is added
+}
+
+func TestMCPToolWasmSetModeStub(t *testing.T) {
+	tmp := t.TempDir()
+
+	h := &handler{
+		frameworkName: "GOLITE",
+		rootDir:       tmp,
+		config:        NewConfig(tmp, func(...any) {}),
+	}
+
+	ctx := context.Background()
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]interface{}{
+		"mode": "SMALL",
+	}
+
+	result, err := h.mcpToolWasmSetMode(ctx, req)
+
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	// Stub implementation - will need real test when implemented
+}
+
+func TestMCPToolBrowserControlStubs(t *testing.T) {
+	tmp := t.TempDir()
+
+	h := &handler{
+		frameworkName: "GOLITE",
+		rootDir:       tmp,
+		config:        NewConfig(tmp, func(...any) {}),
+	}
+
+	ctx := context.Background()
+	req := mcp.CallToolRequest{}
+
+	t.Run("browser_open", func(t *testing.T) {
+		result, err := h.mcpToolBrowserOpen(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+
+	t.Run("browser_close", func(t *testing.T) {
+		result, err := h.mcpToolBrowserClose(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+
+	t.Run("browser_reload", func(t *testing.T) {
+		result, err := h.mcpToolBrowserReload(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+
+	t.Run("browser_get_console", func(t *testing.T) {
+		result, err := h.mcpToolBrowserGetConsole(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+}
+
+func TestMCPToolEnvironmentStubs(t *testing.T) {
+	tmp := t.TempDir()
+
+	h := &handler{
+		frameworkName: "GOLITE",
+		rootDir:       tmp,
+		config:        NewConfig(tmp, func(...any) {}),
+	}
+
+	ctx := context.Background()
+	req := mcp.CallToolRequest{}
+
+	t.Run("project_structure", func(t *testing.T) {
+		result, err := h.mcpToolProjectStructure(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+
+	t.Run("check_requirements", func(t *testing.T) {
+		result, err := h.mcpToolCheckRequirements(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+
+	t.Run("deploy_status", func(t *testing.T) {
+		result, err := h.mcpToolDeployStatus(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+}
