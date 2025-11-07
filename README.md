@@ -49,7 +49,7 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 ### 🖥️ **Interfaz TUI Minimalista**  
 - **Ideal para VS Code**: Integración perfecta en terminal
 - **Automatización del navegador**: Chrome controlado automáticamente
-- **Puerto HTTPS**: 4430 con certificados de desarrollo
+- **Puerto HTTPS**: 6060 con certificados de desarrollo
 
 ## Instalación
 
@@ -67,11 +67,15 @@ golite
 ```
 
 ## Uso
+
+### Modo Interactivo (Por Defecto)
 ```bash
 # Navega a tu directorio de proyecto y ejecuta:
 golite
 ```
-**Eso es todo.** GoLite usa la estructura `src/` convencional y configura automáticamente el entorno de desarrollo.
+**Eso es todo.** GoLite usa la estructura `src/` convencional y configura automáticamente el entorno de desarrollo con interfaz TUI completa.
+
+El servidor MCP para integración con LLMs se inicia automáticamente en `http://localhost:7070/mcp`. Ver [documentación MCP](docs/MCP.md) para más detalles.
 
 GoLite detectará la estructura `src/` de tu proyecto y configurará el entorno de desarrollo apropiado. si este ya existe pondrá todo listo para seguir trabajando en el.
 
@@ -99,6 +103,7 @@ GoLite detectará la estructura `src/` de tu proyecto y configurará el entorno 
 - Proyectos con React, Vue, Angular
 - Aplicaciones que requieren transpilación compleja
 - Desarrollo con múltiples frameworks frontend
+- Para proyectos que su codigo frontend principal sera    javascript / typescript
 
 
 ## [ROADMAP](docs/ROADMAP.md)

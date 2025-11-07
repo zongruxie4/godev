@@ -31,6 +31,9 @@ type handler struct {
 	// Deploy dependencies
 	deployCloudflare *goflare.Goflare
 
+	// MCP server for shutdown (stored as interface{} to avoid import cycles)
+	mcpServer interface{}
+
 	// Test hooks
 	pendingBrowserReload func() error
 }
@@ -58,8 +61,17 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
 
+	// Auto-configure VS Code MCP integration (silent, non-blocking)
+	ConfigureVSCodeMCP()
+
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4) // UI, server, watcher, and MCP server
+
+	// Start MCP HTTP server on port 7070
+	go func() {
+		defer wg.Done()
+		h.ServeMCP()
+	}()
 
 	// Start the UI (passed from main.go)
 	go h.tui.Start(&wg)

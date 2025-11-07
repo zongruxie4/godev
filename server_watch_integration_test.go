@@ -46,7 +46,7 @@ import (
 func main() {
     port := os.Getenv("PORT")
     if port == "" {
-        port = "4430"
+        port = "6060"
     }
 
     mux := http.NewServeMux()
@@ -126,7 +126,7 @@ import (
 func main() {
     port := os.Getenv("PORT")
     if port == "" {
-        port = "4430"
+        port = "6060"
     }
 
     mux := http.NewServeMux()

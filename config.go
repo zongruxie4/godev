@@ -119,7 +119,7 @@ func (c *Config) DeployAppServerDir() string {
 
 // ServerPort returns the default server port
 func (c *Config) ServerPort() string {
-	return "4430" // Default HTTPS development port
+	return "6060" // Default HTTPS development port
 }
 
 // RootDir returns the root directory

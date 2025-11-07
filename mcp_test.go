@@ -23,13 +23,13 @@ func TestMCPServerInitialization(t *testing.T) {
 		config:        NewConfig(tmp, func(...any) {}),
 	}
 
-	// Test that ServeMCP doesn't panic on initialization
+	// Test that ServeMCP doesn't panic on initialization (no args now, uses port 7070)
 	require.NotPanics(t, func() {
 		go h.ServeMCP()
 	})
 
-	// Don't wait since ServeMCP blocks on stdio
-	// Just verify it started without panicking
+	// Give HTTP server time to start, then verify it started without panicking
+	// Note: HTTP server runs in background and doesn't block
 }
 
 func TestMCPToolGetStatus(t *testing.T) {

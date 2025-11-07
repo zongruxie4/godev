@@ -9,9 +9,12 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// ServeMCP starts the Model Context Protocol server for LLM integration
-// This allows AI assistants to monitor and control the GoLite development environment
-// This function blocks on stdio, so it should be called in a goroutine
+// MCPPort is the fixed port for GoLite's MCP HTTP server (go-go!)
+const MCPPort = "7070"
+
+// ServeMCP starts the Model Context Protocol server for LLM integration via HTTP
+// Runs on port 7070 (go-go!) without conflicts with the UI
+// Listens to exitChan to shutdown gracefully
 func (h *handler) ServeMCP() {
 	// Create MCP server with tool capabilities
 	s := server.NewMCPServer(
@@ -101,12 +104,37 @@ func (h *handler) ServeMCP() {
 		mcp.WithDescription("Verify development environment (Go, TinyGo, Chrome)"),
 	), h.mcpToolCheckRequirements)
 
-	// Start the stdio server (blocks on stdio)
-	// ServeMCP is already called in a goroutine from start.go
-	if err := server.ServeStdio(s); err != nil {
-		// Log error but don't crash golite
-		if h.config != nil && h.config.logger != nil {
-			h.config.logger("MCP server error:", err)
+	// Start MCP HTTP server (runs concurrently with UI)
+	// Use stateless mode: no session management needed for single developer
+	httpServer := server.NewStreamableHTTPServer(s,
+		server.WithEndpointPath("/mcp"),
+		server.WithStateLess(true), // No session IDs required
+	)
+
+	// Store reference for shutdown
+	h.mcpServer = httpServer
+
+	h.config.logger("Starting MCP HTTP server on port", MCPPort)
+	h.config.logger("MCP endpoint: http://localhost:" + MCPPort + "/mcp")
+
+	// Start server in goroutine (it blocks)
+	go func() {
+		if err := httpServer.Start(":" + MCPPort); err != nil {
+			if h.config != nil && h.config.logger != nil {
+				h.config.logger("MCP HTTP server stopped:", err)
+			}
+		}
+	}()
+
+	// Wait for exit signal from UI
+	// When channel is closed, ok will be false
+	_, ok := <-h.exitChan
+	if !ok {
+		// Channel closed, shutdown gracefully
+		h.config.logger("Shutting down MCP server...")
+		ctx := context.Background()
+		if err := httpServer.Shutdown(ctx); err != nil {
+			h.config.logger("Error shutting down MCP server:", err)
 		}
 	}
 }

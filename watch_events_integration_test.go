@@ -50,7 +50,7 @@ func main() {
         fmt.Fprintln(w, "Server v1")
     })
     log.Println("Starting server v1")
-    http.ListenAndServe(":4430", nil)
+    http.ListenAndServe(":6060", nil)
 }
 `
 

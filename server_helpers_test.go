@@ -72,7 +72,7 @@ func killAllServerProcesses(t *testing.T) {
 func freePort() string {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		return "4430"
+		return "6060"
 	}
 	defer ln.Close()
 	return fmt.Sprintf("%d", ln.Addr().(*net.TCPAddr).Port)

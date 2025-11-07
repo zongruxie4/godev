@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	flag.Parse()
+
 	// Initialize root directory
 	rootDir, err := os.Getwd()
 	if err != nil {
@@ -21,7 +24,7 @@ func main() {
 	// Create a Logger instance
 	logger := golite.NewLogger()
 
-	// Create DevTUI instance (ONLY in main.go)
+	// Create DevTUI instance
 	ui := devtui.NewTUI(&devtui.TuiConfig{
 		AppName:  "GOLITE",
 		ExitChan: exitChan,
@@ -29,18 +32,7 @@ func main() {
 		Logger:   func(messages ...any) { logger.Logger(messages...) },
 	})
 
-	// Pass UI as interface to Start - GOLITE doesn't know it's DevTUI
-	// Start runs in background
-	go golite.Start(rootDir, logger.Logger, ui, exitChan)
-
-	// Give Start time to initialize ActiveHandler and components
-	// (a small delay ensures h.config and other dependencies are ready)
-	// In production this is fine, tests don't call main.go
-	for golite.ActiveHandler == nil {
-		// Wait for ActiveHandler to be set by Start()
-	}
-
-	// Start MCP server for LLM integration after handler is initialized
-	// This blocks on stdio, waiting for MCP client connections
-	golite.ActiveHandler.ServeMCP()
+	// Start GoLite - this will initialize handlers and start all goroutines
+	// The Start function will block until exit
+	golite.Start(rootDir, logger.Logger, ui, exitChan)
 }
