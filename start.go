@@ -31,8 +31,8 @@ type handler struct {
 	// Deploy dependencies
 	deployCloudflare *goflare.Goflare
 
-	// MCP server for shutdown (stored as interface{} to avoid import cycles)
-	mcpServer interface{}
+	// MCP server for shutdown (stored as any to avoid import cycles)
+	mcpServer any
 
 	// Test hooks
 	pendingBrowserReload func() error

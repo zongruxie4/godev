@@ -9,7 +9,7 @@ import (
 // mcpConfig represents the structure of VS Code's mcp.json file
 type mcpConfig struct {
 	Servers map[string]mcpServerConfig `json:"servers"`
-	Inputs  []interface{}              `json:"inputs"`
+	Inputs  []any                      `json:"inputs"`
 }
 
 // mcpServerConfig represents a single MCP server configuration
@@ -34,7 +34,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
 			// Create new config structure
 			config = mcpConfig{
 				Servers: make(map[string]mcpServerConfig),
-				Inputs:  []interface{}{},
+				Inputs:  []any{},
 			}
 		} else if os.IsPermission(err) {
 			// No permissions, return silently
@@ -53,7 +53,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
 			config.Servers = make(map[string]mcpServerConfig)
 		}
 		if config.Inputs == nil {
-			config.Inputs = []interface{}{}
+			config.Inputs = []any{}
 		}
 	}
 

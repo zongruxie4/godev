@@ -101,7 +101,7 @@ func (h *handler) mcpToolName(ctx context.Context, req mcp.CallToolRequest) (*mc
     result := h.someComponent.DoSomething(arg)
     
     // 3. Format response as JSON
-    data := map[string]interface{}{
+    data := map[string]any{
         "status": "success",
         "result": result,
     }

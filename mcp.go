@@ -18,7 +18,7 @@ const MCPPort = "7070"
 func (h *handler) ServeMCP() {
 	// Create MCP server with tool capabilities
 	s := server.NewMCPServer(
-		"GoLite Development Assistant",
+		"GoLite - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
 		"1.0.0",
 		server.WithToolCapabilities(true),
 	)
@@ -26,11 +26,11 @@ func (h *handler) ServeMCP() {
 	// === STATUS & MONITORING TOOLS ===
 
 	s.AddTool(mcp.NewTool("golite_status",
-		mcp.WithDescription("Get comprehensive status of GoLite environment (server, WASM, browser, assets)"),
+		mcp.WithDescription("Get comprehensive status of GoLite full-stack dev environment: Go server (running/port), WASM compilation (output dir), browser (URL), and asset watching. Use this first to understand the current state of the development environment."),
 	), h.mcpToolGetStatus)
 
 	s.AddTool(mcp.NewTool("golite_get_logs",
-		mcp.WithDescription("Retrieve recent logs from specific component"),
+		mcp.WithDescription("Retrieve recent logs from specific component (WASM compiler, Go server, asset minifier, file watcher, browser, or Cloudflare deploy) to debug build issues or track changes."),
 		mcp.WithString("component",
 			mcp.Required(),
 			mcp.Description("Component to get logs from"),
@@ -44,39 +44,35 @@ func (h *handler) ServeMCP() {
 
 	// === BUILD CONTROL TOOLS ===
 
-	s.AddTool(mcp.NewTool("wasm_set_mode",
-		mcp.WithDescription("Change WASM compilation mode (LARGE=Go std, MEDIUM=TinyGo optimized, SMALL=TinyGo compact)"),
-		mcp.WithString("mode",
-			mcp.Required(),
-			mcp.Description("Compilation mode to set"),
-			mcp.Enum("LARGE", "L", "MEDIUM", "M", "SMALL", "S"),
-		),
-	), h.mcpToolWasmSetMode)
-
-	s.AddTool(mcp.NewTool("wasm_recompile",
-		mcp.WithDescription("Force WASM recompilation with current mode"),
-	), h.mcpToolWasmRecompile)
-
-	s.AddTool(mcp.NewTool("wasm_get_size",
-		mcp.WithDescription("Get current WASM file size and comparison across modes"),
-	), h.mcpToolWasmGetSize)
+	// Load WASM tools from TinyWasm metadata using reflection
+	if h.wasmHandler != nil {
+		if tools, err := mcpToolsFromHandler(h.wasmHandler); err == nil {
+			for _, toolMeta := range tools {
+				tool := buildMCPTool(toolMeta)
+				// Use generic executor - no need to know tool names or implementations
+				s.AddTool(*tool, h.mcpExecuteTool(toolMeta.Execute))
+			}
+		} else {
+			h.config.logger("Warning: Failed to load WASM tools:", err)
+		}
+	}
 
 	// === BROWSER CONTROL TOOLS ===
 
 	s.AddTool(mcp.NewTool("browser_open",
-		mcp.WithDescription("Open development browser pointing to local server"),
+		mcp.WithDescription("Open Chrome development browser pointing to the local Go server to test the full-stack app (Go backend + WASM frontend)."),
 	), h.mcpToolBrowserOpen)
 
 	s.AddTool(mcp.NewTool("browser_close",
-		mcp.WithDescription("Close development browser and cleanup resources"),
+		mcp.WithDescription("Close Chrome development browser and cleanup resources when done testing or to restart fresh."),
 	), h.mcpToolBrowserClose)
 
 	s.AddTool(mcp.NewTool("browser_reload",
-		mcp.WithDescription("Reload browser page to see latest changes"),
+		mcp.WithDescription("Reload browser page to see latest WASM/asset changes without full browser restart (faster iteration during development)."),
 	), h.mcpToolBrowserReload)
 
 	s.AddTool(mcp.NewTool("browser_get_console",
-		mcp.WithDescription("Get browser console logs (errors, warnings, logs)"),
+		mcp.WithDescription("Get browser JavaScript console logs to debug WASM runtime errors, console.log outputs, or frontend issues. Filter by level (all/error/warning/log)."),
 		mcp.WithString("level",
 			mcp.DefaultString("all"),
 			mcp.Description("Log level filter"),
@@ -91,17 +87,17 @@ func (h *handler) ServeMCP() {
 	// === DEPLOYMENT TOOLS ===
 
 	s.AddTool(mcp.NewTool("deploy_status",
-		mcp.WithDescription("Get Cloudflare deployment configuration and status"),
+		mcp.WithDescription("Get Cloudflare Workers deployment configuration and status (for deploying the full-stack Go+WASM app to production edge network)."),
 	), h.mcpToolDeployStatus)
 
 	// === ENVIRONMENT TOOLS ===
 
 	s.AddTool(mcp.NewTool("project_structure",
-		mcp.WithDescription("Get project directory structure with file counts"),
+		mcp.WithDescription("Get Go project directory structure with file counts (shows src/cmd/appserver for backend, src/cmd/webclient for WASM frontend, deploy dirs, etc)."),
 	), h.mcpToolProjectStructure)
 
 	s.AddTool(mcp.NewTool("check_requirements",
-		mcp.WithDescription("Verify development environment (Go, TinyGo, Chrome)"),
+		mcp.WithDescription("Verify development environment has required tools installed: Go compiler (backend), TinyGo compiler (WASM frontend), and Chrome browser (testing)."),
 	), h.mcpToolCheckRequirements)
 
 	// Start MCP HTTP server (runs concurrently with UI)
@@ -142,23 +138,23 @@ func (h *handler) ServeMCP() {
 // === TOOL IMPLEMENTATIONS ===
 
 func (h *handler) mcpToolGetStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	status := map[string]interface{}{
+	status := map[string]any{
 		"framework": h.frameworkName,
 		"root_dir":  h.rootDir,
-		"server": map[string]interface{}{
+		"server": map[string]any{
 			"running":    h.serverHandler != nil,
 			"port":       h.config.ServerPort(),
 			"output_dir": h.config.DeployAppServerDir(),
 		},
-		"wasm": map[string]interface{}{
+		"wasm": map[string]any{
 			"output_dir": h.config.WebPublicDir(),
 			// TODO: Get current mode from wasmHandler
 		},
-		"browser": map[string]interface{}{
+		"browser": map[string]any{
 			// TODO: Get isOpen status from browser
 			"url": fmt.Sprintf("http://localhost:%s", h.config.ServerPort()),
 		},
-		"assets": map[string]interface{}{
+		"assets": map[string]any{
 			"watching":   true,
 			"public_dir": h.config.WebPublicDir(),
 		},

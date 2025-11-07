@@ -69,3 +69,5 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 )
+
+replace github.com/cdvelop/tinywasm => ../tinywasm

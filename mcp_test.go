@@ -53,7 +53,7 @@ func TestMCPToolGetStatus(t *testing.T) {
 	require.NotNil(t, result, "result should not be nil")
 
 	// Verify result contains valid JSON
-	var status map[string]interface{}
+	var status map[string]any
 	err = json.Unmarshal([]byte(result.Content[0].(mcp.TextContent).Text), &status)
 	require.NoError(t, err, "result should contain valid JSON")
 
@@ -77,7 +77,7 @@ func TestMCPToolGetLogsStub(t *testing.T) {
 
 	ctx := context.Background()
 	req := mcp.CallToolRequest{}
-	req.Params.Arguments = map[string]interface{}{
+	req.Params.Arguments = map[string]any{
 		"component": "WASM",
 		"lines":     10,
 	}
@@ -101,7 +101,7 @@ func TestMCPToolWasmSetModeStub(t *testing.T) {
 
 	ctx := context.Background()
 	req := mcp.CallToolRequest{}
-	req.Params.Arguments = map[string]interface{}{
+	req.Params.Arguments = map[string]any{
 		"mode": "SMALL",
 	}
 

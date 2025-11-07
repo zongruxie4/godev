@@ -149,7 +149,7 @@ func findMCPConfigPath(basePath string) (string, error) {
 ```go
 type MCPConfig struct {
     Servers map[string]ServerConfig `json:"servers"`
-    Inputs  []interface{}           `json:"inputs"`
+    Inputs  []any           `json:"inputs"`
 }
 
 type ServerConfig struct {
@@ -168,7 +168,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
             // Create new config
             config = MCPConfig{
                 Servers: make(map[string]ServerConfig),
-                Inputs:  []interface{}{},
+                Inputs:  []any{},
             }
         } else if os.IsPermission(err) {
             // No permissions, return silently
