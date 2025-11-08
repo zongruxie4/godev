@@ -6,8 +6,8 @@ github.com/buger/jsonparser v1.1.1 h1:2PnMjfWD7wBILjqQbt530v576A/cAbQvEW9gGIpYMU
 github.com/buger/jsonparser v1.1.1/go.mod h1:6RYKKt7H4d4+iWqouImQ9R2FZql3VbhNgx27UK13J/0=
 github.com/cdvelop/assetmin v0.0.63 h1:R6UeV+oNnBmSsHQgY9AMFyWGq3O4b7NtiIXIfARu4Vo=
 github.com/cdvelop/assetmin v0.0.63/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
-github.com/cdvelop/devbrowser v0.1.3 h1:eOVPL0SzLE7iLuKZzuVOGFOLeGNOi0TDa7ZeZFgBRhE=
-github.com/cdvelop/devbrowser v0.1.3/go.mod h1:llHRsPgRPqPkMZ8ecmHdZYhoz/OdFZIvP5momRKBesI=
+github.com/cdvelop/devbrowser v0.1.4 h1:6gGeYxhE3Tpa8e5pIXRVsOSsCVOaWU47F2f30/Av3r8=
+github.com/cdvelop/devbrowser v0.1.4/go.mod h1:llHRsPgRPqPkMZ8ecmHdZYhoz/OdFZIvP5momRKBesI=
 github.com/cdvelop/devtui v0.2.7 h1:QY+vmxT1DU65sCuIytMc/dmrq8+cvO//uS/ERJEeGHc=
 github.com/cdvelop/devtui v0.2.7/go.mod h1:N3Enj5QARf26xU4ba+IAZoUjWNfDEjgwrG8QbrebKis=
 github.com/cdvelop/devwatch v0.0.42 h1:vjmzBn7KItmLpLa5d39Qc0iejja4jGcXbn2FfU5mCEQ=
