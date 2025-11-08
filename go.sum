@@ -8,8 +8,8 @@ github.com/cdvelop/assetmin v0.0.63 h1:R6UeV+oNnBmSsHQgY9AMFyWGq3O4b7NtiIXIfARu4
 github.com/cdvelop/assetmin v0.0.63/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
 github.com/cdvelop/devbrowser v0.1.4 h1:6gGeYxhE3Tpa8e5pIXRVsOSsCVOaWU47F2f30/Av3r8=
 github.com/cdvelop/devbrowser v0.1.4/go.mod h1:llHRsPgRPqPkMZ8ecmHdZYhoz/OdFZIvP5momRKBesI=
-github.com/cdvelop/devtui v0.2.8 h1:R/SVmFnSKgd62gf1fr7xjHZkuY2l//L3XEiPFOYfF6A=
-github.com/cdvelop/devtui v0.2.8/go.mod h1:N3Enj5QARf26xU4ba+IAZoUjWNfDEjgwrG8QbrebKis=
+github.com/cdvelop/devtui v0.2.9 h1:219UbAyPBaT02Svy59T8Az3XkxFXoYn3idvoZNer1wQ=
+github.com/cdvelop/devtui v0.2.9/go.mod h1:N3Enj5QARf26xU4ba+IAZoUjWNfDEjgwrG8QbrebKis=
 github.com/cdvelop/devwatch v0.0.42 h1:vjmzBn7KItmLpLa5d39Qc0iejja4jGcXbn2FfU5mCEQ=
 github.com/cdvelop/devwatch v0.0.42/go.mod h1:MBisHKIbg4NDB3Gpj/I+31Dz41oP21tXVN94D8/EqUY=
 github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qFQ=
