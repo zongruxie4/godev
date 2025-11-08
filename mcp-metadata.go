@@ -10,8 +10,8 @@ import (
 // ToolExecutor defines how a tool should be executed
 // Handlers implement this to provide execution logic without exposing internals
 // args: map of parameter name to value from MCP request
-// progress: callback to send progress messages back to caller
-type ToolExecutor func(args map[string]any, progress func(msgs ...any)) error
+// progress: channel to send progress messages back to caller
+type ToolExecutor func(args map[string]any, progress chan<- string)
 
 // ToolMetadata provides MCP tool configuration metadata
 // This is the standard interface that all handlers should implement
@@ -142,21 +142,14 @@ func convertToToolMetadata(source any) (ToolMetadata, error) {
 
 	// Extract Execute field (function)
 	if execField := sourceValue.FieldByName("Execute"); execField.IsValid() && execField.Kind() == reflect.Func {
-		// Convert to ToolExecutor by calling the function with proper signature
-		meta.Execute = func(args map[string]any, progress func(msgs ...any)) error {
-			// Call the source function with args and progress
-			results := execField.Call([]reflect.Value{
+		// Convert to ToolExecutor by wrapping the function
+		meta.Execute = func(args map[string]any, progress chan<- string) {
+			// Create reflection values for call
+			execField.Call([]reflect.Value{
 				reflect.ValueOf(args),
 				reflect.ValueOf(progress),
 			})
-
-			// Check if there's an error returned
-			if len(results) > 0 && !results[0].IsNil() {
-				if err, ok := results[0].Interface().(error); ok {
-					return err
-				}
-			}
-			return nil
+			// Note: No error handling - errors sent as messages via channel
 		}
 	}
 

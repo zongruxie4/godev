@@ -2,7 +2,6 @@ package golite
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -20,27 +19,36 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 			args = make(map[string]any)
 		}
 
-		// 2. Collect progress messages (generic)
-		txtOut := []string{}
-		progress := func(msgs ...any) {
-			txtOut = append(txtOut, fmt.Sprint(msgs...))
-		}
+		// 2. Create channel and collect messages
+		progressChan := make(chan string, 10) // Buffered to avoid blocking
+		messages := []string{}
+		done := make(chan bool)
 
-		// 3. Execute handler-specific logic
-		if err := executor(args, progress); err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
+		// 3. Collect progress messages in goroutine
+		go func() {
+			for msg := range progressChan {
+				messages = append(messages, msg)
+			}
+			done <- true
+		}()
 
-		// 4. Refresh UI (generic)
+		// 4. Execute handler-specific logic (sends messages to channel)
+		executor(args, progressChan)
+		close(progressChan)
+
+		// 5. Wait for collection to finish
+		<-done
+
+		// 6. Refresh UI (generic)
 		if h.tui != nil {
 			h.tui.RefreshUI()
 		}
 
-		// 5. Return collected output (generic)
-		if len(txtOut) == 0 {
+		// 7. Return collected output (generic)
+		if len(messages) == 0 {
 			return mcp.NewToolResultText("Operation completed successfully"), nil
 		}
 
-		return mcp.NewToolResultText(strings.Join(txtOut, "\n")), nil
+		return mcp.NewToolResultText(strings.Join(messages, "\n")), nil
 	}
 }

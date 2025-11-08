@@ -20,6 +20,12 @@
 		},
 		{
 			"path": "../devtui"
+		},
+		{
+			"path": "../goflare"
+		},
+		{
+			"path": "../tinyimage"
 		}
 	],
 	"settings": {
