@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/cdvelop/devtui v0.2.8
 	github.com/cdvelop/goflare v0.0.27
-	github.com/cdvelop/tinywasm v0.3.0
+	github.com/cdvelop/tinywasm v0.3.1
 	github.com/mark3labs/mcp-go v0.43.0
 	github.com/stretchr/testify v1.11.1
 )
