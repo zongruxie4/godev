@@ -17,7 +17,7 @@ In your handler package (e.g., `tinywasm/`), define metadata structures with exe
 
 ```go
 // ToolExecutor defines how a tool should be executed
-type ToolExecutor func(args map[string]any, progress func(msgs ...any)) error
+type ToolExecutor func(args map[string]any, progress chan<- string)
 
 // ToolMetadata describes a tool's interface and execution
 type ToolMetadata struct {
@@ -58,33 +58,36 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
                     EnumValues:  []string{"L", "M", "S"},
                 },
             },
-            Execute: func(args map[string]any, progress func(msgs ...any)) error {
+            Execute: func(args map[string]any, progress chan<- string) {
                 // Extract and validate parameters
                 modeValue, ok := args["mode"]
                 if !ok {
-                    return fmt.Errorf("missing required parameter 'mode'")
+                    progress <- "error: missing required parameter 'mode'"
+                    return
                 }
                 
                 mode, ok := modeValue.(string)
                 if !ok {
-                    return fmt.Errorf("parameter 'mode' must be a string")
+                    progress <- "error: parameter 'mode' must be a string"
+                    return
                 }
                 
                 // Domain-specific logic stays here
+                // Domain functions should accept a send-only string channel for progress updates.
                 w.Change(mode, progress)
-                return nil
+                progress <- "mode changed"
             },
         },
         {
             Name:        "wasm_recompile",
             Description: "Force immediate WASM recompilation with current mode",
             Parameters:  []ParameterMetadata{}, // No parameters
-            Execute: func(args map[string]any, progress func(msgs ...any)) error {
+            Execute: func(args map[string]any, progress chan<- string) {
                 if err := w.RecompileMainWasm(); err != nil {
-                    return fmt.Errorf("recompilation failed: %w", err)
+                    progress <- fmt.Sprintf("recompilation failed: %v", err)
+                    return
                 }
-                progress("WASM recompiled successfully")
-                return nil
+                progress <- "WASM recompiled successfully"
             },
         },
     }
@@ -94,8 +97,8 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
 **Key Points:**
 - Method MUST be named exactly `GetMCPToolsMetadata()` and return `[]ToolMetadata`
 - Each tool includes its own `Execute` function with all domain logic
-- `Execute` receives `args` (parameters) and `progress` (callback for messages)
-- `Execute` returns `error` (nil on success)
+- `Execute` receives `args` (parameters) and `progress` (send-only channel for messages)
+- `Execute` does NOT return `error`; use the `progress` channel to report success or errors
 
 ### Step 3: GoLite Registration (Already Done - No Code Needed!)
 
@@ -129,19 +132,30 @@ The `mcpExecuteTool` function in `golite/mcp-executor.go` is a **universal handl
 func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
     return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
         // 1. Extract arguments (generic)
-        args, ok := req.Params.Arguments.(map[string]any)
+        args, _ := req.Params.Arguments.(map[string]any)
         
-        // 2. Collect progress messages (generic)
+        // 2. Collect progress messages (generic) via a channel
         txtOut := []string{}
-        progress := func(msgs ...any) {
-            txtOut = append(txtOut, fmt.Sprint(msgs...))
+        ch := make(chan string, 16)
+        done := make(chan struct{})
+
+        // Run executor in a goroutine, close channel when done
+        go func() {
+            executor(args, ch)
+            close(ch)
+            close(done)
+        }()
+
+        // Read progress messages until channel is closed
+        for msg := range ch {
+            txtOut = append(txtOut, msg)
         }
-        
-        // 3. Execute handler-specific logic
-        if err := executor(args, progress); err != nil {
-            return mcp.NewToolResultError(err.Error()), nil
-        }
-        
+
+        // Wait for executor goroutine to finish
+        <-done
+
+        // 3. No error return from executor: handlers must report errors via progress
+
         // 4. Refresh UI (generic)
         h.tui.RefreshUI()
         
@@ -191,7 +205,7 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 
 3. **Test via MCP (in another terminal):**
    ```bash
-   curl -X POST http://localhost:7070/mcp \
+   curl -X POST http://localhost:3030/mcp \
      -H "Content-Type: application/json" \
      -d '{
        "jsonrpc":"2.0",
@@ -223,7 +237,24 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 
 **Cause:** Execute function signature doesn't match `ToolExecutor` type.
 
-**Solution:** Must be `func(args map[string]any, progress func(msgs ...any)) error`
+**Solution:** Must be `func(args map[string]any, progress chan<- string)`. Report errors by sending messages on `progress`, e.g.:
+```go
+Execute: func(args map[string]any, progress chan<- string) {
+    value, ok := args["param_name"]
+    if !ok {
+        progress <- "error: missing required parameter 'param_name'"
+        return
+    }
+    
+    strValue, ok := value.(string)
+    if !ok {
+        progress <- "error: parameter must be a string"
+        return
+    }
+    // Use strValue...
+    progress <- "done"
+}
+```
 
 ### Type Mismatch Error
 **Symptom:** `expected slice, got tinywasm.ToolMetadata`
@@ -242,32 +273,18 @@ return []ToolMetadata{
 
 **Cause:** Parameter name mismatch or wrong type assertion.
 
-**Solution:** 
-```go
-Execute: func(args map[string]any, progress func(msgs ...any)) error {
-    value, ok := args["param_name"]
-    if !ok {
-        return fmt.Errorf("missing required parameter 'param_name'")
-    }
-    
-    strValue, ok := value.(string)
-    if !ok {
-        return fmt.Errorf("parameter must be a string")
-    }
-    // Use strValue...
-}
-```
+**Solution:** See example above for safe extraction and reporting via `progress`.
 
 
 ## Benefits of This Architecture
 
-✅ **Complete Decoupling:** GoLite knows NOTHING about tool names or implementations
-✅ **Single Execution Path:** One generic executor handles ALL tools
-✅ **Self-Contained Handlers:** Each tool brings its own metadata + execution logic
-✅ **Zero Boilerplate:** No switch statements, no individual handler functions
-✅ **Type Safe:** Reflection validates structure compatibility
-✅ **Easy to Extend:** Add tool = add element to slice in handler
-✅ **Testable:** Handlers can be tested without MCP server
+✅ **Complete Decoupling:** GoLite knows NOTHING about tool names or implementations  
+✅ **Single Execution Path:** One generic executor handles ALL tools  
+✅ **Self-Contained Handlers:** Each tool brings its own metadata + execution logic  
+✅ **Zero Boilerplate:** No switch statements, no individual handler functions  
+✅ **Type Safe:** Reflection validates structure compatibility  
+✅ **Easy to Extend:** Add tool = add element to slice in handler  
+✅ **Testable:** Handlers can be tested without MCP server  
 ✅ **Scalable:** Works for 1 tool or 100 tools identically
 
 ## Code Reduction Example
@@ -290,7 +307,7 @@ case "wasm_get_size": s.AddTool(*tool, h.mcpToolWasmGetSize)
 **After (generic executor):**
 ```go
 // In golite/mcp-executor.go (~45 lines total for ALL tools)
-func (h *handler) mcpExecuteTool(executor ToolExecutor) { /* generic implementation */ }
+func (h *handler) mcpExecuteTool(executor ToolExecutor) { /* generic implementation using a progress channel */ }
 
 // In golite/mcp.go (no switch needed)
 for _, toolMeta := range tools {
@@ -298,10 +315,10 @@ for _, toolMeta := range tools {
 }
 
 // In tinywasm/mcp-tool.go (domain logic where it belongs)
-Execute: func(args map[string]any, progress func(msgs ...any)) error {
+Execute: func(args map[string]any, progress chan<- string) {
     mode := args["mode"].(string)
     w.Change(mode, progress)
-    return nil
+    progress <- "done"
 }
 ```
 
@@ -340,10 +357,10 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
             Name: "wasm_set_mode",
             Description: "...",
             Parameters: []ParameterMetadata{...},
-            Execute: func(args map[string]any, progress func(msgs ...any)) error {
+            Execute: func(args map[string]any, progress chan<- string) {
                 mode := args["mode"].(string)
                 w.Change(mode, progress)
-                return nil
+                progress <- "done"
             },
         },
     }
@@ -356,9 +373,9 @@ for _, toolMeta := range tools {
 ```
 
 **Steps:**
-1. Move parameter extraction and domain logic to `Execute` function in handler
-2. Remove individual tool handler functions from golite
-3. Remove switch statement in mcp.go registration
+1. Move parameter extraction and domain logic to `Execute` function in handler  
+2. Remove individual tool handler functions from golite  
+3. Remove switch statement in mcp.go registration  
 4. Delete mcp-wasm.go (no longer needed)
 
 
@@ -366,10 +383,9 @@ for _, toolMeta := range tools {
 
 This pattern is framework-agnostic. To use in another project:
 
-1. Copy `mcp-metadata.go` (reflection converter)
-2. Define `ToolMetadata` and `ParameterMetadata` in each domain package
-3. Implement `GetMCPToolsMetadata() []ToolMetadata` method on handlers
+1. Copy `mcp-metadata.go` (reflection converter)  
+2. Define `ToolMetadata` and `ParameterMetadata` in each domain package  
+3. Implement `GetMCPToolsMetadata() []ToolMetadata` method on handlers  
 4. Use `mcpToolsFromHandler` in MCP registration layer
 
 No dependencies on GoLite-specific code required.
-

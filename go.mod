@@ -62,10 +62,14 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.63
-	github.com/cdvelop/devbrowser v0.1.4
+	github.com/cdvelop/devbrowser v0.2.0
 	github.com/cdvelop/devwatch v0.0.42
 	github.com/cdvelop/goserver v0.1.3
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 )
+
+replace github.com/cdvelop/tinywasm => ../tinywasm
+
+replace github.com/cdvelop/devbrowser => ../devbrowser

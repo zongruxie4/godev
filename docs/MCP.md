@@ -5,7 +5,7 @@
 ## Quick Start
 
 ```bash
-golite  # Starts UI + MCP server on http://localhost:7070/mcp
+golite  # Starts UI + MCP server on http://localhost:3030/mcp
 ```
 
 ### Connect from Claude Desktop
@@ -14,7 +14,7 @@ golite  # Starts UI + MCP server on http://localhost:7070/mcp
 {
   "mcpServers": {
     "golite": {
-      "url": "http://localhost:7070/mcp"
+      "url": "http://localhost:3030/mcp"
     }
   }
 }
@@ -53,7 +53,7 @@ golite  # Starts UI + MCP server on http://localhost:7070/mcp
 ### Check Status
 
 ```bash
-curl -X POST http://localhost:7070/mcp \
+curl -X POST http://localhost:3030/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -69,7 +69,7 @@ curl -X POST http://localhost:7070/mcp \
 ### Change WASM Mode
 
 ```bash
-curl -X POST http://localhost:7070/mcp \
+curl -X POST http://localhost:3030/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -87,7 +87,7 @@ curl -X POST http://localhost:7070/mcp \
 ### Get Browser Console Errors
 
 ```bash
-curl -X POST http://localhost:7070/mcp \
+curl -X POST http://localhost:3030/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -104,5 +104,5 @@ curl -X POST http://localhost:7070/mcp \
 
 ---
 
-**Note**: Server runs in stateless mode - no session management needed. Just send requests directly to `http://localhost:7070/mcp`
+**Note**: Server runs in stateless mode - no session management needed. Just send requests directly to `http://localhost:3030/mcp`
 

@@ -3,7 +3,10 @@ package golite
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/assert"
@@ -17,19 +20,62 @@ func TestMCPServerInitialization(t *testing.T) {
 
 	// Create minimal handler for testing
 	tmp := t.TempDir()
+	exitChan := make(chan bool)
+
+	// Capture any errors during startup
+	startupErrors := make(chan error, 1)
+
 	h := &handler{
 		frameworkName: "GOLITE",
 		rootDir:       tmp,
-		config:        NewConfig(tmp, func(...any) {}),
+		config: NewConfig(tmp, func(messages ...any) {
+			// Log to test output
+			t.Log(messages...)
+		}),
+		exitChan: exitChan,
 	}
 
-	// Test that ServeMCP doesn't panic on initialization (no args now, uses port 7070)
+	// Test that ServeMCP doesn't panic on initialization
 	require.NotPanics(t, func() {
-		go h.ServeMCP()
+		go func() {
+			// Catch any panic during ServeMCP
+			defer func() {
+				if r := recover(); r != nil {
+					startupErrors <- assert.AnError
+					t.Errorf("ServeMCP panicked: %v", r)
+				}
+			}()
+			h.ServeMCP()
+		}()
 	})
 
-	// Give HTTP server time to start, then verify it started without panicking
-	// Note: HTTP server runs in background and doesn't block
+	// Give HTTP server time to start
+	time.Sleep(200 * time.Millisecond)
+
+	// Check if there was a startup error
+	select {
+	case err := <-startupErrors:
+		t.Fatalf("ServeMCP failed to start: %v", err)
+	default:
+		// No error, continue
+	}
+
+	// Try to connect to verify server is actually running
+	resp, err := http.Post("http://localhost:"+MCPPort+"/mcp",
+		"application/json",
+		strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`))
+
+	if err != nil {
+		t.Errorf("Failed to connect to MCP server: %v", err)
+		t.Error("MCP server should be running and accepting connections")
+	} else {
+		defer resp.Body.Close()
+		assert.Equal(t, 200, resp.StatusCode, "MCP server should respond with 200")
+	}
+
+	// Cleanup: close exit channel to stop server
+	close(exitChan)
+	time.Sleep(50 * time.Millisecond)
 }
 
 func TestMCPToolGetStatus(t *testing.T) {
@@ -64,118 +110,4 @@ func TestMCPToolGetStatus(t *testing.T) {
 	assert.Contains(t, status, "wasm", "should contain wasm status")
 	assert.Contains(t, status, "browser", "should contain browser status")
 	assert.Contains(t, status, "assets", "should contain assets status")
-}
-
-func TestMCPToolGetLogsStub(t *testing.T) {
-	tmp := t.TempDir()
-
-	h := &handler{
-		frameworkName: "GOLITE",
-		rootDir:       tmp,
-		config:        NewConfig(tmp, func(...any) {}),
-	}
-
-	ctx := context.Background()
-	req := mcp.CallToolRequest{}
-	req.Params.Arguments = map[string]any{
-		"component": "WASM",
-		"lines":     10,
-	}
-
-	result, err := h.mcpToolGetLogs(ctx, req)
-
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	// Currently returns "not yet implemented" - this test will need updating
-	// when real implementation is added
-}
-
-func TestMCPToolWasmSetModeStub(t *testing.T) {
-	// Test that WASM tools are loaded dynamically via reflection
-	// This test verifies the metadata loading mechanism, not the execution
-
-	tmp := t.TempDir()
-
-	h := &handler{
-		frameworkName: "GOLITE",
-		rootDir:       tmp,
-		config:        NewConfig(tmp, func(...any) {}),
-		wasmHandler:   nil, // No wasm handler in this test
-	}
-
-	// Verify that when wasmHandler is nil, no wasm tools are loaded
-	// (This happens during ServeMCP initialization)
-	// The actual tool execution is tested in integration tests
-
-	// Test passes if handler is created without panicking
-	assert.NotNil(t, h)
-	assert.Nil(t, h.wasmHandler)
-}
-
-func TestMCPToolBrowserControlStubs(t *testing.T) {
-	tmp := t.TempDir()
-
-	h := &handler{
-		frameworkName: "GOLITE",
-		rootDir:       tmp,
-		config:        NewConfig(tmp, func(...any) {}),
-	}
-
-	ctx := context.Background()
-	req := mcp.CallToolRequest{}
-
-	t.Run("browser_open", func(t *testing.T) {
-		result, err := h.mcpToolBrowserOpen(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
-
-	t.Run("browser_close", func(t *testing.T) {
-		result, err := h.mcpToolBrowserClose(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
-
-	t.Run("browser_reload", func(t *testing.T) {
-		result, err := h.mcpToolBrowserReload(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
-
-	t.Run("browser_get_console", func(t *testing.T) {
-		result, err := h.mcpToolBrowserGetConsole(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
-}
-
-func TestMCPToolEnvironmentStubs(t *testing.T) {
-	tmp := t.TempDir()
-
-	h := &handler{
-		frameworkName: "GOLITE",
-		rootDir:       tmp,
-		config:        NewConfig(tmp, func(...any) {}),
-	}
-
-	ctx := context.Background()
-	req := mcp.CallToolRequest{}
-
-	t.Run("project_structure", func(t *testing.T) {
-		result, err := h.mcpToolProjectStructure(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
-
-	t.Run("check_requirements", func(t *testing.T) {
-		result, err := h.mcpToolCheckRequirements(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
-
-	t.Run("deploy_status", func(t *testing.T) {
-		result, err := h.mcpToolDeployStatus(ctx, req)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-	})
 }

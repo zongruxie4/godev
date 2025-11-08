@@ -9,11 +9,12 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// MCPPort is the fixed port for GoLite's MCP HTTP server (go-go!)
-const MCPPort = "7070"
+// MCPPort is the fixed port for GoLite's MCP HTTP server
+// Using port 3030 (above 1024 to avoid needing root privileges)
+const MCPPort = "3030"
 
 // ServeMCP starts the Model Context Protocol server for LLM integration via HTTP
-// Runs on port 7070 (go-go!) without conflicts with the UI
+// Runs on port 3030 without conflicts with the UI
 // Listens to exitChan to shutdown gracefully
 func (h *handler) ServeMCP() {
 	// Create MCP server with tool capabilities
@@ -53,36 +54,30 @@ func (h *handler) ServeMCP() {
 				s.AddTool(*tool, h.mcpExecuteTool(toolMeta.Execute))
 			}
 		} else {
-			h.config.logger("Warning: Failed to load WASM tools:", err)
+			// Safe logging - check if config is initialized
+			if h.config != nil && h.config.logger != nil {
+				h.config.logger("Warning: Failed to load WASM tools:", err)
+			}
 		}
 	}
 
 	// === BROWSER CONTROL TOOLS ===
 
-	s.AddTool(mcp.NewTool("browser_open",
-		mcp.WithDescription("Open Chrome development browser pointing to the local Go server to test the full-stack app (Go backend + WASM frontend)."),
-	), h.mcpToolBrowserOpen)
-
-	s.AddTool(mcp.NewTool("browser_close",
-		mcp.WithDescription("Close Chrome development browser and cleanup resources when done testing or to restart fresh."),
-	), h.mcpToolBrowserClose)
-
-	s.AddTool(mcp.NewTool("browser_reload",
-		mcp.WithDescription("Reload browser page to see latest WASM/asset changes without full browser restart (faster iteration during development)."),
-	), h.mcpToolBrowserReload)
-
-	s.AddTool(mcp.NewTool("browser_get_console",
-		mcp.WithDescription("Get browser JavaScript console logs to debug WASM runtime errors, console.log outputs, or frontend issues. Filter by level (all/error/warning/log)."),
-		mcp.WithString("level",
-			mcp.DefaultString("all"),
-			mcp.Description("Log level filter"),
-			mcp.Enum("all", "error", "warning", "log"),
-		),
-		mcp.WithNumber("lines",
-			mcp.DefaultNumber(50),
-			mcp.Description("Number of recent entries to retrieve"),
-		),
-	), h.mcpToolBrowserGetConsole)
+	// Load Browser tools from DevBrowser metadata using reflection
+	if h.browser != nil {
+		if tools, err := mcpToolsFromHandler(h.browser); err == nil {
+			for _, toolMeta := range tools {
+				tool := buildMCPTool(toolMeta)
+				// Use generic executor - no need to know tool names or implementations
+				s.AddTool(*tool, h.mcpExecuteTool(toolMeta.Execute))
+			}
+		} else {
+			// Safe logging - check if config is initialized
+			if h.config != nil && h.config.logger != nil {
+				h.config.logger("Warning: Failed to load Browser tools:", err)
+			}
+		}
+	}
 
 	// === DEPLOYMENT TOOLS ===
 
@@ -110,8 +105,11 @@ func (h *handler) ServeMCP() {
 	// Store reference for shutdown
 	h.mcpServer = httpServer
 
-	h.config.logger("Starting MCP HTTP server on port", MCPPort)
-	h.config.logger("MCP endpoint: http://localhost:" + MCPPort + "/mcp")
+	// Safe logging - check if config is initialized
+	if h.config != nil && h.config.logger != nil {
+		h.config.logger("Starting MCP HTTP server on port", MCPPort)
+		h.config.logger("MCP endpoint: http://localhost:" + MCPPort + "/mcp")
+	}
 
 	// Start server in goroutine (it blocks)
 	go func() {
@@ -127,10 +125,14 @@ func (h *handler) ServeMCP() {
 	_, ok := <-h.exitChan
 	if !ok {
 		// Channel closed, shutdown gracefully
-		h.config.logger("Shutting down MCP server...")
+		if h.config != nil && h.config.logger != nil {
+			h.config.logger("Shutting down MCP server...")
+		}
 		ctx := context.Background()
 		if err := httpServer.Shutdown(ctx); err != nil {
-			h.config.logger("Error shutting down MCP server:", err)
+			if h.config != nil && h.config.logger != nil {
+				h.config.logger("Error shutting down MCP server:", err)
+			}
 		}
 	}
 }
@@ -138,6 +140,11 @@ func (h *handler) ServeMCP() {
 // === TOOL IMPLEMENTATIONS ===
 
 func (h *handler) mcpToolGetStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	// Check if handler is fully initialized
+	if h.config == nil {
+		return mcp.NewToolResultError("GoLite is still initializing. Please try again in a moment."), nil
+	}
+
 	status := map[string]any{
 		"framework": h.frameworkName,
 		"root_dir":  h.rootDir,

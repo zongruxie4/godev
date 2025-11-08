@@ -124,7 +124,7 @@ func TestUpdateMCPConfig(t *testing.T) {
 	configPath := filepath.Join(tempDir, "mcp.json")
 
 	// Test 1: Create new config
-	err := updateMCPConfig(configPath, "7070")
+	err := updateMCPConfig(configPath, "3030")
 	if err != nil {
 		t.Fatalf("Failed to create new config: %v", err)
 	}
@@ -154,8 +154,8 @@ func TestUpdateMCPConfig(t *testing.T) {
 		t.Fatal("golite-mcp entry not found")
 	}
 
-	if goliteConfig.URL != "http://localhost:7070/mcp" {
-		t.Errorf("Expected URL http://localhost:7070/mcp, got %s", goliteConfig.URL)
+	if goliteConfig.URL != "http://localhost:3030/mcp" {
+		t.Errorf("Expected URL http://localhost:3030/mcp, got %s", goliteConfig.URL)
 	}
 
 	if goliteConfig.Type != "http" {
@@ -185,7 +185,7 @@ func TestUpdateMCPConfig(t *testing.T) {
 	data, _ = json.MarshalIndent(config, "", "\t")
 	os.WriteFile(configPath, data, 0644)
 
-	err = updateMCPConfig(configPath, "7070")
+	err = updateMCPConfig(configPath, "3030")
 	if err != nil {
 		t.Fatalf("Failed to update config with existing servers: %v", err)
 	}

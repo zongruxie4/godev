@@ -75,7 +75,7 @@ golite
 ```
 **Eso es todo.** GoLite usa la estructura `src/` convencional y configura automáticamente el entorno de desarrollo con interfaz TUI completa.
 
-El servidor MCP para integración con LLMs se inicia automáticamente en `http://localhost:7070/mcp`. Ver [documentación MCP](docs/MCP.md) para más detalles.
+El servidor MCP para integración con LLMs se inicia automáticamente en `http://localhost:3030/mcp`. Ver [documentación MCP](docs/MCP.md) para más detalles.
 
 GoLite detectará la estructura `src/` de tu proyecto y configurará el entorno de desarrollo apropiado. si este ya existe pondrá todo listo para seguir trabajando en el.
 

@@ -265,7 +265,7 @@ cd example
 golite
 
 # Terminal 2: Test MCP tool (after TinyWasm updated)
-curl -X POST http://localhost:7070/mcp \
+curl -X POST http://localhost:3030/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc":"2.0",

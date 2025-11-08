@@ -7,7 +7,7 @@ Automatically detect and configure VS Code's MCP (Model Context Protocol) integr
 Users installing GoLite must manually edit `~/.config/Code/User/profiles/[profile-id]/mcp.json` to add:
 ```json
 "golite-mcp": {
-  "url": "http://localhost:7070/mcp",
+  "url": "http://localhost:3030/mcp",
   "type": "http"
 }
 ```
@@ -39,7 +39,7 @@ Execute in `cmd/golite/main.go` after `golite.Start()` and before `ServeMCP()`:
 // Auto-configure VS Code MCP integration (silent)
 golite.ConfigureVSCodeMCP()
 
-// Start MCP HTTP server on port 7070 (go-go!)
+// Start MCP HTTP server on port 3030 (go-go!)
 go golite.ActiveHandler.ServeMCP()
 ```
 
@@ -67,7 +67,7 @@ go golite.ActiveHandler.ServeMCP()
 {
   "servers": {
     "golite-mcp": {
-      "url": "http://localhost:7070/mcp",
+      "url": "http://localhost:3030/mcp",
       "type": "http"
     }
   },
@@ -77,7 +77,7 @@ go golite.ActiveHandler.ServeMCP()
 
 #### Port Configuration
 - **Constant Location**: Define in `mcp.go` alongside `mcpPort`
-- **Current Value**: `7070` (fixed port: go-go!)
+- **Current Value**: `3030` (fixed port: go-go!)
 - **Future Flexibility**: Centralized definition allows easy updates
 
 ### Implementation Steps
@@ -230,7 +230,7 @@ func ConfigureVSCodeMCP() {
     }
     
     // Update configuration
-    _ = updateMCPConfig(configPath, "7070")
+    _ = updateMCPConfig(configPath, "3030")
 }
 ```
 
@@ -291,7 +291,7 @@ Follow TinyWasm's testing approach:
 ## Future Enhancements
 
 ### Potential Improvements (Out of Scope)
-1. **Auto-detection of port conflicts**: Scan for available ports if 7070 is occupied
+1. **Auto-detection of port conflicts**: Scan for available ports if 3030 is occupied
 2. **Configuration validation**: Verify MCP server is reachable after setup
 3. **Profile selection heuristic**: Use most recently modified profile when multiple exist
 4. **Extension recommendation**: Suggest MCP-related VS Code extensions

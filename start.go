@@ -58,6 +58,8 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	}
 
 	// ADD SECTIONS using the passed UI interface
+	// CRITICAL: Initialize sections BEFORE starting goroutines
+	// This ensures h.config, h.wasmHandler, etc. are set before ServeMCP() tries to use them
 	h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
 
@@ -67,7 +69,8 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	var wg sync.WaitGroup
 	wg.Add(4) // UI, server, watcher, and MCP server
 
-	// Start MCP HTTP server on port 7070
+	// Start MCP HTTP server on port 3030
+	// Now safe because h.config and handlers are initialized
 	go func() {
 		defer wg.Done()
 		h.ServeMCP()
