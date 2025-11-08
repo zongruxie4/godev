@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/cdvelop/devtui v0.2.7
 	github.com/cdvelop/goflare v0.0.13
-	github.com/cdvelop/tinywasm v0.2.6
+	github.com/cdvelop/tinywasm v0.3.0
 	github.com/mark3labs/mcp-go v0.43.0
 	github.com/stretchr/testify v1.11.1
 )
@@ -69,7 +69,3 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 )
-
-replace github.com/cdvelop/tinywasm => ../tinywasm
-
-replace github.com/cdvelop/goflare => ../goflare
