@@ -72,7 +72,7 @@ func (h *handler) AddSectionBUILD() {
 		CreateDefaultFaviconIfNotExist()
 
 	// BROWSER
-	h.browser = devbrowser.New(h.config, h.tui, h.exitChan, browserLogger)
+	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan, browserLogger)
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{

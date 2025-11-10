@@ -26,6 +26,9 @@
 		},
 		{
 			"path": "../tinyimage"
+		},
+		{
+			"path": "../tinydb"
 		}
 	],
 	"settings": {

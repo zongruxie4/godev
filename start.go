@@ -9,8 +9,14 @@ import (
 	"github.com/cdvelop/devwatch"
 	"github.com/cdvelop/goflare"
 	"github.com/cdvelop/goserver"
+	"github.com/cdvelop/tinydb"
 	"github.com/cdvelop/tinywasm"
 )
+
+type Store interface {
+	Get(key string) (string, error)
+	Set(key, value string) error
+}
 
 // handler contains application state and dependencies
 // CRITICAL: This struct does NOT import DevTUI
@@ -20,6 +26,8 @@ type handler struct {
 	config        *Config
 	tui           TuiInterface // Interface defined in GOLITE, not DevTUI
 	exitChan      chan bool
+
+	db Store // Key-value store interface
 
 	// Build dependencies
 	serverHandler *goserver.ServerHandler
@@ -41,11 +49,20 @@ type handler struct {
 // Start is called from main.go with UI passed as parameter
 // CRITICAL: UI instance created in main.go, passed here as interface
 func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool) {
+
+	db, err := tinydb.New(".env", logger, FileStore{})
+	if err != nil {
+		logger("Failed to initialize database:", err)
+		return
+	}
+
 	h := &handler{
 		frameworkName: "GOLITE",
 		rootDir:       rootDir,
 		tui:           ui, // UI passed from main.go
 		exitChan:      exitChan,
+
+		db: db,
 	}
 
 	ActiveHandler = h

@@ -5,6 +5,7 @@ go 1.25.2
 require (
 	github.com/cdvelop/devtui v0.2.9
 	github.com/cdvelop/goflare v0.0.27
+	github.com/cdvelop/tinydb v0.0.13
 	github.com/cdvelop/tinywasm v0.3.1
 	github.com/mark3labs/mcp-go v0.43.0
 	github.com/stretchr/testify v1.11.1
@@ -66,7 +67,7 @@ require (
 
 require (
 	github.com/cdvelop/assetmin v0.0.63
-	github.com/cdvelop/devbrowser v0.2.1
+	github.com/cdvelop/devbrowser v0.2.2
 	github.com/cdvelop/devwatch v0.0.42
 	github.com/cdvelop/goserver v0.1.3
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
