@@ -10,8 +10,10 @@ import (
 // ToolExecutor defines how a tool should be executed
 // Handlers implement this to provide execution logic without exposing internals
 // args: map of parameter name to value from MCP request
-// progress: channel to send progress messages back to caller
-type ToolExecutor func(args map[string]any, progress chan<- string)
+// progress: channel to send responses back to caller
+//   - string: text messages
+//   - BinaryData: binary data (images, files)
+type ToolExecutor func(args map[string]any, progress chan<- any)
 
 // ToolMetadata provides MCP tool configuration metadata
 // This is the standard interface that all handlers should implement
@@ -143,7 +145,7 @@ func convertToToolMetadata(source any) (ToolMetadata, error) {
 	// Extract Execute field (function)
 	if execField := sourceValue.FieldByName("Execute"); execField.IsValid() && execField.Kind() == reflect.Func {
 		// Convert to ToolExecutor by wrapping the function
-		meta.Execute = func(args map[string]any, progress chan<- string) {
+		meta.Execute = func(args map[string]any, progress chan<- any) {
 			// Create reflection values for call
 			execField.Call([]reflect.Value{
 				reflect.ValueOf(args),
