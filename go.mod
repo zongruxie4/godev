@@ -75,6 +75,6 @@ require (
 	golang.org/x/sys v0.36.0 // indirect
 )
 
-replace github.com/cdvelop/tinywasm => ../tinywasm
+//replace github.com/cdvelop/tinywasm => ../tinywasm
 
-replace github.com/cdvelop/devbrowser => ../devbrowser
+//replace github.com/cdvelop/devbrowser => ../devbrowser
