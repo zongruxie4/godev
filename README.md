@@ -124,3 +124,4 @@ Para problemas o soporte, por favor visita [GitHub Issues](https://github.com/cd
 
 ## [CONTRIBUTING](https://github.com/cdvelop/cdvelop/blob/main/CONTRIBUTING.md)
 
+...
