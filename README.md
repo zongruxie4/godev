@@ -26,7 +26,7 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 - No es compatible con frameworks frontend (React, Vue, etc.)  
 - No requiere conocimiento de WebAssembly (se maneja automáticamente)
 
-**Target**: Desarrolladores que aprenden Go o quieren simplicidad extrema con estructura `src/` convencional.
+**Target**: Desarrolladores que aprenden Go o quieren simplicidad con un stack tecnológico minimo.
 
 ## Características  
 
@@ -53,26 +53,36 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 
 ## Instalación
 
-### 📦 **Instalación Actual (Requiere Go version >= 1.25.2)**
+> 📦 **Instalación Actual (Requiere Go version >= 1.25.2)**
+### 1. Instalar Go desde su pagina oficial https://go.dev/dl/
+
+
+### 2. Verificar la versión instalada (debe ser >= 1.25.2)
 ```bash
-# 1. Instalar Go desde https://go.dev/dl/
 go version
-
-# 2. Instalar GoLite
-go install -v github.com/cdvelop/golite/cmd/golite@latest
-
-# 3. Usar en cualquier proyecto
-cd tu-proyecto-go
-golite
 ```
 
-## Uso
+### 3. Instalar GoLite
 
-### Modo Interactivo (Por Defecto)
 ```bash
-# Navega a tu directorio de proyecto y ejecuta:
-golite
+go install -v github.com/cdvelop/golite/cmd/golite@latest
 ```
+### 4. Crea una carpeta con el nombre de tu proyecto, ej: "miAppWeb" 
+```bash
+mkdir miAppWeb
+```
+
+### 5. Navega a la carpeta de tu proyecto
+```bash
+cd miAppWeb
+```
+
+### 6. Inicializa GoLite en tu proyecto
+```bash
+golite
+``` 
+
+
 **Eso es todo.** GoLite usa la estructura `src/` convencional y configura automáticamente el entorno de desarrollo con interfaz TUI completa.
 
 El servidor MCP para integración con LLMs se inicia automáticamente en `http://localhost:3030/mcp`. Ver [documentación MCP](docs/MCP.md) para más detalles.
@@ -83,7 +93,7 @@ GoLite detectará la estructura `src/` de tu proyecto y configurará el entorno 
 
 ## Estructura del Proyecto
 
-**⚠️ ESTRUCTURA OBLIGATORIA** - GoLite fuerza esta estructura para evitar archivos de configuración:
+**⚠️ ESTRUCTURA OBLIGATORIA** - GoLite fuerza esta estructura para evitar multiples archivos de configuración:
 
 ### 📁 [**Estructura Fija por Convención**](docs/PROJECT_STRUCTURE_EXAMPLE.md)
 
