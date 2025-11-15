@@ -53,7 +53,7 @@ Este proyecto está actualmente en desarrollo activo, especialmente la interfaz 
 
 ## Instalación
 
-### 📦 **Instalación Actual (Requiere Go)**
+### 📦 **Instalación Actual (Requiere Go version 1.25.2)**
 ```bash
 # 1. Instalar Go desde https://go.dev/dl/
 go version
