@@ -34,6 +34,7 @@ func (h *handler) AddSectionBUILD() {
 		AppRootDir:                  h.rootDir,
 		SourceDir:                   h.config.CmdAppServerDir(),
 		OutputDir:                   h.config.DeployAppServerDir(),
+		MainInputFile:               h.config.ServerFileName(),
 		ArgumentsForCompilingServer: func() []string { return []string{} },
 		ArgumentsToRunServer: func() []string {
 			return []string{
@@ -50,6 +51,7 @@ func (h *handler) AddSectionBUILD() {
 	h.wasmHandler = tinywasm.New(&tinywasm.Config{
 		AppRootDir:          h.rootDir,
 		SourceDir:           h.config.CmdWebClientDir(),
+		MainInputFile:       h.config.ClientFileName(),
 		OutputDir:           h.config.WebPublicDir(),
 		WasmExecJsOutputDir: filepath.Join(h.config.JsDir()),
 		Logger:              wasmLogger,

@@ -20,8 +20,8 @@ github.com/cdvelop/goflare v0.0.27 h1:SSaKNXKJbjoDFSalft2dZAiGJGEZxOLID+FhkaHwc8
 github.com/cdvelop/goflare v0.0.27/go.mod h1:NrVPSOvnJDSlWrnMbPpsZzkGlqdl74Jm6cv7K4DO5D4=
 github.com/cdvelop/gorun v0.0.14 h1:G1a6Nl/5W7IF9RHBGiULqQ+DbkEnS66CTh7yzUwuGJQ=
 github.com/cdvelop/gorun v0.0.14/go.mod h1:DhTPzWzM2D7QqZdZYDHulyYwFegovWaH7r0bX/6nRJQ=
-github.com/cdvelop/goserver v0.1.3 h1:JBoZYpKUBLIY2ugFct51FcsB0VcF/NTVnDMf9KKKOkw=
-github.com/cdvelop/goserver v0.1.3/go.mod h1:SGb/jrKXtHijWCVOaIJGgp9nqmsIF1YG85DvWae5lrI=
+github.com/cdvelop/goserver v0.1.7 h1:mCRwmDNuQABL4g5C4S/4X7y/clOlJHd/ppgtuJfcO7k=
+github.com/cdvelop/goserver v0.1.7/go.mod h1:j8Hse21nmpEiCMGyO9mGadRVVZhYRoKL0SrTEsLmD+c=
 github.com/cdvelop/mdgo v0.0.3 h1:j276BvzZ2PQJKllCsa5KwoLD2nMHPNo4Jwr4m6o1eC0=
 github.com/cdvelop/mdgo v0.0.3/go.mod h1:PSik5gSjVWrm5d1odtxhPVI0+a7k4ocsUwRUZMjUAe4=
 github.com/cdvelop/tinydb v0.0.13 h1:WnxrOg19ZIf4wWFgDPKrMYylANucG0OWpSb1UXNHiYY=

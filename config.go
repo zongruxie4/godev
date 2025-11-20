@@ -61,24 +61,38 @@ func (c *Config) DeployDir() string {
 	return "deploy"
 }
 
-// === CMD ENTRY POINTS ===
+// === CMD ENTRY POINTS (Source Directories) ===
 
-// CmdAppServerDir returns the relative appserver command directory path
-// Returns: "cmd/appserver"
+// CmdAppServerDir returns the relative appserver source directory path
+// Returns: "web" (with new structure using build tags)
 func (c *Config) CmdAppServerDir() string {
-	return filepath.Join(c.CmdDir(), "appserver")
+	return c.WebDir()
 }
 
-// CmdWebClientDir returns the relative webclient command directory path
-// Returns: "cmd/webclient"
+// CmdWebClientDir returns the relative webclient source directory path
+// Returns: "web" (with new structure using build tags)
 func (c *Config) CmdWebClientDir() string {
-	return filepath.Join(c.CmdDir(), "webclient")
+	return c.WebDir()
 }
 
-// CmdEdgeWorkerDir returns the relative edgeworker command directory path
-// Returns: "cmd/edgeworker"
+// CmdEdgeWorkerDir returns the relative edgeworker source directory path
+// Returns: "cmd/edgeworker" (edge workers remain separate)
 func (c *Config) CmdEdgeWorkerDir() string {
 	return filepath.Join(c.CmdDir(), "edgeworker")
+}
+
+// === SOURCE FILE NAMES (Convention Defaults) ===
+
+// ServerFileName returns the default server entry file name
+// Returns: "server.go" (convention with //go:build !wasm)
+func (c *Config) ServerFileName() string {
+	return "server.go"
+}
+
+// ClientFileName returns the default WASM client entry file name
+// Returns: "client.go" (convention with //go:build wasm)
+func (c *Config) ClientFileName() string {
+	return "client.go"
 }
 
 // === WEB DIRECTORIES ===
@@ -103,16 +117,16 @@ func (c *Config) JsDir() string {
 
 // === DEPLOY DIRECTORIES ===
 
-// DeployEdgeWorkerDir returns the relative edgeworker deployment directory path
-// Returns: "deploy/edgeworker"
-func (c *Config) DeployEdgeWorkerDir() string {
-	return filepath.Join(c.DeployDir(), "edgeworker")
-}
-
 // DeployAppServerDir returns the relative appserver deployment directory path
 // Returns: "deploy/appserver"
 func (c *Config) DeployAppServerDir() string {
 	return filepath.Join(c.DeployDir(), "appserver")
+}
+
+// DeployEdgeWorkerDir returns the relative edgeworker deployment directory path
+// Returns: "deploy/edgeworker"
+func (c *Config) DeployEdgeWorkerDir() string {
+	return filepath.Join(c.DeployDir(), "edgeworker")
 }
 
 // === CONFIGURATION ===
