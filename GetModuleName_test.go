@@ -23,7 +23,7 @@ func TestGetModuleName(t *testing.T) {
 		},
 		{
 			name:     "valid module with multiple levels",
-			path:     "app/src/modules/auth/login.go",
+			path:     "app/modules/auth/login.go",
 			expected: "auth",
 			wantErr:  false,
 		},

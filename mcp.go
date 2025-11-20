@@ -88,7 +88,7 @@ func (h *handler) ServeMCP() {
 	// === ENVIRONMENT TOOLS ===
 
 	s.AddTool(mcp.NewTool("project_structure",
-		mcp.WithDescription("Get Go project directory structure with file counts (shows src/cmd/appserver for backend, src/cmd/webclient for WASM frontend, deploy dirs, etc)."),
+		mcp.WithDescription("Get Go project directory structure with file counts (shows cmd/appserver for backend, cmd/webclient for WASM frontend, deploy dirs, etc)."),
 	), h.mcpToolProjectStructure)
 
 	s.AddTool(mcp.NewTool("check_requirements",

@@ -5,7 +5,7 @@ import (
 )
 
 // Config holds conventional configuration paths for Go projects
-// using the standard src/ directory structure
+// using the root directory as source
 type Config struct {
 	rootDir string               // Root directory (default: ".")
 	logger  func(message ...any) // Logging function
@@ -44,13 +44,13 @@ func (c *Config) SrcDir() string {
 }
 
 // CmdDir returns the relative command directory path
-// Returns: "./cmd"
+// Returns: "cmd"
 func (c *Config) CmdDir() string {
 	return filepath.Join(c.SrcDir(), "cmd")
 }
 
 // WebDir returns the relative web directory path
-// Returns: "src/web"
+// Returns: "web"
 func (c *Config) WebDir() string {
 	return filepath.Join(c.SrcDir(), "web")
 }
@@ -64,19 +64,19 @@ func (c *Config) DeployDir() string {
 // === CMD ENTRY POINTS ===
 
 // CmdAppServerDir returns the relative appserver command directory path
-// Returns: "src/cmd/appserver"
+// Returns: "cmd/appserver"
 func (c *Config) CmdAppServerDir() string {
 	return filepath.Join(c.CmdDir(), "appserver")
 }
 
 // CmdWebClientDir returns the relative webclient command directory path
-// Returns: "src/cmd/webclient"
+// Returns: "cmd/webclient"
 func (c *Config) CmdWebClientDir() string {
 	return filepath.Join(c.CmdDir(), "webclient")
 }
 
 // CmdEdgeWorkerDir returns the relative edgeworker command directory path
-// Returns: "src/cmd/edgeworker"
+// Returns: "cmd/edgeworker"
 func (c *Config) CmdEdgeWorkerDir() string {
 	return filepath.Join(c.CmdDir(), "edgeworker")
 }
@@ -84,19 +84,19 @@ func (c *Config) CmdEdgeWorkerDir() string {
 // === WEB DIRECTORIES ===
 
 // WebPublicDir returns the relative web public directory path
-// Returns: "src/web/public"
+// Returns: "web/public"
 func (c *Config) WebPublicDir() string {
 	return filepath.Join(c.WebDir(), "public")
 }
 
 // WebUIDir returns the relative web UI directory path
-// Returns: "src/web/ui"
+// Returns: "web/ui"
 func (c *Config) WebUIDir() string {
 	return filepath.Join(c.WebDir(), "ui")
 }
 
 // JsDir returns the relative web JavaScript directory path
-// Returns: "src/web/ui/js"
+// Returns: "web/ui/js"
 func (c *Config) JsDir() string {
 	return filepath.Join(c.WebUIDir(), "js")
 }

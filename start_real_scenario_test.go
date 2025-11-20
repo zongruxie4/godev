@@ -122,7 +122,7 @@ func TestStartRealScenario(t *testing.T) {
 		"three",       // from medical/file3.js (not modified)
 		"file5",       // from medical/file5.js (not modified)
 		"mainconten1", // from medical/mainconten1.js (not modified)
-		"modified_3",  // from src/web/ui/theme.js (was modified)
+		"modified_3",  // from web/ui/theme.js (was modified)
 	}
 
 	missing := []string{}

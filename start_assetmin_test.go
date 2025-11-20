@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cdvelop/devtui"
+	"github.com/cdvelop/tinydb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,6 +43,11 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 		rootDir:  tmp,
 		exitChan: make(chan bool),
 	}
+
+	// Initialize db (required for devbrowser)
+	db, err := tinydb.New(filepath.Join(tmp, ".env"), func(message ...any) { t.Log(message...) }, FileStore{})
+	require.NoError(t, err)
+	h.db = db
 
 	// minimal tui so AddSectionBUILD can proceed
 	h.tui = devtui.NewTUI(&devtui.TuiConfig{

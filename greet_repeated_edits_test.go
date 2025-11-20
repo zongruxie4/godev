@@ -25,11 +25,11 @@ func TestGreetFileRepeatedEdits(t *testing.T) {
 	tmp := t.TempDir()
 
 	// Create realistic project structure
-	err := os.MkdirAll(filepath.Join(tmp, "src/cmd/webclient"), 0755)
+	err := os.MkdirAll(filepath.Join(tmp, "cmd/webclient"), 0755)
 	require.NoError(t, err)
-	err = os.MkdirAll(filepath.Join(tmp, "src/pkg/greet"), 0755)
+	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
 	require.NoError(t, err)
-	err = os.MkdirAll(filepath.Join(tmp, "src/web/public"), 0755)
+	err = os.MkdirAll(filepath.Join(tmp, "web/public"), 0755)
 	require.NoError(t, err)
 
 	// Create go.mod
@@ -43,7 +43,7 @@ require github.com/cdvelop/tinystring v0.8.3
 	require.NoError(t, err)
 
 	// Create greet.go
-	greetFile := filepath.Join(tmp, "src/pkg/greet/greet.go")
+	greetFile := filepath.Join(tmp, "pkg/greet/greet.go")
 	greetContent := `package greet
 
 import . "github.com/cdvelop/tinystring"
@@ -56,11 +56,11 @@ func Greet(target string) string {
 	require.NoError(t, err)
 
 	// Create main.go
-	mainGoFile := filepath.Join(tmp, "src/cmd/webclient/main.go")
+	mainGoFile := filepath.Join(tmp, "cmd/webclient/main.go")
 	mainGoContent := `package main
 
 import (
-	"example/src/pkg/greet"
+	"example/pkg/greet"
 	"syscall/js"
 )
 
