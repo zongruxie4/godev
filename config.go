@@ -118,9 +118,9 @@ func (c *Config) JsDir() string {
 // === DEPLOY DIRECTORIES ===
 
 // DeployAppServerDir returns the relative appserver deployment directory path
-// Returns: "deploy/appserver"
+// Returns: "web" (server compiles in same directory as source)
 func (c *Config) DeployAppServerDir() string {
-	return filepath.Join(c.DeployDir(), "appserver")
+	return c.WebDir()
 }
 
 // DeployEdgeWorkerDir returns the relative edgeworker deployment directory path

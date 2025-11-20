@@ -133,11 +133,14 @@ myapp/
 │   ├── server.go       # Backend code (//go:build !wasm)
 │   ├── client.go       # Frontend WASM code (//go:build wasm)
 │   ├── shared.go       # Shared code between client/server (no build tags)
+│   ├── server          # Compiled server binary (same name as source file)
 │   ├── public/         # Static assets (auto-generated WASM, CSS, JS)
+│   │   └── app.wasm    # Compiled WASM binary
 │   └── templates/      # HTML templates
-└── deploy/             # Build output (ignored by git)
-    ├── server          # Compiled backend binary
-    └── edgeworker      # Optional edge worker binary
+├── cmd/
+│   └── edgeworker/     # Optional Cloudflare Workers code
+└── deploy/
+    └── edgeworker/     # Compiled edge worker output
 ```
 
 **Why This Structure?**

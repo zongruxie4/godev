@@ -6,7 +6,7 @@ require (
 	github.com/cdvelop/devtui v0.2.15
 	github.com/cdvelop/goflare v0.0.27
 	github.com/cdvelop/tinydb v0.0.13
-	github.com/cdvelop/tinywasm v0.3.2
+	github.com/cdvelop/tinywasm v0.3.4
 	github.com/mark3labs/mcp-go v0.43.0
 	github.com/stretchr/testify v1.11.1
 )
@@ -69,7 +69,7 @@ require (
 	github.com/cdvelop/assetmin v0.0.63
 	github.com/cdvelop/devbrowser v0.2.2
 	github.com/cdvelop/devwatch v0.0.42
-	github.com/cdvelop/goserver v0.1.7
+	github.com/cdvelop/goserver v0.1.8
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
