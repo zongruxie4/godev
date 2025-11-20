@@ -38,13 +38,13 @@ func (c *Config) GetAppName() string {
 // === BASE DIRECTORIES ===
 
 // SrcDir returns the relative source directory path
-// Returns: "src"
+// Returns: "."
 func (c *Config) SrcDir() string {
-	return "src"
+	return "."
 }
 
 // CmdDir returns the relative command directory path
-// Returns: "src/cmd"
+// Returns: "./cmd"
 func (c *Config) CmdDir() string {
 	return filepath.Join(c.SrcDir(), "cmd")
 }
