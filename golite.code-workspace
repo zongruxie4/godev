@@ -4,31 +4,22 @@
 			"path": "."
 		},
 		{
-			"path": "../tinywasm"
+			"path": "../devwatch"
 		},
 		{
 			"path": "../goserver"
 		},
 		{
-			"path": "../mdgo"
+			"path": "../tinywasm"
 		},
 		{
-			"path": "../assetmin"
+			"path": "../gobuild"
 		},
 		{
-			"path": "../devbrowser"
+			"path": "../gosite"
 		},
 		{
-			"path": "../devtui"
-		},
-		{
-			"path": "../goflare"
-		},
-		{
-			"path": "../tinyimage"
-		},
-		{
-			"path": "../tinydb"
+			"path": "../tinystring"
 		}
 	],
 	"settings": {
