@@ -69,7 +69,7 @@ require (
 	github.com/cdvelop/assetmin v0.0.63
 	github.com/cdvelop/devbrowser v0.2.2
 	github.com/cdvelop/devwatch v0.0.42
-	github.com/cdvelop/goserver v0.1.10
+	github.com/cdvelop/goserver v0.1.12
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
