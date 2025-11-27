@@ -80,35 +80,32 @@ func (h *handler) AddSectionBUILD() {
 		WebFilesFolder: func() string {
 			return filepath.Join(h.rootDir, h.config.WebPublicDir())
 		},
-		Logger:                  assetsLogger,
-		GetRuntimeInitializerJS: func() (string, error) { return "", nil },
-		AppName:                 h.frameworkName,
+		Logger: assetsLogger,
+		GetRuntimeInitializerJS: func() (string, error) {
+			return h.wasmHandler.JavascriptForInitializing()
+		},
+		AppName: h.frameworkName,
 	}).CreateDefaultIndexHtmlIfNotExist().
 		CreateDefaultCssIfNotExist().
 		CreateDefaultJsIfNotExist().
 		CreateDefaultFaviconIfNotExist()
 
-	// Wire up TinyWasm to AssetMin
-	h.wasmHandler.OnWasmExecChange = func() {
-		// Get the new content
-		content, err := h.wasmHandler.JavascriptForInitializing()
-		if err != nil {
-			wasmLogger("Error getting wasm_exec.js content:", err)
-			return
-		}
-		// Update AssetMin
-		// We need to use the correct file name. Config has WasmExecJsOutputDir but that's a dir.
-		// We assume "wasm_exec.js"
-		err = h.assetsHandler.UpdateAssetContent("wasm_exec.js", []byte(content))
-		if err != nil {
-			wasmLogger("Error updating assetmin with wasm_exec.js:", err)
-		} else {
-			wasmLogger("Updated wasm_exec.js via AssetMin")
-		}
-	}
-
 	// BROWSER
 	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan, browserLogger)
+
+	// Wire up TinyWasm to AssetMin
+	h.wasmHandler.OnWasmExecChange = func() {
+		// Notify AssetMin to refresh JS assets (this will pull the new initializer JS)
+		h.assetsHandler.RefreshAsset(".js")
+		wasmLogger("Refreshed script.js via AssetMin")
+
+		// Reload the browser to apply changes
+		if err := h.browser.Reload(); err != nil {
+			wasmLogger("Error reloading browser:", err)
+		} else {
+			wasmLogger("Browser reload triggered")
+		}
+	}
 
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{

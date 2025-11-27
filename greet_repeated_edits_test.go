@@ -24,12 +24,13 @@ func TestGreetFileRepeatedEdits(t *testing.T) {
 
 	tmp := t.TempDir()
 
-	// Create realistic project structure
-	err := os.MkdirAll(filepath.Join(tmp, "cmd/webclient"), 0755)
+	// Create config to get proper paths
+	config := NewConfig(tmp, func(messages ...any) {})
+
+	// Create realistic project structure (golite expects web/ directory)
+	err := os.MkdirAll(filepath.Join(tmp, config.WebDir()), 0755)
 	require.NoError(t, err)
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
-	require.NoError(t, err)
-	err = os.MkdirAll(filepath.Join(tmp, "web/public"), 0755)
 	require.NoError(t, err)
 
 	// Create go.mod
@@ -54,10 +55,13 @@ func Greet(target string) string {
 `
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
 	require.NoError(t, err)
+	// Create web/client.go (golite's expected WASM entry point)
+	// This file MUST exist before starting golite, otherwise golite creates a default one
+	// without the greet import
+	clientGoFile := filepath.Join(tmp, config.WebDir(), config.ClientFileName())
+	clientGoContent := `//go:build wasm
 
-	// Create main.go
-	mainGoFile := filepath.Join(tmp, "cmd/webclient/main.go")
-	mainGoContent := `package main
+package main
 
 import (
 	"example/pkg/greet"
@@ -72,7 +76,7 @@ func main() {
 	select {}
 }
 `
-	err = os.WriteFile(mainGoFile, []byte(mainGoContent), 0644)
+	err = os.WriteFile(clientGoFile, []byte(clientGoContent), 0644)
 	require.NoError(t, err)
 
 	// Run go mod tidy
