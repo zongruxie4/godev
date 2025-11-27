@@ -4,8 +4,8 @@ github.com/bahlo/generic-list-go v0.2.0 h1:5sz/EEAK+ls5wF+NeqDpk5+iNdMDXrh3z3nPn
 github.com/bahlo/generic-list-go v0.2.0/go.mod h1:2KvAjgMlE5NNynlg/5iLrrCCZ2+5xWbdbCW3pNTGyYg=
 github.com/buger/jsonparser v1.1.1 h1:2PnMjfWD7wBILjqQbt530v576A/cAbQvEW9gGIpYMUs=
 github.com/buger/jsonparser v1.1.1/go.mod h1:6RYKKt7H4d4+iWqouImQ9R2FZql3VbhNgx27UK13J/0=
-github.com/cdvelop/assetmin v0.0.65 h1:TfmCUXf1S8wZrVNeGGqMyLI0mxPdjPzx00OFuH5kqLA=
-github.com/cdvelop/assetmin v0.0.65/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
+github.com/cdvelop/assetmin v0.0.66 h1:kX3Dplgr0nqUJqLO48OAME9Wl8m8U5MW6MqIAjO6TFk=
+github.com/cdvelop/assetmin v0.0.66/go.mod h1:CsNxqvNoNvGYhMzbEmpnfKKcOWfRaVLsLX9J2t38Kr4=
 github.com/cdvelop/devbrowser v0.2.2 h1:bDU2gl61uhCQGHcYLP0tSCb10S0WSGFNvqkn8D7ehK4=
 github.com/cdvelop/devbrowser v0.2.2/go.mod h1:qDpklLvy5f7iV4doE1/aeuBtg5BznFqqWdyintzjwBQ=
 github.com/cdvelop/devtui v0.2.15 h1:IYhPapoqhL+kGCPNX2MUgVDRtGnT4RSuUxZQflpQ31E=

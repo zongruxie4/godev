@@ -66,7 +66,7 @@ require (
 )
 
 require (
-	github.com/cdvelop/assetmin v0.0.65
+	github.com/cdvelop/assetmin v0.0.66
 	github.com/cdvelop/devbrowser v0.2.2
 	github.com/cdvelop/devwatch v0.0.42
 	github.com/cdvelop/goserver v0.1.12
