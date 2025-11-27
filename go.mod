@@ -6,7 +6,7 @@ require (
 	github.com/cdvelop/devtui v0.2.15
 	github.com/cdvelop/goflare v0.0.27
 	github.com/cdvelop/tinydb v0.0.13
-	github.com/cdvelop/tinywasm v0.3.4
+	github.com/cdvelop/tinywasm v0.3.6
 	github.com/mark3labs/mcp-go v0.43.0
 	github.com/stretchr/testify v1.11.1
 )
