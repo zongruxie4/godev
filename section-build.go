@@ -73,11 +73,11 @@ func (h *handler) AddSectionBUILD() {
 	}).CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
-	h.assetsHandler = NewAssetMin(&AssetConfig{
+	h.assetsHandler = NewAssetMin(&Config{
 		ThemeFolder: func() string {
 			return filepath.Join(h.rootDir, h.config.WebUIDir())
 		},
-		WebFilesFolder: func() string {
+		OutputDir: func() string {
 			return filepath.Join(h.rootDir, h.config.WebPublicDir())
 		},
 		Logger: assetsLogger,
