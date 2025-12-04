@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"time"
 
-	. "github.com/cdvelop/assetmin"
+	"github.com/cdvelop/assetmin"
 	"github.com/cdvelop/devbrowser"
 	"github.com/cdvelop/devwatch"
 	"github.com/cdvelop/goserver"
@@ -73,22 +73,16 @@ func (h *handler) AddSectionBUILD() {
 	}).CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
-	h.assetsHandler = NewAssetMin(&Config{
-		ThemeFolder: func() string {
-			return filepath.Join(h.rootDir, h.config.WebUIDir())
-		},
-		OutputDir: func() string {
-			return filepath.Join(h.rootDir, h.config.WebPublicDir())
-		},
-		Logger: assetsLogger,
+	//ASSETS
+	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{
+		OutputDir: filepath.Join(h.rootDir, h.config.WebPublicDir()),
+		Logger:    assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) {
 			return h.wasmHandler.JavascriptForInitializing()
 		},
 		AppName: h.frameworkName,
-	}).CreateDefaultIndexHtmlIfNotExist().
-		CreateDefaultCssIfNotExist().
-		CreateDefaultJsIfNotExist().
-		CreateDefaultFaviconIfNotExist()
+	})
+	h.assetsHandler.SetWorkMode(assetmin.DiskMode)
 
 	// BROWSER
 	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan, browserLogger)
@@ -110,7 +104,7 @@ func (h *handler) AddSectionBUILD() {
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
 		AppRootDir:         h.config.RootDir(),
-		FilesEventHandlers: []devwatch.FilesEventHandlers{h.assetsHandler, h.wasmHandler, h.serverHandler},
+		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmHandler, h.serverHandler},
 		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
 		BrowserReload:      h.browser.Reload,
 		Logger:             watchLogger,

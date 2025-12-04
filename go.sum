@@ -28,8 +28,8 @@ github.com/cdvelop/tinydb v0.0.13 h1:WnxrOg19ZIf4wWFgDPKrMYylANucG0OWpSb1UXNHiYY
 github.com/cdvelop/tinydb v0.0.13/go.mod h1:onXEJAjIThEMXGURcyTFgLGNFOH2xWwbD+HGS7XPFyo=
 github.com/cdvelop/tinystring v0.11.0 h1:CGZt2u3JoRyxAFrpKNICGVDCHP2bI0d8ejxFlgo8SYQ=
 github.com/cdvelop/tinystring v0.11.0/go.mod h1:m12IsLVkhIRv/kA7bercPtzfdZhx2WtuZUPZWZhUsgw=
-github.com/cdvelop/tinytime v0.2.3 h1:mUn4tsYT9ogXGRtPe5GLu5BB9MEBKszUR1RtP/hPj3M=
-github.com/cdvelop/tinytime v0.2.3/go.mod h1:r4Z6Y622BnLLCtnSiv7QJKhzpyxGiJjXtqCGgjCUCNQ=
+github.com/cdvelop/tinytime v0.2.6 h1:+XGH9nm85yoQzZeG0TZ8eJpWKdaistIbxHI37PVth2o=
+github.com/cdvelop/tinytime v0.2.6/go.mod h1:Qge1Lm+JZKoKZxHWBEyDtSVrH1gGBgKjoz+doFmCyEU=
 github.com/cdvelop/tinywasm v0.3.6 h1:OyiweELpSBsCmKpijKOeDRz7HHLCPWgLbR/iVAIwwdQ=
 github.com/cdvelop/tinywasm v0.3.6/go.mod h1:MzPFRrr8LJW9BuZEmDep/FlooRo+CMef36sJ4gmQArk=
 github.com/cdvelop/unixid v0.2.9 h1:ahV/zXv6wOthklfDE+6Jnfw2kJW/cvQiNyFqyVgtY74=

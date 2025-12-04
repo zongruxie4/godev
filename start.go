@@ -4,7 +4,7 @@ import (
 	"os"
 	"sync"
 
-	. "github.com/cdvelop/assetmin"
+	"github.com/cdvelop/assetmin"
 	"github.com/cdvelop/devbrowser"
 	"github.com/cdvelop/devwatch"
 	"github.com/cdvelop/goflare"
@@ -31,7 +31,7 @@ type handler struct {
 
 	// Build dependencies
 	serverHandler *goserver.ServerHandler
-	assetsHandler *AssetMin
+	assetsHandler *assetmin.AssetMin
 	wasmHandler   *tinywasm.TinyWasm
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
