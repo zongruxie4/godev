@@ -1,7 +1,7 @@
-# GoLite: Refactor MCP ToolExecutor to Use Channel-Based Progress
+# TinyWasm: Refactor MCP ToolExecutor to Use Channel-Based Progress
 
 ## Objective
-Refactor the `ToolExecutor` function signature in GoLite's MCP layer from callback-based `func(msgs ...any)` with error return to channel-based `chan<- string` without error return. This aligns with DevTUI and TinyWasm's new channel-based interfaces.
+Refactor the `ToolExecutor` function signature in TinyWasm's MCP layer from callback-based `func(msgs ...any)` with error return to channel-based `chan<- string` without error return. This aligns with DevTUI and TinyWasm's new channel-based interfaces.
 
 ## Current Signature
 ```go
@@ -230,7 +230,7 @@ Execute: func(args map[string]any, progress chan<- string) {
 ### Reflection Conversion
 The reflection code in `convertToToolMetadata` automatically wraps the handler's Execute function:
 - Accepts handler function with signature `func(map[string]any, chan<- string)`
-- Wraps it to match GoLite's `ToolExecutor` type
+- Wraps it to match TinyWasm's `ToolExecutor` type
 - Handles type differences between packages (e.g., `tinywasm.ToolExecutor` → `golite.ToolExecutor`)
 
 ## Breaking Changes
@@ -283,7 +283,7 @@ This refactor must be done AFTER:
 1. ✅ DevTUI updated to use `chan<- string`
 2. ✅ TinyWasm updated to use `chan<- string`
 
-Then GoLite can be updated to match the new interface.
+Then TinyWasm can be updated to match the new interface.
 
 ## Notes
 - No test files need updating (mcp_test.go tests tool stubs, not Execute functions)

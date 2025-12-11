@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"bytes"
@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cdvelop/devtui"
-	"github.com/cdvelop/tinydb"
+	"github.com/tinywasm/devtui"
+	"github.com/tinywasm/kvdb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,7 +45,7 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 	}
 
 	// Initialize db (required for devbrowser)
-	db, err := tinydb.New(filepath.Join(tmp, ".env"), func(message ...any) { t.Log(message...) }, FileStore{})
+	db, err := kvdb.New(filepath.Join(tmp, ".env"), func(message ...any) { t.Log(message...) }, FileStore{})
 	require.NoError(t, err)
 	h.db = db
 

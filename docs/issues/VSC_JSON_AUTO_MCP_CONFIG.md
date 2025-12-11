@@ -1,10 +1,10 @@
 # VS Code MCP JSON Auto-Configuration
 
 ## Overview
-Automatically detect and configure VS Code's MCP (Model Context Protocol) integration for GoLite during installation. Similar to TinyWasm's `vscode_config.go` approach for WASM environment setup, this feature ensures GoLite's MCP server is automatically registered in VS Code's configuration without manual user intervention.
+Automatically detect and configure VS Code's MCP (Model Context Protocol) integration for TinyWasm during installation. Similar to TinyWasm's `vscode_config.go` approach for WASM environment setup, this feature ensures TinyWasm's MCP server is automatically registered in VS Code's configuration without manual user intervention.
 
 ## Problem Statement
-Users installing GoLite must manually edit `~/.config/Code/User/profiles/[profile-id]/mcp.json` to add:
+Users installing TinyWasm must manually edit `~/.config/Code/User/profiles/[profile-id]/mcp.json` to add:
 ```json
 "golite-mcp": {
   "url": "http://localhost:3030/mcp",
@@ -12,19 +12,19 @@ Users installing GoLite must manually edit `~/.config/Code/User/profiles/[profil
 }
 ```
 
-This creates friction after installing GoLite via `go install github.com/cdvelop/golite/cmd/golite@latest` and may prevent users from discovering GoLite's MCP capabilities.
+This creates friction after installing TinyWasm via `go install github.com/tinywasm/tinywasm/cmd/golite@latest` and may prevent users from discovering TinyWasm's MCP capabilities.
 
 ## Requirements
 
 ### Primary Goals
 1. **Silent Auto-Detection**: Detect VS Code installation without user prompts
-2. **Auto-Configuration**: Add/update GoLite MCP configuration in `mcp.json`
-3. **Zero User Intervention**: Work seamlessly on first GoLite execution after `go install`
+2. **Auto-Configuration**: Add/update TinyWasm MCP configuration in `mcp.json`
+3. **Zero User Intervention**: Work seamlessly on first TinyWasm execution after `go install`
 4. **Cross-Platform Support**: Linux, macOS, Windows
 5. **Non-Invasive**: Fail silently if VS Code not found or permissions denied
 
 ### Constraints
-- Execute on first GoLite startup (in `main()` before `ServeMCP()`)
+- Execute on first TinyWasm startup (in `main()` before `ServeMCP()`)
 - Do NOT create directories if they don't exist
 - Do NOT prompt user for permissions
 - Do NOT create backup files
@@ -187,7 +187,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
         }
     }
     
-    // Add/update GoLite MCP entry
+    // Add/update TinyWasm MCP entry
     config.Servers["golite-mcp"] = ServerConfig{
         URL:  fmt.Sprintf("http://localhost:%s/mcp", mcpPort),
         Type: "http",
@@ -245,17 +245,17 @@ func ConfigureVSCodeMCP() {
 | Invalid JSON in existing file | Return silently |
 | Unsupported OS | Return silently |
 
-**Rationale**: Configuration assistance is a convenience feature, not a requirement. GoLite functions normally without VS Code integration.
+**Rationale**: Configuration assistance is a convenience feature, not a requirement. TinyWasm functions normally without VS Code integration.
 
 ## Testing Strategy
 
 ### Test Cases
 1. **First Run After go install**
-   - VS Code installed, no `mcp.json` → Create file with GoLite config
+   - VS Code installed, no `mcp.json` → Create file with TinyWasm config
    
 2. **Existing Configuration**
-   - `mcp.json` exists with other servers → Add GoLite entry
-   - `mcp.json` exists with old GoLite config → Update to latest
+   - `mcp.json` exists with other servers → Add TinyWasm entry
+   - `mcp.json` exists with old TinyWasm config → Update to latest
    
 3. **Edge Cases**
    - No VS Code installed → Silent no-op
@@ -306,14 +306,14 @@ Follow TinyWasm's testing approach:
 - [VS Code User Settings](https://code.visualstudio.com/docs/getstarted/settings)
 - [MCP Protocol Specification](https://github.com/modelcontextprotocol/specification)
 
-### Related GoLite Files
+### Related TinyWasm Files
 - `mcp.go`: MCP server implementation and port definition
 - `cmd/golite/main.go`: Entry point for configuration call
 
 ### Installation Method
-Users install GoLite with:
+Users install TinyWasm with:
 ```bash
-go install -v github.com/cdvelop/golite/cmd/golite@latest
+go install -v github.com/tinywasm/tinywasm/cmd/golite@latest
 ```
 Configuration happens automatically on first execution.
 

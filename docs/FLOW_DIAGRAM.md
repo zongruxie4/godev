@@ -1,10 +1,10 @@
-# GoLite Architecture & Flow
+# TinyWasm Architecture & Flow
 
-This document outlines the internal architecture, component interaction, and data flow of the GoLite framework.
+This document outlines the internal architecture, component interaction, and data flow of the TinyWasm framework.
 
 ## Overview
 
-GoLite acts as an intelligent orchestrator and build system that manages the lifecycle of a Go-based web application. It integrates several specialized managers to handle asset processing, compilation, server management, and browser automation.
+TinyWasm acts as an intelligent orchestrator and build system that manages the lifecycle of a Go-based web application. It integrates several specialized managers to handle asset processing, compilation, server management, and browser automation.
 
 ## Core Components
 
@@ -20,7 +20,7 @@ GoLite acts as an intelligent orchestrator and build system that manages the lif
 
 ## Operational Modes
 
-GoLite automatically detects the mode of operation based on the project structure:
+TinyWasm automatically detects the mode of operation based on the project structure:
 
 1.  **Component Mode (SSR/In-Memory)**
     *   **Trigger**: No `web/server.go` exists.

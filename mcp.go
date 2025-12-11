@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// MCPPort is the fixed port for GoLite's MCP HTTP server
+// MCPPort is the fixed port for TinyWasm's MCP HTTP server
 // Using port 3030 (above 1024 to avoid needing root privileges)
 const MCPPort = "3030"
 
@@ -19,7 +19,7 @@ const MCPPort = "3030"
 func (h *handler) ServeMCP() {
 	// Create MCP server with tool capabilities
 	s := server.NewMCPServer(
-		"GoLite - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
+		"TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
 		"1.0.0",
 		server.WithToolCapabilities(true),
 	)
@@ -27,7 +27,7 @@ func (h *handler) ServeMCP() {
 	// === STATUS & MONITORING TOOLS ===
 
 	s.AddTool(mcp.NewTool("golite_status",
-		mcp.WithDescription("Get comprehensive status of GoLite full-stack dev environment: Go server (running/port), WASM compilation (output dir), browser (URL), and asset watching. Use this first to understand the current state of the development environment."),
+		mcp.WithDescription("Get comprehensive status of TinyWasm full-stack dev environment: Go server (running/port), WASM compilation (output dir), browser (URL), and asset watching. Use this first to understand the current state of the development environment."),
 	), h.mcpToolGetStatus)
 
 	s.AddTool(mcp.NewTool("golite_get_logs",
@@ -142,7 +142,7 @@ func (h *handler) ServeMCP() {
 func (h *handler) mcpToolGetStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	// Check if handler is fully initialized
 	if h.config == nil {
-		return mcp.NewToolResultError("GoLite is still initializing. Please try again in a moment."), nil
+		return mcp.NewToolResultError("TinyWasm is still initializing. Please try again in a moment."), nil
 	}
 
 	status := map[string]any{

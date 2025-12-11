@@ -1,9 +1,9 @@
-package golite
+package tinywasm
 
 // ConfigureVSCodeMCP attempts to automatically configure VS Code's MCP integration.
 // This function is completely silent and non-blocking - it will not produce errors or logs.
 // It detects VS Code installation, resolves all profiles, and updates mcp.json files
-// with GoLite's MCP server configuration.
+// with TinyWasm's MCP server configuration.
 //
 // Behavior:
 //   - Detects platform-specific VS Code paths (Linux, macOS, Windows)

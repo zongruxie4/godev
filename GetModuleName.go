@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"errors"

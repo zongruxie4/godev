@@ -1,16 +1,16 @@
-package golite
+package tinywasm
 
 import (
 	"os"
 	"sync"
 
-	"github.com/cdvelop/assetmin"
-	"github.com/cdvelop/devbrowser"
-	"github.com/cdvelop/devwatch"
-	"github.com/cdvelop/goflare"
-	"github.com/cdvelop/goserver"
-	"github.com/cdvelop/tinydb"
-	"github.com/cdvelop/tinywasm"
+	"github.com/tinywasm/assetmin"
+	"github.com/tinywasm/devbrowser"
+	"github.com/tinywasm/devwatch"
+	"github.com/tinywasm/goflare"
+	"github.com/tinywasm/server"
+	"github.com/tinywasm/kvdb"
+	"github.com/tinywasm/client"
 )
 
 type Store interface {
@@ -21,7 +21,7 @@ type Store interface {
 // handler contains application state and dependencies
 // CRITICAL: This struct does NOT import DevTUI
 type handler struct {
-	frameworkName string // eg: "GOLITE", "DEVGO", etc.
+	frameworkName string // eg: "TINYWASM", "DEVGO", etc.
 	rootDir       string
 	config        *Config
 	tui           TuiInterface // Interface defined in GOLITE, not DevTUI
@@ -30,9 +30,9 @@ type handler struct {
 	db Store // Key-value store interface
 
 	// Build dependencies
-	serverHandler *goserver.ServerHandler
+	serverHandler *server.ServerHandler
 	assetsHandler *assetmin.AssetMin
-	wasmHandler   *tinywasm.TinyWasm
+	wasmHandler   *client.TinyWasm
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
 
@@ -50,14 +50,14 @@ type handler struct {
 // CRITICAL: UI instance created in main.go, passed here as interface
 func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool) {
 
-	db, err := tinydb.New(".env", logger, FileStore{})
+	db, err := kvdb.New(".env", logger, FileStore{})
 	if err != nil {
 		logger("Failed to initialize database:", err)
 		return
 	}
 
 	h := &handler{
-		frameworkName: "GOLITE",
+		frameworkName: "TINYWASM",
 		rootDir:       rootDir,
 		tui:           ui, // UI passed from main.go
 		exitChan:      exitChan,

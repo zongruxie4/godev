@@ -63,7 +63,7 @@ golite --mcp-port 8080    # UI + MCP HTTP server (puerto 8080)
 
 ```
 ┌─────────────────────────────────────────┐
-│           GoLite Process                │
+│           TinyWasm Process                │
 ├─────────────────────────────────────────┤
 │                                         │
 │  ┌──────────────┐  ┌─────────────────┐ │
@@ -177,4 +177,4 @@ curl -X POST http://localhost:3100/mcp \
 
 - [Bubble Tea Documentation](https://github.com/charmbracelet/bubbletea)
 - [MCP Specification - stdio transport](https://spec.modelcontextprotocol.io)
-- [DevTUI Implementation](https://github.com/cdvelop/devtui)
+- [DevTUI Implementation](https://github.com/tinywasm/devtui)

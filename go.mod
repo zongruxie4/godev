@@ -1,27 +1,20 @@
-module github.com/cdvelop/golite
+module github.com/tinywasm/app
 
 go 1.25.2
 
 require (
-	github.com/cdvelop/devtui v0.2.15
-	github.com/cdvelop/goflare v0.0.27
-	github.com/cdvelop/tinydb v0.0.13
-	github.com/cdvelop/tinywasm v0.3.6
 	github.com/mark3labs/mcp-go v0.43.0
 	github.com/stretchr/testify v1.11.1
+	github.com/tinywasm/client v0.3.8
+	github.com/tinywasm/devtui v0.2.20
+	github.com/tinywasm/goflare v0.0.36
+	github.com/tinywasm/kvdb v0.0.17
 )
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cdvelop/gobuild v0.0.16 // indirect
-	github.com/cdvelop/godepfind v0.0.15 // indirect
-	github.com/cdvelop/gorun v0.0.14 // indirect
-	github.com/cdvelop/mdgo v0.0.3 // indirect
-	github.com/cdvelop/tinystring v0.11.0 // indirect
-	github.com/cdvelop/tinytime v0.2.6 // indirect
-	github.com/cdvelop/unixid v0.2.9 // indirect
 	github.com/charmbracelet/bubbles v0.21.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.8 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
@@ -53,6 +46,13 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.3 // indirect
+	github.com/tinywasm/depfind v0.0.15 // indirect
+	github.com/tinywasm/fmt v0.11.0 // indirect
+	github.com/tinywasm/gobuild v0.0.16 // indirect
+	github.com/tinywasm/gorun v0.0.14 // indirect
+	github.com/tinywasm/mdgo v0.0.3 // indirect
+	github.com/tinywasm/time v0.2.6 // indirect
+	github.com/tinywasm/unixid v0.2.9 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
@@ -66,17 +66,17 @@ require (
 )
 
 require (
-	github.com/cdvelop/assetmin v0.0.67
-	github.com/cdvelop/devbrowser v0.2.2
-	github.com/cdvelop/devwatch v0.0.43
-	github.com/cdvelop/goserver v0.1.12
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.3 // indirect
+	github.com/tinywasm/assetmin v0.0.68
+	github.com/tinywasm/devbrowser v0.2.3
+	github.com/tinywasm/devwatch v0.0.45
+	github.com/tinywasm/server v0.1.14
 	golang.org/x/sys v0.36.0 // indirect
 )
 
-// replace github.com/cdvelop/devwatch => ../devwatch
+// replace github.com/tinywasm/devwatch => ../devwatch
 
-//replace github.com/cdvelop/tinywasm => ../tinywasm
+//replace github.com/tinywasm/client => ../tinywasm
 
-//replace github.com/cdvelop/devbrowser => ../devbrowser
+//replace github.com/tinywasm/devbrowser => ../devbrowser

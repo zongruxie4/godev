@@ -1,11 +1,11 @@
-# Refactoring Plan for GoLite
+# Refactoring Plan for TinyWasm
 
 ## Goal Description
 Wire `tinywasm` and `assetmin` together in `golite` using the new shared `Store` and direct update mechanisms.
 
 ## Proposed Changes
 
-### GoLite
+### TinyWasm
 
 #### [MODIFY] [section-build.go](file:///home/cesar/Dev/Pkg/Mine/golite/section-build.go) (or relevant handler file)
 - **Implement Store**: Ensure `golite`'s handler implements the `Store` interface required by `tinywasm`.

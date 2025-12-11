@@ -1,6 +1,6 @@
-# GoLite MCP Server
+# TinyWasm MCP Server
 
-**LLM control for GoLite development environment**
+**LLM control for TinyWasm development environment**
 
 ## Quick Start
 

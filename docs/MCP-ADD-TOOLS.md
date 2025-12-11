@@ -1,13 +1,13 @@
 # MCP Tools Integration Guide
 
 ## Overview
-This guide explains how to add new MCP (Model Context Protocol) tools to GoLite using a reflection-based metadata pattern with **complete decoupling** between the MCP framework layer and domain handler logic.
+This guide explains how to add new MCP (Model Context Protocol) tools to TinyWasm using a reflection-based metadata pattern with **complete decoupling** between the MCP framework layer and domain handler logic.
 
 ## Architecture Principles
 
 **Key Rule:** Domain handlers (TinyWasm, DevBrowser, etc.) should NEVER import or know about MCP concepts.
 
-**Pattern:** Handlers expose all their tools in a single method that returns `[]ToolMetadata` with embedded execution functions. GoLite uses a **generic executor** that works for ALL tools without knowing their names or implementations.
+**Pattern:** Handlers expose all their tools in a single method that returns `[]ToolMetadata` with embedded execution functions. TinyWasm uses a **generic executor** that works for ALL tools without knowing their names or implementations.
 
 ## Adding MCP Tools to a Handler
 
@@ -100,7 +100,7 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
 - `Execute` receives `args` (parameters) and `progress` (send-only channel for messages)
 - `Execute` does NOT return `error`; use the `progress` channel to report success or errors
 
-### Step 3: GoLite Registration (Already Done - No Code Needed!)
+### Step 3: TinyWasm Registration (Already Done - No Code Needed!)
 
 In `golite/mcp.go`, tools are loaded automatically with a **generic executor**:
 
@@ -120,7 +120,7 @@ if h.wasmHandler != nil {
 **Notice:** 
 - ✅ No `switch` statement on tool names
 - ✅ No individual handler functions per tool
-- ✅ GoLite doesn't know anything about "wasm_set_mode" or any specific tool
+- ✅ TinyWasm doesn't know anything about "wasm_set_mode" or any specific tool
 - ✅ Just loop and register - works for ANY handler
 
 
@@ -169,7 +169,7 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 - ❌ Separate handler functions per tool (`mcpToolWasmSetMode`, `mcpToolWasmRecompile`, etc.)
 - ❌ Switch statements mapping tool names to implementations
 - ❌ Duplicate code for extracting args and collecting output
-- ❌ GoLite knowing about specific tool names or logic
+- ❌ TinyWasm knowing about specific tool names or logic
 
 **How Reflection Works:**
 
@@ -197,7 +197,7 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
    ./install.sh
    ```
 
-2. **Start GoLite:**
+2. **Start TinyWasm:**
    ```bash
    cd example
    golite
@@ -278,7 +278,7 @@ return []ToolMetadata{
 
 ## Benefits of This Architecture
 
-✅ **Complete Decoupling:** GoLite knows NOTHING about tool names or implementations  
+✅ **Complete Decoupling:** TinyWasm knows NOTHING about tool names or implementations  
 ✅ **Single Execution Path:** One generic executor handles ALL tools  
 ✅ **Self-Contained Handlers:** Each tool brings its own metadata + execution logic  
 ✅ **Zero Boilerplate:** No switch statements, no individual handler functions  
@@ -388,4 +388,4 @@ This pattern is framework-agnostic. To use in another project:
 3. Implement `GetMCPToolsMetadata() []ToolMetadata` method on handlers  
 4. Use `mcpToolsFromHandler` in MCP registration layer
 
-No dependencies on GoLite-specific code required.
+No dependencies on TinyWasm-specific code required.

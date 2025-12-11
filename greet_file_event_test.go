@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"bytes"
@@ -39,7 +39,7 @@ func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
 
 go 1.25.2
 
-require github.com/cdvelop/tinystring v0.8.3
+require github.com/tinywasm/fmt v0.8.3
 `
 	err = os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644)
 	require.NoError(t, err)
@@ -48,7 +48,7 @@ require github.com/cdvelop/tinystring v0.8.3
 	greetFile := filepath.Join(tmp, "pkg/greet/greet.go")
 	greetContent := `package greet
 
-import . "github.com/cdvelop/tinystring"
+import . "github.com/tinywasm/fmt"
 
 func Greet(target string) string {
 	return Fmt("Hello, %s 👋", target, "from Go!!")
@@ -153,7 +153,7 @@ func main() {
 	t.Log("\n=== Editing greet.go (dependency file) ===")
 	updatedGreetContent := `package greet
 
-import . "github.com/cdvelop/tinystring"
+import . "github.com/tinywasm/fmt"
 
 func Greet(target string) string {
 	return Fmt("Hola, %s 👋", target, "from Go!!") // CHANGED: Hello -> Hola

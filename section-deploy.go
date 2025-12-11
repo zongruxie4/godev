@@ -1,9 +1,9 @@
-package golite
+package tinywasm
 
 import (
 	"time"
 
-	"github.com/cdvelop/goflare"
+	"github.com/tinywasm/goflare"
 )
 
 func (h *handler) AddSectionDEPLOY() {

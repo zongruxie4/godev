@@ -1,4 +1,4 @@
-# GoLite MCP Implementation Guide
+# TinyWasm MCP Implementation Guide
 
 ## Quick Start
 
@@ -40,7 +40,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-Then restart Claude Desktop. GoLite tools will appear in the tools menu.
+Then restart Claude Desktop. TinyWasm tools will appear in the tools menu.
 
 ## Implementation Status
 
@@ -72,7 +72,7 @@ Then restart Claude Desktop. GoLite tools will appear in the tools menu.
 └─────────────────┬───────────────────────────┘
                   │ MCP Protocol (stdio)
 ┌─────────────────▼───────────────────────────┐
-│ GoLite MCP Server (mcp.go)                  │
+│ TinyWasm MCP Server (mcp.go)                  │
 │ - 13 tool handlers                          │
 │ - JSON-RPC 2.0 interface                    │
 └─────────────────┬───────────────────────────┘
@@ -261,7 +261,7 @@ func TestMCPToolStatus(t *testing.T) {
 The MCP server is embedded in golite - no separate deployment needed. Users just run:
 
 ```bash
-go install github.com/cdvelop/golite/cmd/golite@latest
+go install github.com/tinywasm/tinywasm/cmd/golite@latest
 ```
 
 And MCP is automatically available.
@@ -290,4 +290,4 @@ This will show all MCP protocol messages in the logs.
 
 - [MCP Specification](https://modelcontextprotocol.io/)
 - [mcp-go Documentation](https://github.com/mark3labs/mcp-go)
-- [GoLite Documentation](../README.md)
+- [TinyWasm Documentation](../README.md)

@@ -1,14 +1,14 @@
-package golite
+package tinywasm
 
 import (
 	"path/filepath"
 	"time"
 
-	"github.com/cdvelop/assetmin"
-	"github.com/cdvelop/devbrowser"
-	"github.com/cdvelop/devwatch"
-	"github.com/cdvelop/goserver"
-	"github.com/cdvelop/tinywasm"
+	"github.com/tinywasm/assetmin"
+	"github.com/tinywasm/devbrowser"
+	"github.com/tinywasm/devwatch"
+	"github.com/tinywasm/server"
+	"github.com/tinywasm/client"
 )
 
 func (h *handler) AddSectionBUILD() {
@@ -30,7 +30,7 @@ func (h *handler) AddSectionBUILD() {
 	// ✅ No scanning needed - using conventional paths
 
 	//SERVER
-	h.serverHandler = goserver.New(&goserver.Config{
+	h.serverHandler = server.New(&server.Config{
 		AppRootDir:                  h.rootDir,
 		SourceDir:                   h.config.CmdAppServerDir(),
 		OutputDir:                   h.config.DeployAppServerDir(),
@@ -48,7 +48,7 @@ func (h *handler) AddSectionBUILD() {
 	})
 
 	//WASM
-	h.wasmHandler = tinywasm.New(&tinywasm.Config{
+	h.wasmHandler = client.New(&client.Config{
 		AppRootDir:              h.rootDir,
 		SourceDir:               h.config.CmdWebClientDir(),
 		MainInputFile:           h.config.ClientFileName(),

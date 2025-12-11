@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	gs "github.com/cdvelop/goserver"
+	gs "github.com/tinywasm/server"
 )
 
 // TestSimpleServerRestart reproduce un escenario mínimo: arrancar el ServerHandler,

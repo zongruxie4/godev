@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"fmt"
@@ -94,7 +94,7 @@ func mcpToolFromMetadata(handler any, methodName string) (*mcp.Tool, error) {
 		return nil, fmt.Errorf("method %s should return exactly one value", methodName)
 	}
 
-	// Convert result to ToolMetadata using reflection (handles tinywasm.ToolMetadata -> golite.ToolMetadata)
+	// Convert result to ToolMetadata using reflection (handles client.ToolMetadata -> client.ToolMetadata)
 	meta, err := convertToToolMetadata(results[0].Interface())
 	if err != nil {
 		return nil, fmt.Errorf("method %s: %w", methodName, err)

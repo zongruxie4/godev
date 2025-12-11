@@ -1,4 +1,4 @@
-package golite
+package tinywasm
 
 import (
 	"encoding/json"
@@ -57,7 +57,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
 		}
 	}
 
-	// Add/update GoLite MCP entry
+	// Add/update TinyWasm MCP entry
 	config.Servers["golite-mcp"] = mcpServerConfig{
 		URL:  fmt.Sprintf("http://localhost:%s/mcp", mcpPort),
 		Type: "http",

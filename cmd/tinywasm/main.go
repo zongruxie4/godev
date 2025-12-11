@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/cdvelop/devtui" // ONLY import DevTUI in main.go
-	"github.com/cdvelop/golite"
+	"github.com/tinywasm/devtui" // ONLY import DevTUI in main.go
+	"github.com/tinywasm/app"
 )
 
 func main() {
@@ -22,17 +22,17 @@ func main() {
 	exitChan := make(chan bool)
 
 	// Create a Logger instance
-	logger := golite.NewLogger()
+	logger := tinywasm.NewLogger()
 
 	// Create DevTUI instance
 	ui := devtui.NewTUI(&devtui.TuiConfig{
-		AppName:  "GOLITE",
+		AppName:  "TINYWASM",
 		ExitChan: exitChan,
 		Color:    devtui.DefaultPalette(),
 		Logger:   func(messages ...any) { logger.Logger(messages...) },
 	})
 
-	// Start GoLite - this will initialize handlers and start all goroutines
+	// Start TinyWasm - this will initialize handlers and start all goroutines
 	// The Start function will block until exit
-	golite.Start(rootDir, logger.Logger, ui, exitChan)
+	tinywasm.Start(rootDir, logger.Logger, ui, exitChan)
 }
