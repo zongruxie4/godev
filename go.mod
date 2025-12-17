@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/mark3labs/mcp-go v0.43.2
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.3.10
+	github.com/tinywasm/client v0.3.11
 	github.com/tinywasm/devflow v0.0.17
 	github.com/tinywasm/devtui v0.2.22
 	github.com/tinywasm/goflare v0.0.37

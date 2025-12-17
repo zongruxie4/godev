@@ -32,7 +32,7 @@ type handler struct {
 	// Build dependencies
 	serverHandler *server.ServerHandler
 	assetsHandler *assetmin.AssetMin
-	wasmHandler   *client.TinyWasm
+	wasmHandler   *client.WasmClient
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
 
