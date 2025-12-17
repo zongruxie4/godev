@@ -121,8 +121,8 @@ github.com/tinywasm/goflare v0.0.37 h1:PMZsSFYRdQPN0uyiFQnaHRkjHpNpTfq08fCbBTcd1
 github.com/tinywasm/goflare v0.0.37/go.mod h1:UoE4DW0O42OLcThytzLUHdAwtAvwJVqnJG1XOyWSR0g=
 github.com/tinywasm/kvdb v0.0.17 h1:B7/o66RFu60m15lJGQYIieJs9TUze+HVi9GdR4qb7+E=
 github.com/tinywasm/kvdb v0.0.17/go.mod h1:lWr/Tknrboiupl8qsIHxBnmag6EstOjUnaDshBLy89Y=
-github.com/tinywasm/server v0.1.15 h1:xoy3LQX3NmidMKbbKjK1ApcSCafRJhU6rtcVPuz63C4=
-github.com/tinywasm/server v0.1.15/go.mod h1:bICisDPXJnthN1q9Oym1EiDhzvcO3yODV8pRB8mv8sA=
+github.com/tinywasm/server v0.1.16 h1:4CvPbGv/cSBQICMDhJs3saNcAl/aXp67mW3p0Bj/a5E=
+github.com/tinywasm/server v0.1.16/go.mod h1:bICisDPXJnthN1q9Oym1EiDhzvcO3yODV8pRB8mv8sA=
 github.com/tinywasm/time v0.2.9 h1:8QNT2oimce3qsPGZvRsKAniW676qsExna8UNxa9ul8Y=
 github.com/tinywasm/time v0.2.9/go.mod h1:PkCSqbEqkhuX3LvCXomIf3zPUFih4unK1X1qvHQriVs=
 github.com/tinywasm/unixid v0.2.13 h1:4ahFDC2IF63EfUXxNBttCUMKL5TPUU3oCrKVMGmHfVQ=

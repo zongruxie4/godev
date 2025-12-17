@@ -74,7 +74,7 @@ require (
 	github.com/tinywasm/assetmin v0.0.69
 	github.com/tinywasm/devbrowser v0.2.4
 	github.com/tinywasm/devwatch v0.0.45
-	github.com/tinywasm/server v0.1.15
+	github.com/tinywasm/server v0.1.16
 	golang.org/x/sys v0.39.0 // indirect
 )
 

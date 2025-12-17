@@ -1,6 +1,7 @@
 package app
 
 import (
+	"net/http"
 	"path/filepath"
 	"time"
 
@@ -29,24 +30,6 @@ func (h *handler) AddSectionBUILD() {
 	h.config = NewConfig(h.rootDir, configLogger) // Use the provided logger
 	// ✅ No scanning needed - using conventional paths
 
-	//SERVER
-	h.serverHandler = server.New(&server.Config{
-		AppRootDir:                  h.rootDir,
-		SourceDir:                   h.config.CmdAppServerDir(),
-		OutputDir:                   h.config.DeployAppServerDir(),
-		MainInputFile:               h.config.ServerFileName(),
-		ArgumentsForCompilingServer: func() []string { return []string{} },
-		ArgumentsToRunServer: func() []string {
-			return []string{
-				"-public-dir=" + filepath.Join(h.rootDir, h.config.WebPublicDir()),
-				"-port=" + h.config.ServerPort(),
-			}
-		},
-		AppPort:  h.config.ServerPort(),
-		Logger:   serverLogger,
-		ExitChan: h.exitChan,
-	})
-
 	//WASM
 	h.wasmHandler = client.New(&client.Config{
 		AppRootDir:              h.rootDir,
@@ -73,7 +56,6 @@ func (h *handler) AddSectionBUILD() {
 	}).CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
-	//ASSETS
 	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: filepath.Join(h.rootDir, h.config.WebPublicDir()),
 		Logger:    assetsLogger,
@@ -83,6 +65,25 @@ func (h *handler) AddSectionBUILD() {
 		AppName: h.frameworkName,
 	})
 	h.assetsHandler.SetWorkMode(assetmin.DiskMode)
+
+	//SERVER
+	h.serverHandler = server.New(&server.Config{
+		AppRootDir:                  h.rootDir,
+		SourceDir:                   h.config.CmdAppServerDir(),
+		OutputDir:                   h.config.DeployAppServerDir(),
+		MainInputFile:               h.config.ServerFileName(),
+		Routes:                      []func(*http.ServeMux){h.assetsHandler.RegisterRoutes},
+		ArgumentsForCompilingServer: func() []string { return []string{} },
+		ArgumentsToRunServer: func() []string {
+			return []string{
+				"-public-dir=" + filepath.Join(h.rootDir, h.config.WebPublicDir()),
+				"-port=" + h.config.ServerPort(),
+			}
+		},
+		AppPort:  h.config.ServerPort(),
+		Logger:   serverLogger,
+		ExitChan: h.exitChan,
+	})
 
 	// BROWSER
 	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan, browserLogger)
