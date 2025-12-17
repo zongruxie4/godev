@@ -5,8 +5,8 @@ go 1.25.2
 require (
 	github.com/mark3labs/mcp-go v0.43.2
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.3.11
-	github.com/tinywasm/devflow v0.0.17
+	github.com/tinywasm/client v0.3.13
+	github.com/tinywasm/devflow v0.0.19
 	github.com/tinywasm/devtui v0.2.22
 	github.com/tinywasm/goflare v0.0.37
 	github.com/tinywasm/kvdb v0.0.17
@@ -53,7 +53,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.19 // indirect
 	github.com/tinywasm/fmt v0.12.3 // indirect
-	github.com/tinywasm/gobuild v0.0.19 // indirect
+	github.com/tinywasm/gobuild v0.0.20 // indirect
 	github.com/tinywasm/time v0.2.9 // indirect
 	github.com/tinywasm/unixid v0.2.13 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
@@ -74,7 +74,7 @@ require (
 	github.com/tinywasm/assetmin v0.0.69
 	github.com/tinywasm/devbrowser v0.2.4
 	github.com/tinywasm/devwatch v0.0.45
-	github.com/tinywasm/server v0.1.16
+	github.com/tinywasm/server v0.1.17
 	golang.org/x/sys v0.39.0 // indirect
 )
 
