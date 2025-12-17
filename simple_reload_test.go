@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -17,7 +18,10 @@ func TestSimpleBrowserReload(t *testing.T) {
 
 	var reloadCount int64
 
+	var mu sync.Mutex
 	logger := func(messages ...any) {
+		mu.Lock()
+		defer mu.Unlock()
 		var msg string
 		for i, m := range messages {
 			if i > 0 {

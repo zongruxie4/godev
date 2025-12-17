@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -72,7 +73,10 @@ func main() {
 	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
 
 	var logs bytes.Buffer
+	var mu sync.Mutex
 	logger := func(messages ...any) {
+		mu.Lock()
+		defer mu.Unlock()
 		var msg string
 		for i, m := range messages {
 			if i > 0 {

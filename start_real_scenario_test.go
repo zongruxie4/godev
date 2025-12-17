@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -40,7 +41,10 @@ func TestStartRealScenario(t *testing.T) {
 
 	// Capture logs
 	var logs bytes.Buffer
+	var mu sync.Mutex
 	logger := func(messages ...any) {
+		mu.Lock()
+		defer mu.Unlock()
 		var msg string
 		for i, m := range messages {
 			if i > 0 {

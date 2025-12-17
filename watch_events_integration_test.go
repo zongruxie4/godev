@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -59,7 +60,11 @@ func main() {
 
 	var logs bytes.Buffer
 	var allLogMessages []string
+	var mu sync.Mutex
 	logger := func(messages ...any) {
+		mu.Lock()
+		defer mu.Unlock()
+
 		var msg string
 		for i, m := range messages {
 			if i > 0 {
@@ -67,6 +72,7 @@ func main() {
 			}
 			msg += fmt.Sprint(m)
 		}
+		// fmt.Println("DEBUG LOG:", msg) // Trace output
 		logs.WriteString(msg + "\n")
 		allLogMessages = append(allLogMessages, msg)
 	}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -81,7 +82,10 @@ export default {
 
 	// Capture logs to verify what files are being processed
 	var logs bytes.Buffer
+	var mu sync.Mutex
 	logger := func(messages ...any) {
+		mu.Lock()
+		defer mu.Unlock()
 		var msg string
 		for i, m := range messages {
 			if i > 0 {
@@ -90,7 +94,7 @@ export default {
 			msg += fmt.Sprint(m)
 		}
 		logs.WriteString(msg + "\n")
-		t.Log(msg) // Also log to test output for debugging
+		// t.Log(msg) // Removed excessive logging to test output
 	}
 
 	// Start golite with deploy section
