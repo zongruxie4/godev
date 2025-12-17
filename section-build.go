@@ -105,7 +105,7 @@ func (h *handler) AddSectionBUILD() {
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
 		AppRootDir:         h.config.RootDir(),
-		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmHandler, h.serverHandler},
+		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmHandler, h.serverHandler, h.assetsHandler},
 		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
 		BrowserReload:      h.browser.Reload,
 		Logger:             watchLogger,

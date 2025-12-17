@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/mark3labs/mcp-go v0.43.2
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.3.13
+	github.com/tinywasm/client v0.3.14
 	github.com/tinywasm/devflow v0.0.19
 	github.com/tinywasm/devtui v0.2.22
 	github.com/tinywasm/goflare v0.0.37
@@ -71,7 +71,7 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
-	github.com/tinywasm/assetmin v0.0.69
+	github.com/tinywasm/assetmin v0.0.70
 	github.com/tinywasm/devbrowser v0.2.4
 	github.com/tinywasm/devwatch v0.0.45
 	github.com/tinywasm/server v0.1.17
