@@ -72,7 +72,7 @@ func (h *handler) AddSectionBUILD() {
 		SourceDir:                   h.config.CmdAppServerDir(),
 		OutputDir:                   h.config.DeployAppServerDir(),
 		MainInputFile:               h.config.ServerFileName(),
-		Routes:                      []func(*http.ServeMux){h.assetsHandler.RegisterRoutes},
+		Routes:                      []func(*http.ServeMux){h.assetsHandler.RegisterRoutes, h.wasmHandler.RegisterRoutes},
 		ArgumentsForCompilingServer: func() []string { return []string{} },
 		ArgumentsToRunServer: func() []string {
 			return []string{
