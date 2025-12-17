@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/tinywasm/devtui" // ONLY import DevTUI in main.go
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/devtui" // ONLY import DevTUI in main.go
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	exitChan := make(chan bool)
 
 	// Create a Logger instance
-	logger := tinywasm.NewLogger()
+	logger := app.NewLogger()
 
 	// Create DevTUI instance
 	ui := devtui.NewTUI(&devtui.TuiConfig{
@@ -34,5 +34,5 @@ func main() {
 
 	// Start TinyWasm - this will initialize handlers and start all goroutines
 	// The Start function will block until exit
-	tinywasm.Start(rootDir, logger.Logger, ui, exitChan)
+	app.Start(rootDir, logger.Logger, ui, exitChan)
 }

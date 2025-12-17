@@ -1,14 +1,14 @@
-package tinywasm
+package app
 
 import (
 	"path/filepath"
 	"time"
 
 	"github.com/tinywasm/assetmin"
+	"github.com/tinywasm/client"
 	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/server"
-	"github.com/tinywasm/client"
 )
 
 func (h *handler) AddSectionBUILD() {

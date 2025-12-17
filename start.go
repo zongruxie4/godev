@@ -1,16 +1,16 @@
-package tinywasm
+package app
 
 import (
 	"os"
 	"sync"
 
 	"github.com/tinywasm/assetmin"
+	"github.com/tinywasm/client"
 	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/goflare"
-	"github.com/tinywasm/server"
 	"github.com/tinywasm/kvdb"
-	"github.com/tinywasm/client"
+	"github.com/tinywasm/server"
 )
 
 type Store interface {

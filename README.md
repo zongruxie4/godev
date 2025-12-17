@@ -103,13 +103,13 @@ The TinyWasm TUI is your **development control center**:
 go version
 
 # Install TinyWasm CLI
-go install -v github.com/tinywasm/tinywasm/cmd/golite@latest
+go install -v github.com/tinywasm/app/cmd/tw@latest
 
 # Create your project directory
 mkdir myapp && cd myapp
 
 # Start TinyWasm (initializes project structure and TUI)
-golite
+tw
 ```
 
 **That's it.** TinyWasm will:

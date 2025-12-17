@@ -1,4 +1,4 @@
-package tinywasm
+package app
 
 // ConfigureVSCodeMCP attempts to automatically configure VS Code's MCP integration.
 // This function is completely silent and non-blocking - it will not produce errors or logs.

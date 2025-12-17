@@ -1,4 +1,4 @@
-package tinywasm
+package app
 
 const serverTemplate = `package main
 

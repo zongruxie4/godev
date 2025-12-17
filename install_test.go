@@ -1,25 +1,46 @@
-package tinywasm
+package app
 
 import (
-	"os/exec"
-	"runtime"
+	"github.com/tinywasm/devflow"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
-func TestInstallScript(t *testing.T) {
-	var cmd *exec.Cmd
-
-	if runtime.GOOS == "windows" {
-		// En Windows, usa la ruta completa de Git Bash
-		cmd = exec.Command("C:\\Users\\juan7\\AppData\\Local\\Programs\\Git\\bin\\bash.exe", "./install.sh")
-	} else {
-		// En Linux/Mac usa bash normal
-		cmd = exec.Command("bash", "./install.sh")
-	}
-
-	// Capturar tanto stdout como stderr
-	output, err := cmd.CombinedOutput()
+// TestInstallAllCommands installs all commands from cmd/ directory
+// Run with: go test -run TestInstallAllCommands
+func TestInstallAllCommands(t *testing.T) {
+	// Get project root
+	cwd, err := os.Getwd()
 	if err != nil {
-		t.Errorf("Failed to execute install.sh: %v\nOutput: %s", err, string(output))
+		t.Fatal(err)
 	}
+
+	// Read cmd/ directory dynamically
+	cmdDir := filepath.Join(cwd, "cmd")
+	entries, err := os.ReadDir(cmdDir)
+	if err != nil {
+		t.Fatalf("Failed to read cmd/ directory: %v", err)
+	}
+
+	// Collect all subdirectories (commands)
+	var commands []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			commands = append(commands, entry.Name())
+		}
+	}
+
+	if len(commands) == 0 {
+		t.Fatal("No commands found in cmd/ directory")
+	}
+
+	for _, cmd := range commands {
+		output, err := devflow.RunCommand("go", "install", "./cmd/"+cmd)
+		if err != nil {
+			t.Fatalf("Failed to install %s: %v\nOutput: %s", cmd, err, output)
+		}
+	}
+
+	t.Log("✅ All commands installed")
 }

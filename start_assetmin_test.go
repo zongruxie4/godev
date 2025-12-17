@@ -1,4 +1,4 @@
-package tinywasm
+package app
 
 import (
 	"bytes"
@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/devtui"
 	"github.com/tinywasm/kvdb"
-	"github.com/stretchr/testify/require"
 )
 
 // TestStartAssetMinEventFlow initializes a handler via AddSectionBUILD and uses
