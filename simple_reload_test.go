@@ -32,18 +32,20 @@ func TestSimpleBrowserReload(t *testing.T) {
 		logIfVerbose(t, "LOG: %s", msg)
 	}
 
-	// Start golite
 	exitChan := make(chan bool)
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
-
-	time.Sleep(200 * time.Millisecond)
-
 	// Set up browser reload tracking
-	SetWatcherBrowserReload(func() error {
+	InitialBrowserReloadFunc = func() error {
 		count := atomic.AddInt64(&reloadCount, 1)
 		logIfVerbose(t, "*** BROWSER RELOAD CALLED! Count: %d ***", count)
 		return nil
-	})
+	}
+	defer func() { InitialBrowserReloadFunc = nil }()
+
+	// Start golite
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+	// Wait for initialization
+	h := WaitForActiveHandler(5 * time.Second)
+	require.NotNil(t, h)
 
 	time.Sleep(100 * time.Millisecond)
 

@@ -1,11 +1,8 @@
 package app
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -72,47 +69,29 @@ func main() {
 	require.NoError(t, os.WriteFile(serverFilePath, []byte(initialServerContent), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
 
-	var logs bytes.Buffer
-	var mu sync.Mutex
-	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
-	}
+	logs := &SafeBuffer{}
+	logger := logs.Log
 
 	var reloadCount int64
-	var serverRestartEvents []string
 
+	InitialBrowserReloadFunc = func() error {
+		atomic.AddInt64(&reloadCount, 1)
+		return nil
+	}
+	defer func() { InitialBrowserReloadFunc = nil }()
+
+	// Start golite
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	time.Sleep(100 * time.Millisecond)
 
-	waitStart := time.Now().Add(5 * time.Second)
-	for ActiveHandler == nil && time.Now().Before(waitStart) {
-		time.Sleep(50 * time.Millisecond)
-	}
-	require.NotNil(t, ActiveHandler)
+	// Wait for initialization
+	h := WaitForActiveHandler(5 * time.Second)
+	require.NotNil(t, h)
 
-	SetWatcherBrowserReload(func() error {
-		count := atomic.AddInt64(&reloadCount, 1)
-		event := fmt.Sprintf("BrowserReload called at %s (count: %d)", time.Now().Format("15:04:05.000"), count)
-		serverRestartEvents = append(serverRestartEvents, event)
-		return nil
-	})
-
-	waitWatcher := time.Now().Add(8 * time.Second)
-	for ActiveHandler.watcher == nil && time.Now().Before(waitWatcher) {
-		time.Sleep(50 * time.Millisecond)
-	}
-	require.NotNil(t, ActiveHandler.watcher)
+	watcher := WaitWatcherReady(8 * time.Second)
+	require.NotNil(t, watcher)
 
 	time.Sleep(500 * time.Millisecond)
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -40,41 +39,30 @@ func TestStartRealScenario(t *testing.T) {
 	}
 
 	// Capture logs
-	var logs bytes.Buffer
-	var mu sync.Mutex
-	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
-	}
+	logs := &SafeBuffer{}
+	logger := logs.Log
 
 	// Track browser reload calls
 	var reloadCount int64
 	reloadCalled := make(chan struct{}, 10) // Buffer for multiple reload events
 
-	// Start golite like in real scenario
-	exitChan := make(chan bool)
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
-
-	// Give a moment for Start to initialize and set ActiveHandler
-	time.Sleep(50 * time.Millisecond)
-
-	// Set up browser reload tracking after starting golite
-	SetWatcherBrowserReload(func() error {
+	InitialBrowserReloadFunc = func() error {
 		atomic.AddInt64(&reloadCount, 1)
 		select {
 		case reloadCalled <- struct{}{}:
 		default: // non-blocking in case buffer is full
 		}
 		return nil
-	})
+	}
+	defer func() { InitialBrowserReloadFunc = nil }()
+
+	// Start golite
+	exitChan := make(chan bool)
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+
+	// Give a moment for Start to initialize (Wait for handler to be published)
+	h := WaitForActiveHandler(5 * time.Second)
+	require.NotNil(t, h)
 
 	// Give time to initialize and scan existing files
 	time.Sleep(500 * time.Millisecond)

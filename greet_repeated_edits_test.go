@@ -1,13 +1,11 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -91,20 +89,11 @@ func main() {
 
 	// Track compilations
 	var compilationCount int32
-	var logs bytes.Buffer
+	logs := &SafeBuffer{}
 
-	var mu sync.Mutex
 	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
+		logs.Log(messages...)
+		msg := logs.LastLog()
 
 		if strings.Contains(msg, "Compiling WASM") {
 			count := atomic.AddInt32(&compilationCount, 1)
@@ -112,12 +101,18 @@ func main() {
 		}
 	}
 
+	// Browser reload validation (stub)
+	InitialBrowserReloadFunc = func() error { return nil }
+	defer func() { InitialBrowserReloadFunc = nil }()
+
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
-	time.Sleep(500 * time.Millisecond)
 
-	require.NotNil(t, ActiveHandler)
-	require.NotNil(t, ActiveHandler.watcher)
+	// Wait for initialization
+	watcher := WaitWatcherReady(6 * time.Second)
+	require.NotNil(t, watcher)
+	h := GetActiveHandler()
+	require.NotNil(t, h)
 
 	t.Log("\n=== TEST: Repeated edits to greet.go ===")
 

@@ -62,10 +62,9 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		tui:           ui, // UI passed from main.go
 		exitChan:      exitChan,
 
-		db: db,
+		pendingBrowserReload: InitialBrowserReloadFunc,
+		db:                   db,
 	}
-
-	ActiveHandler = h
 
 	// Validate directory
 	homeDir, _ := os.UserHomeDir()
@@ -82,6 +81,8 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 
 	// Auto-configure VS Code MCP integration (silent, non-blocking)
 	ConfigureVSCodeMCP()
+
+	SetActiveHandler(h)
 
 	var wg sync.WaitGroup
 	wg.Add(4) // UI, server, watcher, and MCP server

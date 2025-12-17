@@ -1,8 +1,6 @@
 package app
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -46,13 +44,8 @@ func main() {
 
 	requireNoErr(t, os.WriteFile(serverFile, []byte(initial), 0644))
 
-	var logBuf bytes.Buffer
-	logFunc := func(message ...any) {
-		for _, msg := range message {
-			logBuf.WriteString(fmt.Sprintf("%v", msg))
-		}
-		logBuf.WriteString("\n")
-	}
+	logs := &SafeBuffer{}
+	logFunc := logs.Log
 
 	cfg := &gs.Config{
 		AppRootDir:                  tmp,
@@ -127,7 +120,7 @@ func main() {
 	time.Sleep(100 * time.Millisecond)
 
 	// quick check logs exist
-	if logBuf.Len() == 0 {
+	if logs.Len() == 0 {
 		logIfVerbose(t, "warning: no logs captured; but restart flow executed")
 	}
 }

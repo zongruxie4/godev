@@ -2,10 +2,8 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
@@ -36,20 +34,8 @@ func TestStartJSEventFlow(t *testing.T) {
 
 	// Capture logs (simple writer)
 	// Capture logs (simple writer)
-	var logs bytes.Buffer
-	var mu sync.Mutex
-	logger := func(messages ...any) { // simple logger compatible with Start signature
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
-	}
+	logs := &SafeBuffer{}
+	logger := logs.Log
 
 	// Start the application in a goroutine FIRST
 	exitChan := make(chan bool)

@@ -1,12 +1,9 @@
 package app
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -58,27 +55,16 @@ func main() {
 	require.NoError(t, os.WriteFile(serverFilePath, []byte(validServerContent), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
 
-	var logs bytes.Buffer
-	var allLogMessages []string
-	var mu sync.Mutex
-	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		// fmt.Println("DEBUG LOG:", msg) // Trace output
-		logs.WriteString(msg + "\n")
-		allLogMessages = append(allLogMessages, msg)
-	}
+	logs := &SafeBuffer{}
+	logger := logs.Log
 
 	var reloadCount int64
-	var eventTimestamps []string
+
+	InitialBrowserReloadFunc = func() error {
+		atomic.AddInt64(&reloadCount, 1)
+		return nil
+	}
+	defer func() { InitialBrowserReloadFunc = nil }()
 
 	// Start golite
 	exitChan := make(chan bool)
@@ -86,31 +72,19 @@ func main() {
 
 	time.Sleep(200 * time.Millisecond)
 
-	SetWatcherBrowserReload(func() error {
-		count := atomic.AddInt64(&reloadCount, 1)
-		timestamp := time.Now().Format("15:04:05.000")
-		event := fmt.Sprintf("[%s] BrowserReload #%d", timestamp, count)
-		eventTimestamps = append(eventTimestamps, event)
-		return nil
-	})
-
 	// Wait for complete initialization
-	waitTimeout := time.Now().Add(8 * time.Second)
-	for ActiveHandler == nil && time.Now().Before(waitTimeout) {
-		time.Sleep(50 * time.Millisecond)
-	}
-	require.NotNil(t, ActiveHandler)
+	// Wait for complete initialization
+	h := WaitForActiveHandler(8 * time.Second)
+	require.NotNil(t, h)
 
-	for ActiveHandler.watcher == nil && time.Now().Before(waitTimeout) {
-		time.Sleep(50 * time.Millisecond)
-	}
-	require.NotNil(t, ActiveHandler.watcher)
+	watcher := WaitWatcherReady(8 * time.Second)
+	require.NotNil(t, watcher)
 
 	time.Sleep(500 * time.Millisecond)
 
 	// Capture current state
 	initialReloadCount := atomic.LoadInt64(&reloadCount)
-	logCountBefore := len(allLogMessages)
+	logCountBefore := logs.Len()
 
 	// Modify the server file
 	modifiedContent := strings.Replace(validServerContent, "Server v1", "Server v2 MODIFIED", -1)
@@ -134,7 +108,8 @@ func main() {
 
 	if reloadDiff == 0 {
 		t.Logf("WARNING: no reloads detected during integration run")
-		t.Logf("Logs snapshot (%d): %v", len(allLogMessages)-logCountBefore, allLogMessages[logCountBefore:])
+		lines := logs.Lines()
+		t.Logf("Logs snapshot (%d): %v", len(lines)-logCountBefore, lines[logCountBefore:])
 		t.Fail()
 	}
 }

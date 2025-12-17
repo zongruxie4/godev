@@ -2,11 +2,9 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -81,21 +79,8 @@ export default {
 	t.Logf("PRE-CREATED _worker.js at: %s (BEFORE starting golite)", workerJsPath)
 
 	// Capture logs to verify what files are being processed
-	var logs bytes.Buffer
-	var mu sync.Mutex
-	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
-		// t.Log(msg) // Removed excessive logging to test output
-	}
+	logs := &SafeBuffer{}
+	logger := logs.Log
 
 	// Start golite with deploy section
 	exitChan := make(chan bool)
@@ -105,10 +90,11 @@ export default {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify goflare handler exists and has correct UnobservedFiles
-	require.NotNil(t, ActiveHandler, "ActiveHandler should be set")
-	require.NotNil(t, ActiveHandler.deployCloudflare, "deployCloudflare should be initialized")
+	h := WaitForActiveHandler(5 * time.Second)
+	require.NotNil(t, h, "ActiveHandler should be set")
+	require.NotNil(t, h.deployCloudflare, "deployCloudflare should be initialized")
 
-	unobservedFiles := ActiveHandler.deployCloudflare.UnobservedFiles()
+	unobservedFiles := h.deployCloudflare.UnobservedFiles()
 	t.Logf("Goflare UnobservedFiles: %v", unobservedFiles)
 
 	// Verify UnobservedFiles contains the expected files (both should be RELATIVE paths)
@@ -215,7 +201,7 @@ export default {
 	}
 
 	// Additional verification: Check watcher's unobserved files
-	if ActiveHandler.watcher != nil {
+	if h.watcher != nil {
 		t.Logf("\n=== Devwatch Configuration ===")
 
 		// Check if _worker.js is in the watcher's no_add_to_watch map

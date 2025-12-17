@@ -1,12 +1,9 @@
 package app
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -56,49 +53,28 @@ func main() {
 	require.NoError(t, os.WriteFile(serverFilePath, []byte(initialServerContent), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
 
-	var logs bytes.Buffer
-	var allLogMessages []string
-	var mu sync.Mutex
-	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
-		allLogMessages = append(allLogMessages, msg)
-	}
+	logs := &SafeBuffer{}
+	logger := logs.Log
 
 	var reloadCount int64
-	var eventMessages []string
+
+	InitialBrowserReloadFunc = func() error {
+		atomic.AddInt64(&reloadCount, 1)
+		return nil
+	}
+	defer func() { InitialBrowserReloadFunc = nil }()
 
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	time.Sleep(200 * time.Millisecond)
 
-	SetWatcherBrowserReload(func() error {
-		count := atomic.AddInt64(&reloadCount, 1)
-		timestamp := time.Now().Format("15:04:05.000")
-		event := fmt.Sprintf("[%s] BrowserReload called (count: %d)", timestamp, count)
-		eventMessages = append(eventMessages, event)
-		return nil
-	})
+	// Wait for initialization
+	h := WaitForActiveHandler(8 * time.Second)
+	require.NotNil(t, h)
 
-	waitTimeout := time.Now().Add(8 * time.Second)
-	for ActiveHandler == nil && time.Now().Before(waitTimeout) {
-		time.Sleep(50 * time.Millisecond)
-	}
-	require.NotNil(t, ActiveHandler)
-
-	for ActiveHandler.watcher == nil && time.Now().Before(waitTimeout) {
-		time.Sleep(50 * time.Millisecond)
-	}
-	require.NotNil(t, ActiveHandler.watcher)
+	watcher := WaitWatcherReady(8 * time.Second)
+	require.NotNil(t, watcher)
 
 	time.Sleep(500 * time.Millisecond)
 
@@ -123,7 +99,7 @@ func main() {
 	exitChan <- true
 
 	if reloadDiff == 0 {
-		t.Logf("No reloads detected; logs: %v", allLogMessages)
+		t.Logf("No reloads detected; logs: %v", logs.Lines())
 		t.Fail()
 	}
 }

@@ -1,13 +1,10 @@
 package app
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -99,20 +96,11 @@ func main() {
 	// Track what happens
 	var wasmCompilations int32
 	var browserReloads int32
-	var logs bytes.Buffer
+	logs := &SafeBuffer{}
 
-	var mu sync.Mutex
 	logger := func(messages ...any) {
-		mu.Lock()
-		defer mu.Unlock()
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
-		}
-		logs.WriteString(msg + "\n")
+		logs.Log(messages...)
+		msg := logs.LastLog() // Get last message for checking
 
 		// Track compilations and reloads
 		if strings.Contains(msg, "WASM") && strings.Contains(msg, "compil") {
@@ -125,25 +113,29 @@ func main() {
 
 	exitChan := make(chan bool)
 
-	// Start golite
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
-
-	// Wait for initialization
-	time.Sleep(500 * time.Millisecond)
-
-	require.NotNil(t, ActiveHandler, "ActiveHandler should be set")
-	require.NotNil(t, ActiveHandler.watcher, "Watcher should be initialized")
-
 	// Spy on browser reload calls
 	reloadChan := make(chan struct{}, 10)
-	SetWatcherBrowserReload(func() error {
+	InitialBrowserReloadFunc = func() error {
 		atomic.AddInt32(&browserReloads, 1)
 		select {
 		case reloadChan <- struct{}{}:
 		default:
 		}
 		return nil
-	})
+	}
+	defer func() { InitialBrowserReloadFunc = nil }()
+
+	// Start golite
+	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+
+	// Wait for initialization
+	time.Sleep(500 * time.Millisecond)
+
+	// Wait for initialization
+	watcher := WaitWatcherReady(6 * time.Second)
+	require.NotNil(t, watcher)
+	h := GetActiveHandler()
+	require.NotNil(t, h)
 
 	t.Log("=== Initial state ready ===")
 	initialCompilations := atomic.LoadInt32(&wasmCompilations)
@@ -151,7 +143,8 @@ func main() {
 	t.Logf("Initial compilations: %d, reloads: %d", initialCompilations, initialReloads)
 
 	// Clear logs for cleaner output
-	logs.Reset()
+	// Clear logs for cleaner output
+	logs.Clear()
 
 	// Edit greet.go (simulate user editing the file)
 	t.Log("\n=== Editing greet.go (dependency file) ===")
