@@ -26,7 +26,7 @@ func TestGreetFileRepeatedEdits(t *testing.T) {
 	// Create config to get proper paths
 	config := NewConfig(tmp, func(messages ...any) {})
 
-	// Create realistic project structure (golite expects web/ directory)
+	// Create realistic project structure (tinywasm expects web/ directory)
 	err := os.MkdirAll(filepath.Join(tmp, config.WebDir()), 0755)
 	require.NoError(t, err)
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
@@ -54,8 +54,8 @@ func Greet(target string) string {
 `
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
 	require.NoError(t, err)
-	// Create web/client.go (golite's expected WASM entry point)
-	// This file MUST exist before starting golite, otherwise golite creates a default one
+	// Create web/client.go (tinywasm's expected WASM entry point)
+	// This file MUST exist before starting tinywasm, otherwise tinywasm creates a default one
 	// without the greet import
 	clientGoFile := filepath.Join(tmp, config.WebDir(), config.ClientFileName())
 	clientGoContent := `//go:build wasm

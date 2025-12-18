@@ -55,8 +55,8 @@ cat devtui/go.mod
 La solución definitiva es usar **HTTP transport para MCP** en lugar de stdio:
 
 ```bash
-golite                    # UI + MCP HTTP server (puerto 3100)
-golite --mcp-port 8080    # UI + MCP HTTP server (puerto 8080)
+tinywasm                    # UI + MCP HTTP server (puerto 3100)
+tinywasm --mcp-port 8080    # UI + MCP HTTP server (puerto 8080)
 ```
 
 #### Arquitectura Final
@@ -128,13 +128,13 @@ golite --mcp-port 8080    # UI + MCP HTTP server (puerto 8080)
 ### Para desarrollo normal con asistente IA
 ```bash
 cd my-project
-golite
+tinywasm
 # UI interactiva + MCP HTTP en http://localhost:3100/mcp
 ```
 
 ### Para cambiar puerto MCP
 ```bash
-golite --mcp-port 8080
+tinywasm --mcp-port 8080
 # MCP disponible en http://localhost:8080/mcp
 ```
 
@@ -142,7 +142,7 @@ golite --mcp-port 8080
 ```json
 {
   "mcpServers": {
-    "golite": {
+    "tinywasm": {
       "transport": "http",
       "url": "http://localhost:3100/mcp"
     }

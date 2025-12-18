@@ -149,9 +149,9 @@ func TestUpdateMCPConfig(t *testing.T) {
 		t.Fatal("Servers map is nil")
 	}
 
-	goliteConfig, exists := config.Servers["golite-mcp"]
+	goliteConfig, exists := config.Servers["tinywasm-mcp"]
 	if !exists {
-		t.Fatal("golite-mcp entry not found")
+		t.Fatal("tinywasm-mcp entry not found")
 	}
 
 	if goliteConfig.URL != "http://localhost:3030/mcp" {
@@ -171,7 +171,7 @@ func TestUpdateMCPConfig(t *testing.T) {
 	// Verify update
 	data, _ = os.ReadFile(configPath)
 	json.Unmarshal(data, &config)
-	goliteConfig = config.Servers["golite-mcp"]
+	goliteConfig = config.Servers["tinywasm-mcp"]
 
 	if goliteConfig.URL != "http://localhost:8080/mcp" {
 		t.Errorf("URL not updated: %s", goliteConfig.URL)

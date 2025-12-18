@@ -6,13 +6,13 @@ Automatically detect and configure VS Code's MCP (Model Context Protocol) integr
 ## Problem Statement
 Users installing TinyWasm must manually edit `~/.config/Code/User/profiles/[profile-id]/mcp.json` to add:
 ```json
-"golite-mcp": {
+"tinywasm-mcp": {
   "url": "http://localhost:3030/mcp",
   "type": "http"
 }
 ```
 
-This creates friction after installing TinyWasm via `go install github.com/tinywasm/tinywasm/cmd/golite@latest` and may prevent users from discovering TinyWasm's MCP capabilities.
+This creates friction after installing TinyWasm via `go install github.com/tinywasm/tinywasm/cmd/tinywasm@latest` and may prevent users from discovering TinyWasm's MCP capabilities.
 
 ## Requirements
 
@@ -28,19 +28,19 @@ This creates friction after installing TinyWasm via `go install github.com/tinyw
 - Do NOT create directories if they don't exist
 - Do NOT prompt user for permissions
 - Do NOT create backup files
-- Update existing `golite-mcp` entry if configuration changes
+- Update existing `tinywasm-mcp` entry if configuration changes
 - Ignore profiles if multiple profiles detected (ambiguity prevention)
 
 ## Technical Specification
 
 ### Entry Point
-Execute in `cmd/golite/main.go` after `golite.Start()` and before `ServeMCP()`:
+Execute in `cmd/tinywasm/main.go` after `tinywasm.Start()` and before `ServeMCP()`:
 ```go
 // Auto-configure VS Code MCP integration (silent)
-golite.ConfigureVSCodeMCP()
+tinywasm.ConfigureVSCodeMCP()
 
 // Start MCP HTTP server on port 3030 (go-go!)
-go golite.ActiveHandler.ServeMCP()
+go tinywasm.ActiveHandler.ServeMCP()
 ```
 
 ### VS Code Detection Logic
@@ -66,7 +66,7 @@ go golite.ActiveHandler.ServeMCP()
 ```json
 {
   "servers": {
-    "golite-mcp": {
+    "tinywasm-mcp": {
       "url": "http://localhost:3030/mcp",
       "type": "http"
     }
@@ -188,7 +188,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
     }
     
     // Add/update TinyWasm MCP entry
-    config.Servers["golite-mcp"] = ServerConfig{
+    config.Servers["tinywasm-mcp"] = ServerConfig{
         URL:  fmt.Sprintf("http://localhost:%s/mcp", mcpPort),
         Type: "http",
     }
@@ -277,7 +277,7 @@ Follow TinyWasm's testing approach:
 
 ## Implementation Checklist
 
-- [ ] Create `vscode_config.go` in golite package
+- [ ] Create `vscode_config.go` in tinywasm package
 - [ ] Implement platform-specific path detection
 - [ ] Implement profile resolution logic
 - [ ] Implement JSON read/write with merge logic
@@ -308,12 +308,12 @@ Follow TinyWasm's testing approach:
 
 ### Related TinyWasm Files
 - `mcp.go`: MCP server implementation and port definition
-- `cmd/golite/main.go`: Entry point for configuration call
+- `cmd/tinywasm/main.go`: Entry point for configuration call
 
 ### Installation Method
 Users install TinyWasm with:
 ```bash
-go install -v github.com/tinywasm/tinywasm/cmd/golite@latest
+go install -v github.com/tinywasm/tinywasm/cmd/tinywasm@latest
 ```
 Configuration happens automatically on first execution.
 

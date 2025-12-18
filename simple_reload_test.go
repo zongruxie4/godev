@@ -41,7 +41,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 	}
 	defer func() { InitialBrowserReloadFunc = nil }()
 
-	// Start golite
+	// Start tinywasm
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 	// Wait for initialization
 	h := WaitForActiveHandler(5 * time.Second)

@@ -74,7 +74,7 @@ Verifica que:
 
 ---
 
-### 3. golite/deploy_unobserved_files_test.go
+### 3. tinywasm/deploy_unobserved_files_test.go
 
 **Actualizado para esperar rutas relativas:**
 
@@ -107,12 +107,12 @@ for _, expectedFile := range expectedFiles {
 ### Archivos Modificados
 1. ✅ `tinywasm/builderInit.go` - Lógica de OutputRelativePath
 2. ✅ `tinywasm/output_path_test.go` - Nuevo test unitario
-3. ✅ `golite/deploy_unobserved_files_test.go` - Test actualizado
+3. ✅ `tinywasm/deploy_unobserved_files_test.go` - Test actualizado
 
 ### Paquetes Afectados
 - ✅ `tinywasm` - Fix principal
 - ✅ `goflare` - Beneficiario del fix (no requiere cambios)
-- ✅ `golite` - Test actualizado
+- ✅ `tinywasm` - Test actualizado
 
 ---
 
@@ -159,9 +159,9 @@ go test ./...
 
 ---
 
-### 3. Test de golite (bug reproduction)
+### 3. Test de tinywasm (bug reproduction)
 ```bash
-cd /home/cesar/Dev/Pkg/Mine/golite
+cd /home/cesar/Dev/Pkg/Mine/tinywasm
 go test -v -run TestDeployUnobservedFilesNotProcessedByAssetmin
 ```
 
@@ -169,9 +169,9 @@ go test -v -run TestDeployUnobservedFilesNotProcessedByAssetmin
 
 ---
 
-### 4. Suite completa de golite
+### 4. Suite completa de tinywasm
 ```bash
-cd /home/cesar/Dev/Pkg/Mine/golite
+cd /home/cesar/Dev/Pkg/Mine/tinywasm
 go test ./...
 ```
 
@@ -179,10 +179,10 @@ go test ./...
 
 ---
 
-### 5. Test manual en golite/example
+### 5. Test manual en tinywasm/example
 ```bash
-cd /home/cesar/Dev/Pkg/Mine/golite/example
-golite
+cd /home/cesar/Dev/Pkg/Mine/tinywasm/example
+tinywasm
 ```
 
 **Verificar en logs:**

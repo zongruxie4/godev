@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-The MCP server is automatically started when you run `golite`. No additional configuration needed.
+The MCP server is automatically started when you run `tinywasm`. No additional configuration needed.
 
 ## Testing the MCP Server
 
@@ -13,15 +13,15 @@ The MCP server is automatically started when you run `golite`. No additional con
 npm install -g @modelcontextprotocol/inspector
 ```
 
-2. Run golite in your project:
+2. Run tinywasm in your project:
 ```bash
 cd your-go-project
-golite
+tinywasm
 ```
 
 3. In another terminal, connect the inspector:
 ```bash
-mcp-inspector golite
+mcp-inspector tinywasm
 ```
 
 ### Using Claude Desktop
@@ -31,8 +31,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```json
 {
   "mcpServers": {
-    "golite": {
-      "command": "golite",
+    "tinywasm": {
+      "command": "tinywasm",
       "args": [],
       "env": {}
     }
@@ -47,7 +47,7 @@ Then restart Claude Desktop. TinyWasm tools will appear in the tools menu.
 ### ✅ Completed
 - [x] MCP server structure
 - [x] All 13 tool definitions
-- [x] Auto-start with golite
+- [x] Auto-start with tinywasm
 - [x] Basic status tool (partial)
 
 ### 🚧 In Progress
@@ -81,7 +81,7 @@ Then restart Claude Desktop. TinyWasm tools will appear in the tools menu.
         ▼                   ▼             ▼           ▼
 ┌───────────────┐  ┌──────────────┐  ┌────────┐  ┌────────┐
 │ handler       │  │ wasmHandler  │  │browser │  │watcher │
-│ (golite core) │  │ (tinywasm)   │  │(devbr) │  │(watch) │
+│ (tinywasm core) │  │ (tinywasm)   │  │(devbr) │  │(watch) │
 └───────────────┘  └──────────────┘  └────────┘  └────────┘
 ```
 
@@ -226,12 +226,12 @@ func (b *DevBrowser) setupConsoleCapture() {
 ### Manual Test
 
 ```bash
-# Terminal 1: Start golite
+# Terminal 1: Start tinywasm
 cd test-project
-golite
+tinywasm
 
 # Terminal 2: Send MCP request
-echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"golite_status","arguments":{}},"id":1}' | golite
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"golite_status","arguments":{}},"id":1}' | tinywasm
 
 # You should receive JSON-RPC response with current status
 ```
@@ -258,10 +258,10 @@ func TestMCPToolStatus(t *testing.T) {
 
 ## Deployment
 
-The MCP server is embedded in golite - no separate deployment needed. Users just run:
+The MCP server is embedded in tinywasm - no separate deployment needed. Users just run:
 
 ```bash
-go install github.com/tinywasm/tinywasm/cmd/golite@latest
+go install github.com/tinywasm/tinywasm/cmd/tinywasm@latest
 ```
 
 And MCP is automatically available.
@@ -272,7 +272,7 @@ Enable MCP debug output:
 
 ```bash
 export MCP_DEBUG=1
-golite
+tinywasm
 ```
 
 This will show all MCP protocol messages in the logs.

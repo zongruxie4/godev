@@ -80,7 +80,7 @@ func main() {
 	}
 	defer func() { InitialBrowserReloadFunc = nil }()
 
-	// Start golite
+	// Start tinywasm
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 

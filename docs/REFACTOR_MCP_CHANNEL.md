@@ -55,7 +55,7 @@ if execField := sourceValue.FieldByName("Execute"); execField.IsValid() && execF
 Update generic executor to use channels:
 
 ```go
-package golite
+package tinywasm
 
 import (
 	"context"
@@ -196,7 +196,7 @@ Execute: func(args map[string]any, progress chan<- string) {
 2. **Update mcp-executor.go** - Refactor to use channels instead of callbacks
 3. **Update docs/MCP-ADD-TOOLS.md** - Update examples and troubleshooting
 4. **Test compilation** - Ensure no errors: `go build ./...`
-5. **Test MCP server** - Start golite and verify tools work
+5. **Test MCP server** - Start tinywasm and verify tools work
 
 ## Key Implementation Details
 
@@ -231,7 +231,7 @@ Execute: func(args map[string]any, progress chan<- string) {
 The reflection code in `convertToToolMetadata` automatically wraps the handler's Execute function:
 - Accepts handler function with signature `func(map[string]any, chan<- string)`
 - Wraps it to match TinyWasm's `ToolExecutor` type
-- Handles type differences between packages (e.g., `tinywasm.ToolExecutor` → `golite.ToolExecutor`)
+- Handles type differences between packages (e.g., `tinywasm.ToolExecutor` → `tinywasm.ToolExecutor`)
 
 ## Breaking Changes
 ⚠️ **This is a BREAKING CHANGE** for any external handlers implementing MCP tools.
@@ -254,15 +254,15 @@ The reflection code in `convertToToolMetadata` automatically wraps the handler's
 
 ### Compilation Test
 ```bash
-cd /home/cesar/Dev/Pkg/Mine/golite
+cd /home/cesar/Dev/Pkg/Mine/tinywasm
 go build ./...
 ```
 
 ### Runtime Test
 ```bash
-# Terminal 1: Start golite
+# Terminal 1: Start tinywasm
 cd example
-golite
+tinywasm
 
 # Terminal 2: Test MCP tool (after TinyWasm updated)
 curl -X POST http://localhost:3030/mcp \
@@ -272,7 +272,7 @@ curl -X POST http://localhost:3030/mcp \
     "id":1,
     "method":"tools/call",
     "params":{
-      "name":"golite-mcp_wasm_set_mode",
+      "name":"tinywasm-mcp_wasm_set_mode",
       "arguments":{"mode":"L"}
     }
   }'

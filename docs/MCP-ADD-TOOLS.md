@@ -102,7 +102,7 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
 
 ### Step 3: TinyWasm Registration (Already Done - No Code Needed!)
 
-In `golite/mcp.go`, tools are loaded automatically with a **generic executor**:
+In `tinywasm/mcp.go`, tools are loaded automatically with a **generic executor**:
 
 ```go
 // Load WASM tools from TinyWasm metadata using reflection
@@ -126,7 +126,7 @@ if h.wasmHandler != nil {
 
 ## How the Generic Executor Works
 
-The `mcpExecuteTool` function in `golite/mcp-executor.go` is a **universal handler** that works for ANY tool:
+The `mcpExecuteTool` function in `tinywasm/mcp-executor.go` is a **universal handler** that works for ANY tool:
 
 ```go
 func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -175,7 +175,7 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 
 1. **Call batch method:** `mcpToolsFromHandler` invokes `GetMCPToolsMetadata()` on handler
 2. **Extract slice:** Reads `[]ToolMetadata` from any compatible slice type
-3. **Convert each tool:** Transforms `handler.ToolMetadata` → `golite.ToolMetadata` field-by-field
+3. **Convert each tool:** Transforms `handler.ToolMetadata` → `tinywasm.ToolMetadata` field-by-field
 4. **Copy Execute function:** Uses reflection to wrap the handler's Execute function
 5. **Build MCP tools:** Constructs `mcp.Tool` instances with proper schemas
 
@@ -183,9 +183,9 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 
 ## Key Files
 
-- `golite/mcp-metadata.go`: Reflection-based metadata converter
-- `golite/mcp-executor.go`: Generic tool executor (works for ALL tools)
-- `golite/mcp.go`: MCP server setup and automatic tool registration
+- `tinywasm/mcp-metadata.go`: Reflection-based metadata converter
+- `tinywasm/mcp-executor.go`: Generic tool executor (works for ALL tools)
+- `tinywasm/mcp.go`: MCP server setup and automatic tool registration
 - `tinywasm/mcp-tool.go`: Handler metadata and execution functions
 
 
@@ -193,14 +193,14 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
 
 1. **Compile and install:**
    ```bash
-   cd /home/cesar/Dev/Pkg/Mine/golite
+   cd /home/cesar/Dev/Pkg/Mine/tinywasm
    ./install.sh
    ```
 
 2. **Start TinyWasm:**
    ```bash
    cd example
-   golite
+   tinywasm
    ```
 
 3. **Test via MCP (in another terminal):**
@@ -212,7 +212,7 @@ func (h *handler) mcpExecuteTool(executor ToolExecutor) func(context.Context, mc
        "id":1,
        "method":"tools/call",
        "params":{
-         "name":"golite-mcp_wasm_set_mode",
+         "name":"tinywasm-mcp_wasm_set_mode",
          "arguments":{"mode":"L"}
        }
      }'
@@ -291,12 +291,12 @@ return []ToolMetadata{
 
 **Before (per-tool handlers):**
 ```go
-// In golite/mcp-wasm.go (~40 lines PER tool)
+// In tinywasm/mcp-wasm.go (~40 lines PER tool)
 func (h *handler) mcpToolWasmSetMode(...) { /* extract args, validate, execute, collect output */ }
 func (h *handler) mcpToolWasmRecompile(...) { /* extract args, validate, execute, collect output */ }
 func (h *handler) mcpToolWasmGetSize(...) { /* extract args, validate, execute, collect output */ }
 
-// In golite/mcp.go (switch per tool)
+// In tinywasm/mcp.go (switch per tool)
 switch toolMeta.Name {
 case "wasm_set_mode": s.AddTool(*tool, h.mcpToolWasmSetMode)
 case "wasm_recompile": s.AddTool(*tool, h.mcpToolWasmRecompile)
@@ -306,10 +306,10 @@ case "wasm_get_size": s.AddTool(*tool, h.mcpToolWasmGetSize)
 
 **After (generic executor):**
 ```go
-// In golite/mcp-executor.go (~45 lines total for ALL tools)
+// In tinywasm/mcp-executor.go (~45 lines total for ALL tools)
 func (h *handler) mcpExecuteTool(executor ToolExecutor) { /* generic implementation using a progress channel */ }
 
-// In golite/mcp.go (no switch needed)
+// In tinywasm/mcp.go (no switch needed)
 for _, toolMeta := range tools {
     s.AddTool(*buildMCPTool(toolMeta), h.mcpExecuteTool(toolMeta.Execute))
 }
@@ -333,7 +333,7 @@ If you have individual tool handler functions:
 
 **Old approach:**
 ```go
-// In golite/mcp-wasm.go
+// In tinywasm/mcp-wasm.go
 func (h *handler) mcpToolWasmSetMode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
     args := req.Params.Arguments.(map[string]any)
     mode := args["mode"].(string)
@@ -344,7 +344,7 @@ func (h *handler) mcpToolWasmSetMode(ctx context.Context, req mcp.CallToolReques
     return mcp.NewToolResultText(output.String()), nil
 }
 
-// In golite/mcp.go
+// In tinywasm/mcp.go
 s.AddTool(mcp.NewTool("wasm_set_mode", ...), h.mcpToolWasmSetMode)
 ```
 
@@ -366,7 +366,7 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
     }
 }
 
-// In golite/mcp.go (automatic)
+// In tinywasm/mcp.go (automatic)
 for _, toolMeta := range tools {
     s.AddTool(*buildMCPTool(toolMeta), h.mcpExecuteTool(toolMeta.Execute))
 }
@@ -374,7 +374,7 @@ for _, toolMeta := range tools {
 
 **Steps:**
 1. Move parameter extraction and domain logic to `Execute` function in handler  
-2. Remove individual tool handler functions from golite  
+2. Remove individual tool handler functions from tinywasm  
 3. Remove switch statement in mcp.go registration  
 4. Delete mcp-wasm.go (no longer needed)
 

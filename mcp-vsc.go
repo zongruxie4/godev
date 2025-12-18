@@ -8,7 +8,7 @@ package app
 // Behavior:
 //   - Detects platform-specific VS Code paths (Linux, macOS, Windows)
 //   - Updates ALL profiles (handles multiple profiles by updating all)
-//   - Creates or updates mcp.json with golite-mcp entry in each profile
+//   - Creates or updates mcp.json with tinywasm-mcp entry in each profile
 //   - Fails silently on any error (VS Code not found, permissions, etc.)
 //
 // Inspired by TinyWasm's VisualStudioCodeWasmEnvConfig approach.

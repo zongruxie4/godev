@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestStartRealScenario reproduces the exact scenario from golite/test directory
+// TestStartRealScenario reproduces the exact scenario from tinywasm/test directory
 // where multiple JS files exist but only the last one remains in main.js
 func TestStartRealScenario(t *testing.T) {
 	tmp := t.TempDir()
@@ -31,7 +31,7 @@ func TestStartRealScenario(t *testing.T) {
 	}
 	files[filepath.Join(goliteCfg.WebUIDir(), "theme.js")] = "console.log(\"Hello, PWA! 2\");"
 
-	// Create directories and files BEFORE starting golite (like real scenario)
+	// Create directories and files BEFORE starting tinywasm (like real scenario)
 	for filePath, content := range files {
 		fullPath := filepath.Join(tmp, filePath)
 		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0755))
@@ -56,7 +56,7 @@ func TestStartRealScenario(t *testing.T) {
 	}
 	defer func() { InitialBrowserReloadFunc = nil }()
 
-	// Start golite
+	// Start tinywasm
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 

@@ -57,7 +57,7 @@ return nil
 
 ### 2. Agregados logs para debugging
 
-Ahora cuando editas un archivo de dependencia, verás en golite:
+Ahora cuando editas un archivo de dependencia, verás en tinywasm:
 
 ```
 .go write ... /path/to/greet.go
@@ -88,7 +88,7 @@ Reproduce el bug "a veces funciona, a veces no":
 ### Opción 1: Tests Automatizados
 
 ```bash
-cd /home/cesar/Dev/Pkg/Mine/golite
+cd /home/cesar/Dev/Pkg/Mine/tinywasm
 
 # Test básico de dependencias
 go test -v -run TestGreetFileEventTriggersWasmCompilation
@@ -102,10 +102,10 @@ go test -v ./...
 
 ### Opción 2: Verificación Manual
 
-1. **Ejecuta golite**:
+1. **Ejecuta tinywasm**:
    ```bash
-   cd /home/cesar/Dev/Pkg/Mine/golite/example
-   golite
+   cd /home/cesar/Dev/Pkg/Mine/tinywasm/example
+   tinywasm
    ```
 
 2. **Edita greet.go**:
@@ -113,7 +113,7 @@ go test -v ./...
    - Cambia `"Hello"` por `"Hola"`
    - Guarda el archivo
 
-3. **Verifica los logs de golite**:
+3. **Verifica los logs de tinywasm**:
    Deberías ver:
    ```
    .go write ... .../greet.go
@@ -127,7 +127,7 @@ go test -v ./...
 
 ### Opción 3: Test con Ediciones Rápidas
 
-1. Ejecuta golite
+1. Ejecuta tinywasm
 2. Edita `greet.go` varias veces seguidas (cada 2-3 segundos):
    - "Hello" → guarda
    - "Hola" → guarda  
@@ -165,16 +165,16 @@ h.Logger(fmt.Sprintf("DEBUG: ThisFileIsMine result: %v", isMine))
 
 1. ✅ `tinywasm/file_event.go` - Removida verificación incorrecta de `ShouldCompileToWasm()`
 2. ✅ `devwatch/watchEvents.go` - Sin cambios funcionales (solo cleanup de logs debug)
-3. ✅ `golite/greet_dependency_test.go` - Test de detección de dependencias
-4. ✅ `golite/greet_file_event_test.go` - Test de compilación al editar dependencia
-5. ✅ `golite/greet_repeated_edits_test.go` - Test de ediciones repetidas
+3. ✅ `tinywasm/greet_dependency_test.go` - Test de detección de dependencias
+4. ✅ `tinywasm/greet_file_event_test.go` - Test de compilación al editar dependencia
+5. ✅ `tinywasm/greet_repeated_edits_test.go` - Test de ediciones repetidas
 
 ## Versiones Actualizadas
 
 Después de hacer push:
 - `tinywasm` v0.2.X (nueva versión con el fix)
 - `devwatch` v0.0.39 (sin cambios funcionales)
-- `golite` v0.2.20 (usando tinywasm actualizado)
+- `tinywasm` v0.2.20 (usando tinywasm actualizado)
 
 ## Resumen Técnico
 
@@ -201,5 +201,5 @@ La solución es **confiar en godepfind**: Si godepfind dice "este archivo perten
 ---
 
 **Fecha del Fix**: 20 de Octubre, 2025
-**Tests**: 27/27 passing (devwatch + golite)
+**Tests**: 27/27 passing (devwatch + tinywasm)
 **Status**: ✅ RESUELTO

@@ -69,7 +69,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	// Validate directory
 	homeDir, _ := os.UserHomeDir()
 	if rootDir == homeDir || rootDir == "/" {
-		logger("Cannot run golite in user root directory. Please run in a Go project directory")
+		logger("Cannot run tinywasm in user root directory. Please run in a Go project directory")
 		return
 	}
 

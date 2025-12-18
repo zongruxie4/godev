@@ -168,14 +168,14 @@ func (h *Goflare) UnobservedFiles() []string {
 3. [ ] Add unit test in tinywasm for path return types
 4. [ ] Run existing tinywasm tests to verify no breakage
 5. [ ] Update goflare test expectations
-6. [ ] Run golite full test suite
-7. [ ] Test manually in golite/example
+6. [ ] Run tinywasm full test suite
+7. [ ] Test manually in tinywasm/example
 
 ### If Option B (Fix goflare only):
 1. [ ] Modify `goflare/events.go` - `UnobservedFiles()`
 2. [ ] Update test expectations
-3. [ ] Run golite test suite
-4. [ ] Test manually in golite/example
+3. [ ] Run tinywasm test suite
+4. [ ] Test manually in tinywasm/example
 5. [ ] Document limitation in tinywasm (optional)
 
 ### If Option C (Hybrid):
@@ -193,15 +193,15 @@ After implementing the fix:
 
 1. **Run unit test:**
    ```bash
-   cd /home/cesar/Dev/Pkg/Mine/golite
+   cd /home/cesar/Dev/Pkg/Mine/tinywasm
    go test -v -run TestDeployUnobservedFilesNotProcessedByAssetmin
    ```
    Expected: Test should PASS with both paths relative
 
 2. **Manual test:**
    ```bash
-   cd /home/cesar/Dev/Pkg/Mine/golite/example
-   golite
+   cd /home/cesar/Dev/Pkg/Mine/tinywasm/example
+   tinywasm
    # Check logs - should NOT see: "ASSETS .js create ... deploy/edgeworker/_worker.js"
    ```
 

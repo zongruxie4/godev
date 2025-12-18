@@ -21,7 +21,7 @@ type mcpServerConfig struct {
 }
 
 // updateMCPConfig reads, updates, and writes the mcp.json file.
-// Adds or updates the "golite-mcp" entry with the current configuration.
+// Adds or updates the "tinywasm-mcp" entry with the current configuration.
 // Creates new file if it doesn't exist.
 // Returns nil for permission errors (silent failure).
 func updateMCPConfig(configPath string, mcpPort string) error {
@@ -58,7 +58,7 @@ func updateMCPConfig(configPath string, mcpPort string) error {
 	}
 
 	// Add/update TinyWasm MCP entry
-	config.Servers["golite-mcp"] = mcpServerConfig{
+	config.Servers["tinywasm-mcp"] = mcpServerConfig{
 		URL:  fmt.Sprintf("http://localhost:%s/mcp", mcpPort),
 		Type: "http",
 	}

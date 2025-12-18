@@ -1,5 +1,5 @@
 .env
-golite.exe
+tinywasm.exe
 *ISSUE*.md
 test/*
 *.log/test/

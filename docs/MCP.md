@@ -5,7 +5,7 @@
 ## Quick Start
 
 ```bash
-golite  # Starts UI + MCP server on http://localhost:3030/mcp
+tinywasm  # Starts UI + MCP server on http://localhost:3030/mcp
 ```
 
 ### Connect from Claude Desktop
@@ -13,7 +13,7 @@ golite  # Starts UI + MCP server on http://localhost:3030/mcp
 ```json
 {
   "mcpServers": {
-    "golite": {
+    "tinywasm": {
       "url": "http://localhost:3030/mcp"
     }
   }

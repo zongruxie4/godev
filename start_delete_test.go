@@ -31,7 +31,7 @@ func TestStartDeleteFileScenario(t *testing.T) {
 		require.NoError(t, os.WriteFile(fullPath, []byte(content), 0644))
 	}
 
-	// Start golite
+	// Start tinywasm
 	exitChan := make(chan bool)
 	go Start(tmp, nil, newUiMockTest(nil), exitChan)
 

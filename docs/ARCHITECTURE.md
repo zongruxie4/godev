@@ -1,5 +1,5 @@
 ## Arquitectura
-![arquitectura golite](architecture/golite-architecture.svg)
+![arquitectura tinywasm](architecture/tinywasm-architecture.svg)
 
 ## Flujo de Componentes
-![componentes golite](architecture/golite-component-flow.svg)
+![componentes tinywasm](architecture/tinywasm-component-flow.svg)

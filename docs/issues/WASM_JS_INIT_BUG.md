@@ -52,7 +52,7 @@ AssetMin is not calling the configured `GetRuntimeInitializerJS` function when p
 - **Method**: `(*TinyWasm).JavascriptForInitializing() (string, error)`
 - **Issue**: Generates different JavaScript for different compiler modes but AssetMin doesn't call it on mode changes
 
-### 4. GoLDev Integration (`/golite/`)
+### 4. GoLDev Integration (`/tinywasm/`)
 - **File**: `section-build.go`
 - **Method**: `(*handler).AddSectionBUILD()`
 - **Configuration**: `GetRuntimeInitializerJS: h.wasmHandler.JavascriptForInitializing`

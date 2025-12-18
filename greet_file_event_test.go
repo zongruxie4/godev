@@ -13,7 +13,7 @@ import (
 )
 
 // TestGreetFileEventTriggersWasmCompilation simulates the exact user scenario:
-// 1. Start golite
+// 1. Start tinywasm
 // 2. Edit greet.go (dependency of main.go)
 // 3. Verify WASM recompilation happens (not just browser reload)
 func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
@@ -26,7 +26,7 @@ func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
 	// Create config to get proper paths
 	config := NewConfig(tmp, func(messages ...any) {})
 
-	// Create realistic project structure (golite expects web/ directory)
+	// Create realistic project structure (tinywasm expects web/ directory)
 	err := os.MkdirAll(filepath.Join(tmp, config.WebDir()), 0755)
 	require.NoError(t, err)
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
@@ -55,8 +55,8 @@ func Greet(target string) string {
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
 	require.NoError(t, err)
 
-	// Create web/client.go that imports greet (golite's expected WASM entry point)
-	// This file MUST exist before starting golite with the greet import
+	// Create web/client.go that imports greet (tinywasm's expected WASM entry point)
+	// This file MUST exist before starting tinywasm with the greet import
 	clientGoFile := filepath.Join(tmp, config.WebDir(), config.ClientFileName())
 	clientGoContent := `//go:build wasm
 
@@ -125,7 +125,7 @@ func main() {
 	}
 	defer func() { InitialBrowserReloadFunc = nil }()
 
-	// Start golite
+	// Start tinywasm
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
 	// Wait for initialization

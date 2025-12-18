@@ -13,8 +13,8 @@
   - `TestOutputRelativePath` - Verifica rutas relativas en múltiples escenarios
   - `TestOutputRelativePathConsistency` - Verifica consistencia entre modos
 
-### 3. golite - Test Actualizado
-- **Archivo:** `golite/deploy_unobserved_files_test.go`
+### 3. tinywasm - Test Actualizado
+- **Archivo:** `tinywasm/deploy_unobserved_files_test.go`
 - **Cambio:** Actualizado para esperar rutas relativas y comparar correctamente
 
 ---
@@ -29,11 +29,11 @@ go test -v -run TestOutputRelativePath
 # 2. Suite completa de tinywasm (verificar no regresión)
 go test ./...
 
-# 3. Test del bug en golite
-cd /home/cesar/Dev/Pkg/Mine/golite
+# 3. Test del bug en tinywasm
+cd /home/cesar/Dev/Pkg/Mine/tinywasm
 go test -v -run TestDeployUnobservedFilesNotProcessedByAssetmin
 
-# 4. Suite completa de golite
+# 4. Suite completa de tinywasm
 go test ./...
 ```
 
@@ -41,10 +41,10 @@ go test ./...
 
 ## 📄 Documentación Creada
 
-1. ✅ `golite/docs/issues/BUG_UNOBSERVEDFILES.md` - Bug original documentado
-2. ✅ `golite/docs/issues/BUG_UNOBSERVEDFILES_NEXT_STEPS.md` - Opciones propuestas
-3. ✅ `golite/docs/issues/REFACTOR_IMPLEMENTED.md` - Detalle de la implementación
-4. ✅ `golite/docs/issues/REFACTOR_SUMMARY.md` - Este resumen
+1. ✅ `tinywasm/docs/issues/BUG_UNOBSERVEDFILES.md` - Bug original documentado
+2. ✅ `tinywasm/docs/issues/BUG_UNOBSERVEDFILES_NEXT_STEPS.md` - Opciones propuestas
+3. ✅ `tinywasm/docs/issues/REFACTOR_IMPLEMENTED.md` - Detalle de la implementación
+4. ✅ `tinywasm/docs/issues/REFACTOR_SUMMARY.md` - Este resumen
 
 ---
 

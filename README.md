@@ -47,7 +47,7 @@ TinyWasm includes a **fully functional Model Context Protocol server** that allo
 
 **Why This Matters**: Your LLM can debug visual issues, optimize bundle sizes, and understand runtime behavior without you copy-pasting logs or screenshots. This **saves tokens and time**, making AI-assisted development dramatically more efficient.
 
-The MCP server starts automatically when you run `golite` and is available at `http://localhost:3030/mcp`.
+The MCP server starts automatically when you run `tinywasm` and is available at `http://localhost:3030/mcp`.
 
 ### 📦 **Three WebAssembly Compilation Modes**
 
@@ -71,7 +71,7 @@ Switch modes on-the-fly via the TUI or let your LLM assistant choose based on co
 The TinyWasm TUI is your **development control center**:
 - Real-time status of server, WASM compiler, asset watcher, and browser
 - Color-coded logs from all components
-- One-command setup: just run `golite` in your project directory
+- One-command setup: just run `tinywasm` in your project directory
 - Chrome browser automation with live-reload injection
 - HTTPS on port 6060 with dev certificates
 
@@ -91,7 +91,7 @@ The TinyWasm TUI is your **development control center**:
 
 ### Prerequisites
 - **Go 1.25.2+** - [Download from go.dev](https://go.dev/dl/)
-- **TinyGo** (optional, for M/S modes) - [Install TinyGo](https://tinygo.org/getting-started/install/)
+- **TinyGo** (for M/S modes) - [Install TinyGo](https://tinygo.org/getting-started/install/)
 - **Chrome/Chromium** - For browser automation
 
 > **Future Vision**: TinyWasm will provide a standalone installer that bundles Go, Git, GitHub CLI, VS Code, and everything needed for development—no manual setup required.
@@ -103,13 +103,13 @@ The TinyWasm TUI is your **development control center**:
 go version
 
 # Install TinyWasm CLI
-go install -v github.com/tinywasm/app/cmd/tw@latest
+go install -v github.com/tinywasm/app/cmd/tinywasm@latest
 
 # Create your project directory
 mkdir myapp && cd myapp
 
 # Start TinyWasm (initializes project structure and TUI)
-tw
+tinywasm
 ```
 
 **That's it.** TinyWasm will:
@@ -121,35 +121,9 @@ tw
 
 ---
 
-## 📁 **Project Structure**
+## 📁 [**Project Structure convention**](docs/PROJECT_STRUCTURE_EXAMPLE.md)
 
-**⚠️ MANDATORY STRUCTURE** - TinyWasm enforces this convention to eliminate configuration files:
 
-### [**Fixed Structure by Convention**](docs/PROJECT_STRUCTURE_EXAMPLE.md)
-
-```
-myapp/
-├── web/
-│   ├── server.go       # Backend code (//go:build !wasm)
-│   ├── client.go       # Frontend WASM code (//go:build wasm)
-│   ├── shared.go       # Shared code between client/server (no build tags)
-│   ├── server          # Compiled server binary (same name as source file)
-│   ├── public/         # Static assets (auto-generated WASM, CSS, JS)
-│   │   └── app.wasm    # Compiled WASM binary
-│   └── templates/      # HTML templates
-├── cmd/
-│   └── edgeworker/     # Optional Cloudflare Workers code
-└── deploy/
-    └── edgeworker/     # Compiled edge worker output
-```
-
-**Why This Structure?**
-- **Native Go Build Tags** - Uses `//go:build wasm` and `//go:build !wasm` (pure Go, no magic)
-- **Single Directory** - All application code in `web/`, no unnecessary folder nesting
-- **Obvious Code Sharing** - `shared.go` (without build tags) works in both client and server
-- **Zero Config Files** - No `package.json`, `webpack.config.js`, or `tsconfig.json`
-- **LLM-Friendly** - Less directory jumping, clearer context for AI assistants
-- **Go Idiomatic** - Build tags are standard Go practice
 
 ---
 
@@ -208,7 +182,7 @@ TinyWasm aims to become a **complete Go web development platform**:
 
 ## 📖 **Quick Start Example**
 
-After running `golite`, you'll have a working full-stack app. Here's what the default setup looks like:
+After running `tinywasm`, you'll have a working full-stack app. Here's what the default setup looks like:
 
 ### Backend (`web/server.go`)
 ```go
