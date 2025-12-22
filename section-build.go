@@ -32,14 +32,10 @@ func (h *handler) AddSectionBUILD() {
 
 	//WASM
 	h.wasmHandler = client.New(&client.Config{
-		AppRootDir:              h.rootDir,
-		SourceDir:               h.config.CmdWebClientDir(),
-		MainInputFile:           h.config.ClientFileName(),
-		OutputDir:               h.config.WebPublicDir(),
-		WasmExecJsOutputDir:     filepath.Join(h.config.JsDir()),
-		Logger:                  wasmLogger,
-		Store:                   h.db,
-		DisableWasmExecJsOutput: true, // AssetMin handles writing
+		SourceDir: h.config.CmdWebClientDir(),
+		OutputDir: h.config.WebPublicDir(),
+		Logger:    wasmLogger,
+		Store:     h.db,
 		OnWasmExecChange: func() {
 			// This callback is executed when wasm_exec.js content changes (e.g. mode switch)
 			// We need to get the new content and update AssetMin
@@ -53,7 +49,10 @@ func (h *handler) AddSectionBUILD() {
 			// Or we can use a closure that captures the *future* handler instance?
 			// Let's try to capture the handler instance.
 		},
-	}).CreateDefaultWasmFileClientIfNotExist()
+	})
+
+	h.wasmHandler.SetAppRootDir(h.config.RootDir())
+	h.wasmHandler.CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
 	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{

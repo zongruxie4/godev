@@ -35,8 +35,11 @@ func TestStartDeleteFileScenario(t *testing.T) {
 	exitChan := make(chan bool)
 	go Start(tmp, nil, newUiMockTest(nil), exitChan)
 
-	// Give time to initialize and process initial files
-	time.Sleep(500 * time.Millisecond)
+	// Wait for handler and watcher to be ready
+	h := WaitForActiveHandler(5 * time.Second)
+	require.NotNil(t, h)
+	watcher := WaitWatcherReady(5 * time.Second)
+	require.NotNil(t, watcher)
 
 	// AssetMin generates script.js (not main.js) in the public directory
 	scriptJsPath := filepath.Join(tmp, goliteCfg.WebPublicDir(), "script.js")

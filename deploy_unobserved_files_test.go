@@ -76,7 +76,7 @@ export default {
 	}
 };`
 	require.NoError(t, os.WriteFile(workerJsPath, []byte(workerContent), 0644))
-	t.Logf("PRE-CREATED _worker.js at: %s (BEFORE starting tinywasm)", workerJsPath)
+	// t.Logf("PRE-CREATED _worker.js at: %s (BEFORE starting tinywasm)", workerJsPath)
 
 	// Capture logs to verify what files are being processed
 	logs := &SafeBuffer{}
@@ -95,7 +95,7 @@ export default {
 	require.NotNil(t, h.deployCloudflare, "deployCloudflare should be initialized")
 
 	unobservedFiles := h.deployCloudflare.UnobservedFiles()
-	t.Logf("Goflare UnobservedFiles: %v", unobservedFiles)
+	// t.Logf("Goflare UnobservedFiles: %v", unobservedFiles)
 
 	// Verify UnobservedFiles contains the expected files (both should be RELATIVE paths)
 	expectedFiles := []string{
@@ -145,9 +145,9 @@ export default {
 	if _, err := os.Stat(mainJsPath); err == nil {
 		mainJsContent, err = os.ReadFile(mainJsPath)
 		require.NoError(t, err)
-		t.Logf("main.js content length: %d bytes", len(mainJsContent))
+		// t.Logf("main.js content length: %d bytes", len(mainJsContent))
 	} else {
-		t.Logf("main.js not created yet")
+		// t.Logf("main.js not created yet")
 	}
 
 	// Parse logs to check if ASSETS handler processed _worker.js
@@ -159,10 +159,10 @@ export default {
 		}
 	}
 
-	t.Logf("\n=== ASSETS .js logs ===")
-	for _, line := range assetLines {
-		t.Logf("%s", line)
-	}
+	// t.Logf("\n=== ASSETS .js logs ===")
+	// for _, line := range assetLines {
+	// 	t.Logf("%s", line)
+	// }
 
 	// THE CRITICAL ASSERTION: _worker.js should NOT be processed by ASSETS
 	workerProcessedByAssets := false
@@ -174,7 +174,7 @@ export default {
 	}
 
 	if !workerProcessedByAssets {
-		t.Logf("✓ PASS: _worker.js was NOT processed by ASSETS handler")
+		// t.Logf("✓ PASS: _worker.js was NOT processed by ASSETS handler")
 	}
 
 	// Verify _worker.js content is NOT in main.js
@@ -194,29 +194,29 @@ export default {
 
 		// Verify theme.js content IS in main.js (as expected)
 		if !bytes.Contains(mainJsContent, []byte("Theme JS - should be in main.js")) {
-			t.Logf("Note: main.js doesn't contain theme.js content (may not have been processed yet)")
+			// t.Logf("Note: main.js doesn't contain theme.js content (may not have been processed yet)")
 		} else {
-			t.Logf("✓ PASS: main.js contains theme.js content (as expected)")
+			// t.Logf("✓ PASS: main.js contains theme.js content (as expected)")
 		}
 	}
 
 	// Additional verification: Check watcher's unobserved files
 	if h.watcher != nil {
-		t.Logf("\n=== Devwatch Configuration ===")
+		// t.Logf("\n=== Devwatch Configuration ===")
 
 		// Check if _worker.js is in the watcher's no_add_to_watch map
 		// We can't access private field directly, but we can check via logs
 
 		// List all files in deploy directory to verify they exist
-		deployFiles := []string{}
+		// deployFiles := []string{}
 		filepath.Walk(filepath.Join(tmp, "deploy"), func(path string, info os.FileInfo, err error) error {
 			if err == nil && !info.IsDir() {
-				rel, _ := filepath.Rel(tmp, path)
-				deployFiles = append(deployFiles, rel)
+				// rel, _ := filepath.Rel(tmp, path)
+				// deployFiles = append(deployFiles, rel)
 			}
 			return nil
 		})
-		t.Logf("Files in deploy directory: %v", deployFiles)
+		// t.Logf("Files in deploy directory: %v", deployFiles)
 	}
 
 	// Stop the application
@@ -224,10 +224,10 @@ export default {
 	time.Sleep(100 * time.Millisecond)
 
 	// Final summary
-	t.Logf("\n=== TEST SUMMARY ===")
-	t.Logf("UnobservedFiles from goflare: %v", unobservedFiles)
-	t.Logf("_worker.js processed by ASSETS: %v (should be false)", workerProcessedByAssets)
-	t.Logf("main.js size: %d bytes", len(mainJsContent))
+	// t.Logf("\n=== TEST SUMMARY ===")
+	// t.Logf("UnobservedFiles from goflare: %v", unobservedFiles)
+	// t.Logf("_worker.js processed by ASSETS: %v (should be false)", workerProcessedByAssets)
+	// t.Logf("main.js size: %d bytes", len(mainJsContent))
 
 	if workerProcessedByAssets {
 		t.Fatalf("TEST FAILED: _worker.js was incorrectly processed by ASSETS handler")

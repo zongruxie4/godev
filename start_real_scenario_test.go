@@ -65,7 +65,9 @@ func TestStartRealScenario(t *testing.T) {
 	require.NotNil(t, h)
 
 	// Give time to initialize and scan existing files
-	time.Sleep(500 * time.Millisecond)
+	watcher := WaitWatcherReady(5 * time.Second)
+	require.NotNil(t, watcher)
+	time.Sleep(100 * time.Millisecond)
 
 	// AssetMin generates script.js (not main.js) in the public directory
 	scriptJsPath := filepath.Join(tmp, goliteCfg.WebPublicDir(), "script.js")

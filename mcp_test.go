@@ -30,7 +30,7 @@ func TestMCPServerInitialization(t *testing.T) {
 		rootDir:       tmp,
 		config: NewConfig(tmp, func(messages ...any) {
 			// Log to test output
-			t.Log(messages...)
+			// t.Log(messages...)
 		}),
 		exitChan: exitChan,
 	}

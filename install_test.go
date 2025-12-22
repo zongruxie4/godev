@@ -1,10 +1,11 @@
 package app
 
 import (
-	"github.com/tinywasm/devflow"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/tinywasm/devflow"
 )
 
 // TestInstallAllCommands installs all commands from cmd/ directory
@@ -42,5 +43,5 @@ func TestInstallAllCommands(t *testing.T) {
 		}
 	}
 
-	t.Log("✅ All commands installed")
+	// t.Log("✅ All commands installed")
 }

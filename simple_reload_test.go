@@ -74,7 +74,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 	exitChan <- true
 
 	if finalCount > initialCount {
-		t.Logf("✓ Browser reload was called %d times", finalCount-initialCount)
+		// t.Logf("✓ Browser reload was called %d times", finalCount-initialCount)
 	} else {
 		t.Errorf("Browser reload was never called even with single file modification and 1 second wait")
 	}

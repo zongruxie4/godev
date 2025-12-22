@@ -45,7 +45,7 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 	}
 
 	// Initialize db (required for devbrowser)
-	db, err := kvdb.New(filepath.Join(tmp, ".env"), func(message ...any) { t.Log(message...) }, FileStore{})
+	db, err := kvdb.New(filepath.Join(tmp, ".env"), func(message ...any) { /* t.Log(message...) */ }, FileStore{})
 	require.NoError(t, err)
 	h.db = db
 
@@ -54,7 +54,7 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 		AppName:  "GOLITE-TEST",
 		ExitChan: h.exitChan,
 		Color:    devtui.DefaultPalette(),
-		Logger:   func(messages ...any) { t.Log(messages...) },
+		Logger:   func(messages ...any) { /* t.Log(messages...) */ },
 	})
 
 	// Initialize config before AddSectionBUILD (required for proper setup)
@@ -64,25 +64,19 @@ func TestStartAssetMinEventFlow(t *testing.T) {
 	h.AddSectionBUILD()
 
 	// Use the assetsHandler to send initial write events (simulate initial compilation)
-	t.Logf("Sending events for files: %s, %s, %s", file1Path, file2Path, file3Path)
+	// t.Logf("Sending events for files: %s, %s, %s", file1Path, file2Path, file3Path)
 	require.NoError(t, h.assetsHandler.NewFileEvent("script1.js", ".js", file1Path, "write"))
 	require.NoError(t, h.assetsHandler.NewFileEvent("script2.js", ".js", file2Path, "write"))
 	require.NoError(t, h.assetsHandler.NewFileEvent("theme.js", ".js", file3Path, "write"))
 
 	// AssetMin generates script.js (not main.js) in the public directory
 	scriptJsPath := filepath.Join(tmp, goliteCfg.WebPublicDir(), "script.js")
-	t.Logf("Waiting for script.js at: %s", scriptJsPath)
+	// t.Logf("Waiting for script.js at: %s", scriptJsPath)
 
 	// Check if directory was created
 	publicDir := filepath.Join(tmp, goliteCfg.WebPublicDir())
-	if info, err := os.Stat(publicDir); err == nil {
-		t.Logf("Public dir exists: %s (isDir: %v)", publicDir, info.IsDir())
-		if files, err := os.ReadDir(publicDir); err == nil {
-			t.Logf("Files in public dir: %v", files)
-		}
-	} else {
-		t.Logf("Public dir does not exist: %s (error: %v)", publicDir, err)
-	}
+	_, _ = os.Stat(publicDir)
+	_, _ = os.ReadDir(publicDir)
 
 	// Wait for script.js to be created
 	require.Eventually(t, func() bool {

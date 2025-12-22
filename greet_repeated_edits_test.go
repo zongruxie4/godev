@@ -79,7 +79,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Run go mod tidy
-	t.Log("Running go mod tidy...")
+	// t.Log("Running go mod tidy...")
 	tidyCmd := exec.Command("go", "mod", "tidy")
 	tidyCmd.Dir = tmp
 	if output, err := tidyCmd.CombinedOutput(); err != nil {
@@ -96,8 +96,8 @@ func main() {
 		msg := logs.LastLog()
 
 		if strings.Contains(msg, "Compiling WASM") {
-			count := atomic.AddInt32(&compilationCount, 1)
-			t.Logf("[COMPILE %d] %s", count, msg)
+			atomic.AddInt32(&compilationCount, 1)
+			// t.Logf("[COMPILE %d] %s", count, msg)
 		}
 	}
 
@@ -114,7 +114,7 @@ func main() {
 	h := GetActiveHandler()
 	require.NotNil(t, h)
 
-	t.Log("\n=== TEST: Repeated edits to greet.go ===")
+	// t.Log("\n=== TEST: Repeated edits to greet.go ===")
 
 	// Perform 5 edits with realistic timing
 	editMessages := []string{
@@ -126,7 +126,7 @@ func main() {
 	}
 
 	for i, msg := range editMessages {
-		t.Logf("\n--- Edit %d: Changing greeting to '%s' ---", i+1, msg)
+		// t.Logf("\n--- Edit %d: Changing greeting to '%s' ---", i+1, msg)
 
 		// Reset counter before edit
 		beforeCount := atomic.LoadInt32(&compilationCount)
@@ -151,7 +151,7 @@ func Greet(target string) string {
 		compiled := afterCount > beforeCount
 
 		if compiled {
-			t.Logf("✅ Edit %d: Compilation triggered (total: %d)", i+1, afterCount)
+			// t.Logf("✅ Edit %d: Compilation triggered (total: %d)", i+1, afterCount)
 		} else {
 			t.Errorf("❌ Edit %d: NO compilation triggered! (total still: %d)", i+1, afterCount)
 			t.Errorf("   Expected: Each edit should trigger compilation")
@@ -169,9 +169,9 @@ func Greet(target string) string {
 	time.Sleep(200 * time.Millisecond)
 
 	finalCount := atomic.LoadInt32(&compilationCount)
-	t.Logf("\n=== FINAL RESULTS ===")
-	t.Logf("Total edits: %d", len(editMessages))
-	t.Logf("Total compilations: %d", finalCount)
+	// t.Logf("\n=== FINAL RESULTS ===")
+	// t.Logf("Total edits: %d", len(editMessages))
+	// t.Logf("Total compilations: %d", finalCount)
 
 	if finalCount < int32(len(editMessages)) {
 		t.Errorf("❌ BUG REPRODUCED: Only %d/%d edits triggered compilation!", finalCount, len(editMessages))
@@ -179,6 +179,6 @@ func Greet(target string) string {
 		t.Log("\n=== Full Logs ===")
 		t.Log(logs.String())
 	} else {
-		t.Logf("✅ SUCCESS: All %d edits triggered compilation consistently", len(editMessages))
+		// t.Logf("✅ SUCCESS: All %d edits triggered compilation consistently", len(editMessages))
 	}
 }

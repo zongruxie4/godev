@@ -5,10 +5,10 @@ go 1.25.2
 require (
 	github.com/mark3labs/mcp-go v0.43.2
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.3.14
+	github.com/tinywasm/client v0.3.18
 	github.com/tinywasm/devflow v0.0.20
 	github.com/tinywasm/devtui v0.2.22
-	github.com/tinywasm/goflare v0.0.37
+	github.com/tinywasm/goflare v0.0.39
 	github.com/tinywasm/kvdb v0.0.17
 )
 
@@ -60,7 +60,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	golang.design/x/clipboard v0.7.1 // indirect
-	golang.org/x/exp/shiny v0.0.0-20251209150349-8475f28825e9 // indirect
+	golang.org/x/exp/shiny v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/image v0.34.0 // indirect
 	golang.org/x/mobile v0.0.0-20251209145715-2553ed8ce294 // indirect
 	golang.org/x/text v0.32.0 // indirect
@@ -80,6 +80,8 @@ require (
 
 // replace github.com/tinywasm/devwatch => ../devwatch
 
-//replace github.com/tinywasm/client => ../tinywasm
+replace github.com/tinywasm/client => ../client
+
+replace github.com/tinywasm/goflare => ../goflare
 
 //replace github.com/tinywasm/devbrowser => ../devbrowser

@@ -41,8 +41,11 @@ func TestStartJSEventFlow(t *testing.T) {
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
-	// Give the services some time to initialize
-	time.Sleep(250 * time.Millisecond)
+	// Wait for handler and watcher to be ready
+	h := WaitForActiveHandler(5 * time.Second)
+	require.NotNil(t, h)
+	watcher := WaitWatcherReady(5 * time.Second)
+	require.NotNil(t, watcher)
 
 	// Create files with initial content first
 	require.NoError(t, os.WriteFile(file1Path, []byte(file1Content), 0644))
