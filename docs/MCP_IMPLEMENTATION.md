@@ -80,7 +80,7 @@ Then restart Claude Desktop. TinyWasm tools will appear in the tools menu.
         ┌─────────┴─────────┬─────────────┬───────────┐
         ▼                   ▼             ▼           ▼
 ┌───────────────┐  ┌──────────────┐  ┌────────┐  ┌────────┐
-│ handler       │  │ wasmHandler  │  │browser │  │watcher │
+│ handler       │  │ wasmClient  │  │browser │  │watcher │
 │ (tinywasm core) │  │ (tinywasm)   │  │(devbr) │  │(watch) │
 └───────────────┘  └──────────────┘  └────────┘  └────────┘
 ```
@@ -280,7 +280,7 @@ This will show all MCP protocol messages in the logs.
 ## Next Steps
 
 1. Implement log buffer system
-2. Connect WASM mode control to wasmHandler.Change()
+2. Connect WASM mode control to wasmClient.Change()
 3. Add browser console capture
 4. Implement project structure scanner
 5. Add comprehensive tests

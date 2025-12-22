@@ -31,7 +31,7 @@ func (h *handler) AddSectionBUILD() {
 	// ✅ No scanning needed - using conventional paths
 
 	//WASM
-	h.wasmHandler = client.New(&client.Config{
+	h.wasmClient = client.New(&client.Config{
 		SourceDir: h.config.CmdWebClientDir(),
 		OutputDir: h.config.WebPublicDir(),
 		Logger:    wasmLogger,
@@ -39,7 +39,7 @@ func (h *handler) AddSectionBUILD() {
 		OnWasmExecChange: func() {
 			// This callback is executed when wasm_exec.js content changes (e.g. mode switch)
 			// We need to get the new content and update AssetMin
-			// Note: We can't access h.wasmHandler here directly if it's not assigned yet,
+			// Note: We can't access h.wasmClient here directly if it's not assigned yet,
 			// but since this callback is stored in config and called later, we need a way to get content.
 			// However, we are inside AddSectionBUILD, so we can define the callback to use the handler variable
 			// BUT we need to be careful about closure capture.
@@ -51,15 +51,15 @@ func (h *handler) AddSectionBUILD() {
 		},
 	})
 
-	h.wasmHandler.SetAppRootDir(h.config.RootDir())
-	h.wasmHandler.CreateDefaultWasmFileClientIfNotExist()
+	h.wasmClient.SetAppRootDir(h.config.RootDir())
+	h.wasmClient.CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
 	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: filepath.Join(h.rootDir, h.config.WebPublicDir()),
 		Logger:    assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) {
-			return h.wasmHandler.JavascriptForInitializing()
+			return h.wasmClient.JavascriptForInitializing()
 		},
 		AppName: h.frameworkName,
 	})
@@ -71,7 +71,7 @@ func (h *handler) AddSectionBUILD() {
 		SourceDir:                   h.config.CmdAppServerDir(),
 		OutputDir:                   h.config.DeployAppServerDir(),
 		MainInputFile:               h.config.ServerFileName(),
-		Routes:                      []func(*http.ServeMux){h.assetsHandler.RegisterRoutes, h.wasmHandler.RegisterRoutes},
+		Routes:                      []func(*http.ServeMux){h.assetsHandler.RegisterRoutes, h.wasmClient.RegisterRoutes},
 		ArgumentsForCompilingServer: func() []string { return []string{} },
 		ArgumentsToRunServer: func() []string {
 			return []string{
@@ -88,7 +88,7 @@ func (h *handler) AddSectionBUILD() {
 	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan, browserLogger)
 
 	// Wire up TinyWasm to AssetMin
-	h.wasmHandler.OnWasmExecChange = func() {
+	h.wasmClient.OnWasmExecChange = func() {
 		// Notify AssetMin to refresh JS assets (this will pull the new initializer JS)
 		h.assetsHandler.RefreshAsset(".js")
 		wasmLogger("Refreshed script.js via AssetMin")
@@ -104,7 +104,7 @@ func (h *handler) AddSectionBUILD() {
 	// WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
 		AppRootDir:         h.config.RootDir(),
-		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmHandler, h.serverHandler, h.assetsHandler},
+		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmClient, h.serverHandler, h.assetsHandler},
 		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
 		BrowserReload:      h.browser.Reload,
 		Logger:             watchLogger,
@@ -121,7 +121,7 @@ func (h *handler) AddSectionBUILD() {
 			}
 
 			uf = append(uf, h.assetsHandler.UnobservedFiles()...)
-			uf = append(uf, h.wasmHandler.UnobservedFiles()...)
+			uf = append(uf, h.wasmClient.UnobservedFiles()...)
 			uf = append(uf, h.serverHandler.UnobservedFiles()...)
 			return uf
 		},
@@ -140,6 +140,6 @@ func (h *handler) AddSectionBUILD() {
 	// BROWSER
 	h.tui.AddHandler(h.browser, time.Millisecond*500, colorPinkMedium, sectionBuild)
 	// WASM compilar wasm de forma dinámica
-	h.tui.AddHandler(h.wasmHandler, time.Millisecond*500, colorPurpleMedium, sectionBuild)
+	h.tui.AddHandler(h.wasmClient, time.Millisecond*500, colorPurpleMedium, sectionBuild)
 
 }

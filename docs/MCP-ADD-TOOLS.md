@@ -106,8 +106,8 @@ In `tinywasm/mcp.go`, tools are loaded automatically with a **generic executor**
 
 ```go
 // Load WASM tools from TinyWasm metadata using reflection
-if h.wasmHandler != nil {
-    if tools, err := mcpToolsFromHandler(h.wasmHandler); err == nil {
+if h.wasmClient != nil {
+    if tools, err := mcpToolsFromHandler(h.wasmClient); err == nil {
         for _, toolMeta := range tools {
             tool := buildMCPTool(toolMeta)
             // Generic executor works for ALL tools - no switch needed!
@@ -339,7 +339,7 @@ func (h *handler) mcpToolWasmSetMode(ctx context.Context, req mcp.CallToolReques
     mode := args["mode"].(string)
     var output strings.Builder
     progress := func(msg string) { output.WriteString(msg + "\n") }
-    h.wasmHandler.Change(mode, progress)
+    h.wasmClient.Change(mode, progress)
     h.tui.RefreshUI()
     return mcp.NewToolResultText(output.String()), nil
 }

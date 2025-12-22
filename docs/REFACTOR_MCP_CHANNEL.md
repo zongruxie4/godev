@@ -118,8 +118,8 @@ No changes needed - already uses reflection-based loading:
 // === BUILD CONTROL TOOLS ===
 
 // Load WASM tools from TinyWasm metadata using reflection
-if h.wasmHandler != nil {
-    if tools, err := mcpToolsFromHandler(h.wasmHandler); err == nil {
+if h.wasmClient != nil {
+    if tools, err := mcpToolsFromHandler(h.wasmClient); err == nil {
         for _, toolMeta := range tools {
             tool := buildMCPTool(toolMeta)
             // Use generic executor - works with new signature automatically

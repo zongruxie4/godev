@@ -55,7 +55,7 @@ AssetMin is not calling the configured `GetRuntimeInitializerJS` function when p
 ### 4. GoLDev Integration (`/tinywasm/`)
 - **File**: `section-build.go`
 - **Method**: `(*handler).AddSectionBUILD()`
-- **Configuration**: `GetRuntimeInitializerJS: h.wasmHandler.JavascriptForInitializing`
+- **Configuration**: `GetRuntimeInitializerJS: h.wasmClient.JavascriptForInitializing`
 
 ## Technical Flow
 

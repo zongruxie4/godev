@@ -11,7 +11,7 @@ package "Core Application" {
         - tui: *DevTUI
         - serverHandler: *ServerHandler
         - assetsHandler: *AssetMin
-        - wasmHandler: *TinyWasm
+        - wasmClient: *TinyWasm
         - watcher: *DevWatch
         - browser: *DevBrowser
         - exitChan: chan bool

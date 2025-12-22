@@ -46,8 +46,8 @@ func (h *handler) ServeMCP() {
 	// === BUILD CONTROL TOOLS ===
 
 	// Load WASM tools from TinyWasm metadata using reflection
-	if h.wasmHandler != nil {
-		if tools, err := mcpToolsFromHandler(h.wasmHandler); err == nil {
+	if h.wasmClient != nil {
+		if tools, err := mcpToolsFromHandler(h.wasmClient); err == nil {
 			for _, toolMeta := range tools {
 				tool := buildMCPTool(toolMeta)
 				// Use generic executor - no need to know tool names or implementations
@@ -155,7 +155,7 @@ func (h *handler) mcpToolGetStatus(ctx context.Context, req mcp.CallToolRequest)
 		},
 		"wasm": map[string]any{
 			"output_dir": h.config.WebPublicDir(),
-			// TODO: Get current mode from wasmHandler
+			// TODO: Get current mode from wasmClient
 		},
 		"browser": map[string]any{
 			// TODO: Get isOpen status from browser
