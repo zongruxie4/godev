@@ -1,0 +1,48 @@
+=== RUN   TestGreetFileEventTriggersWasmCompilation
+DEBUG LOG: "WASM source file already exists at /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web/client.go , skipping generation"
+DEBUG LOG: "Compiling WASM Client (In-Memory)..."
+DEBUG LOG: "Compiling to memory..."
+DEBUG LOG: "Compilation failed after mode switch: compilation failed: exit status 1\nOutput: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web/client.go:6:2: package example/pkg/greet is not in std (/usr/local/go/src/example/pkg/greet)\npackage command-line-arguments\n\timports syscall/js: build constraints exclude all Go files in /usr/local/go/src/syscall/js\n"
+DEBUG LOG: "SetBuildOnDisk: false"
+DEBUG LOG: "Registration APP ROOT DIR: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001"
+DEBUG LOG: "path added: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001"
+DEBUG LOG: "Registered In-Memory route: /client.wasm"
+DEBUG LOG: "Starting In-Memory Server on port: 6060"
+DEBUG LOG: "path added: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg"
+DEBUG LOG: "path added: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet"
+DEBUG LOG: "Starting MCP HTTP server on port 3030"
+DEBUG LOG: "MCP endpoint: http://localhost:3030/mcp"
+DEBUG LOG: ".go create ... /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet/greet.go"
+DEBUG LOG: "Compiling WASM due to /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet/greet.go change..."
+DEBUG LOG: "Compiling WASM Client (In-Memory)..."
+DEBUG LOG: "Compiling to memory..."
+DEBUG LOG: "InitialRegistration file error: compilation failed: exit status 1\nOutput: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web/client.go:6:2: package example/pkg/greet is not in std (/usr/local/go/src/example/pkg/greet)\npackage command-line-arguments\n\timports syscall/js: build constraints exclude all Go files in /usr/local/go/src/syscall/js\n"
+DEBUG LOG: "path added: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web"
+DEBUG LOG: ".go create ... /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web/client.go"
+DEBUG LOG: "Compiling WASM due to /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web/client.go change..."
+DEBUG LOG: "Compiling WASM Client (In-Memory)..."
+DEBUG LOG: "Compiling to memory..."
+DEBUG LOG: "InitialRegistration file error: compilation failed: exit status 1\nOutput: /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/web/client.go:6:2: package example/pkg/greet is not in std (/usr/local/go/src/example/pkg/greet)\npackage command-line-arguments\n\timports syscall/js: build constraints exclude all Go files in /usr/local/go/src/syscall/js\n"
+DEBUG LOG: "Listening for File Changes ..."
+DEBUG LOG: ".go write ... /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet/greet.go"
+DEBUG LOG: "Compiling WASM due to /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet/greet.go change..."
+DEBUG LOG: "Compiling WASM Client (In-Memory)..."
+DEBUG LOG: "Compiling to memory..."
+    greet_file_event_test.go:193: ❌ BUG CONFIRMED: Editing greet.go did NOT trigger WASM compilation!
+    greet_file_event_test.go:194:    Expected: greet.go change -> WASM recompile -> browser reload
+    greet_file_event_test.go:195:    Actual: greet.go change -> browser reload only (STALE WASM!)
+    greet_file_event_test.go:196: 
+        Full logs:
+    greet_file_event_test.go:197: .go write ... /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet/greet.go
+        Compiling WASM due to /tmp/TestGreetFileEventTriggersWasmCompilation1202973103/001/pkg/greet/greet.go change...
+        Compiling WASM Client (In-Memory)...
+        Compiling to memory...
+        
+    greet_file_event_test.go:203: ❌ No browser reload happened
+DEBUG LOG: "Shutting down MCP server..."
+DEBUG LOG: "In-Memory Server stopped"
+DEBUG LOG: "MCP HTTP server stopped: http: Server closed"
+--- FAIL: TestGreetFileEventTriggersWasmCompilation (1.71s)
+FAIL
+FAIL	github.com/tinywasm/app	1.717s
+FAIL

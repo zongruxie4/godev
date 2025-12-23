@@ -1,6 +1,9 @@
 package app
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type mockTUI struct {
 	logger func(...any)
@@ -33,7 +36,17 @@ func (m *mockTUI) AddLogger(name string, enableTracking bool, color string, tabS
 }
 
 func (m *mockTUI) Start(syncWaitGroup ...any) {
-	// no-op
+	if len(syncWaitGroup) > 0 {
+		if wg, ok := syncWaitGroup[0].(*sync.WaitGroup); ok {
+			defer wg.Done()
+		}
+	}
+	// Mimic blocking behavior if needed, or just return.
+	// Real TUI blocks?
+	// If real TUI blocks, we should probably block until exit?
+	// But mockTUI is simple.
+	// If we just Done() and return, wg decrements.
+	// Start continues waiting for others.
 }
 
 func (m *mockTUI) RefreshUI() {

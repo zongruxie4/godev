@@ -71,7 +71,8 @@ func TestSimpleBrowserReload(t *testing.T) {
 	finalCount := atomic.LoadInt64(&reloadCount)
 	logIfVerbose(t, "Final reload count: %d", finalCount)
 
-	exitChan <- true
+	close(exitChan)
+	SetActiveHandler(nil)
 
 	if finalCount > initialCount {
 		// t.Logf("✓ Browser reload was called %d times", finalCount-initialCount)

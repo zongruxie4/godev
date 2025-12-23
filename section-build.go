@@ -35,7 +35,7 @@ func (h *handler) AddSectionBUILD() {
 		SourceDir: h.config.CmdWebClientDir(),
 		OutputDir: h.config.WebPublicDir(),
 		Logger:    wasmLogger,
-		Store:     h.db,
+		Database:  h.db,
 		OnWasmExecChange: func() {
 			// This callback is executed when wasm_exec.js content changes (e.g. mode switch)
 			// We need to get the new content and update AssetMin
@@ -63,7 +63,6 @@ func (h *handler) AddSectionBUILD() {
 		},
 		AppName: h.frameworkName,
 	})
-	h.assetsHandler.SetWorkMode(assetmin.DiskMode)
 
 	//SERVER
 	h.serverHandler = server.New(&server.Config{
@@ -94,10 +93,18 @@ func (h *handler) AddSectionBUILD() {
 		wasmLogger("Refreshed script.js via AssetMin")
 
 		// Reload the browser to apply changes
-		if err := h.browser.Reload(); err != nil {
-			wasmLogger("Error reloading browser:", err)
+		if h.watcher != nil && h.watcher.BrowserReload != nil {
+			if err := h.watcher.BrowserReload(); err != nil {
+				wasmLogger("Error reloading browser:", err)
+			} else {
+				wasmLogger("Browser reload triggered (via watcher)")
+			}
 		} else {
-			wasmLogger("Browser reload triggered")
+			if err := h.browser.Reload(); err != nil {
+				wasmLogger("Error reloading browser:", err)
+			} else {
+				wasmLogger("Browser reload triggered (direct)")
+			}
 		}
 	}
 
@@ -141,5 +148,9 @@ func (h *handler) AddSectionBUILD() {
 	h.tui.AddHandler(h.browser, time.Millisecond*500, colorPinkMedium, sectionBuild)
 	// WASM compilar wasm de forma dinámica
 	h.tui.AddHandler(h.wasmClient, time.Millisecond*500, colorPurpleMedium, sectionBuild)
+
+	// WORK MODES (Build and Server)
+	h.tui.AddHandler(&BuildModeOnDisk{h: h}, time.Millisecond*500, colorTealMedium, sectionBuild)
+	h.tui.AddHandler(h.NewServerModeHandler(), time.Millisecond*500, colorBlueMedium, sectionBuild)
 
 }

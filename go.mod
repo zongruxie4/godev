@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/mark3labs/mcp-go v0.43.2
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.3.18
+	github.com/tinywasm/client v0.4.0
 	github.com/tinywasm/devflow v0.0.20
 	github.com/tinywasm/devtui v0.2.22
 	github.com/tinywasm/goflare v0.0.39
@@ -73,15 +73,19 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
 	github.com/tinywasm/assetmin v0.0.70
 	github.com/tinywasm/devbrowser v0.2.4
-	github.com/tinywasm/devwatch v0.0.45
+	github.com/tinywasm/devwatch v0.0.47
 	github.com/tinywasm/server v0.1.18
 	golang.org/x/sys v0.39.0 // indirect
 )
 
-// replace github.com/tinywasm/devwatch => ../devwatch
+replace github.com/tinywasm/devwatch => ../devwatch
 
 replace github.com/tinywasm/client => ../client
 
+replace github.com/tinywasm/server => ../server
+
+replace github.com/tinywasm/assetmin => ../assetmin
+
 replace github.com/tinywasm/goflare => ../goflare
 
-//replace github.com/tinywasm/devbrowser => ../devbrowser
+replace github.com/tinywasm/devbrowser => ../devbrowser

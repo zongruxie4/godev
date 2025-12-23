@@ -165,7 +165,8 @@ func Greet(target string) string {
 	}
 
 	// Cleanup
-	exitChan <- true
+	close(exitChan)
+	SetActiveHandler(nil)
 	time.Sleep(200 * time.Millisecond)
 
 	finalCount := atomic.LoadInt32(&compilationCount)

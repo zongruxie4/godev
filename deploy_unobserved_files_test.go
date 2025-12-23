@@ -220,7 +220,8 @@ export default {
 	}
 
 	// Stop the application
-	exitChan <- true
+	close(exitChan)
+	SetActiveHandler(nil)
 	time.Sleep(100 * time.Millisecond)
 
 	// Final summary

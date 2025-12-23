@@ -32,7 +32,7 @@ go 1.20
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644))
 
-	serverFilePath := filepath.Join(appServerDir, "main.go")
+	serverFilePath := filepath.Join(appServerDir, "server.go")
 	initialServerContent := `package main
 
 import (
@@ -46,7 +46,7 @@ func main() {
         fmt.Fprintln(w, "Server v1")
     })
     log.Println("Starting server v1")
-    http.ListenAndServe(":6060", nil)
+    http.ListenAndServe(":8081", nil)
 }
 `
 
@@ -72,6 +72,8 @@ func main() {
 	// Wait for initialization
 	h := WaitForActiveHandler(8 * time.Second)
 	require.NotNil(t, h)
+	// Enable External Server Mode to support reloading on file changes
+	h.serverHandler.SetExternalServerMode(true)
 
 	watcher := WaitWatcherReady(8 * time.Second)
 	require.NotNil(t, watcher)
@@ -96,7 +98,8 @@ func main() {
 	finalReloadCount := atomic.LoadInt64(&reloadCount)
 	reloadDiff := finalReloadCount - initialReloadCount
 
-	exitChan <- true
+	close(exitChan)
+	SetActiveHandler(nil)
 
 	if reloadDiff == 0 {
 		t.Logf("No reloads detected; logs: %v", logs.Lines())

@@ -29,6 +29,10 @@ func (s *SafeBuffer) String() string {
 }
 
 func (s *SafeBuffer) Log(messages ...any) {
+	s.LogReturn(messages...)
+}
+
+func (s *SafeBuffer) LogReturn(messages ...any) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -41,6 +45,7 @@ func (s *SafeBuffer) Log(messages ...any) {
 	}
 	s.buf.WriteString(msg + "\n")
 	s.messageLines = append(s.messageLines, msg)
+	return msg
 }
 
 func (s *SafeBuffer) Lines() []string {

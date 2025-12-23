@@ -79,6 +79,29 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
 
+	// Apply persisted work modes
+	if h.db != nil {
+		if val, err := h.db.Get(StoreKeyBuildModeOnDisk); err == nil && val != "" {
+			isDisk := (val == "true")
+			h.wasmClient.SetBuildOnDisk(isDisk)
+			h.assetsHandler.SetBuildOnDisk(isDisk)
+			h.serverHandler.SetBuildOnDisk(isDisk)
+		} else {
+			// Default to false (In-Memory) as requested
+			h.wasmClient.SetBuildOnDisk(false)
+			h.assetsHandler.SetBuildOnDisk(false)
+			h.serverHandler.SetBuildOnDisk(false)
+		}
+
+		if val, err := h.db.Get(server.StoreKeyExternalServer); err == nil && val != "" {
+			isExternal := (val == "true")
+			h.serverHandler.SetExternalServerMode(isExternal)
+		} else {
+			// Default to false (Internal) as requested
+			h.serverHandler.SetExternalServerMode(false)
+		}
+	}
+
 	// Auto-configure VS Code MCP integration (silent, non-blocking)
 	ConfigureVSCodeMCP()
 
