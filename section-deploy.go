@@ -16,7 +16,6 @@ func (h *handler) AddSectionDEPLOY() {
 		RelativeInputDirectory:  h.config.CmdEdgeWorkerDir(),
 		RelativeOutputDirectory: h.config.DeployEdgeWorkerDir(),
 		MainInputFile:           "main.go",
-		Logger:                  h.tui.AddLogger("CLOUDFLARE", false, colorOrangeMedium, sectionDeploy),
 		CompilingArguments:      nil,
 		OutputWasmFileName:      "app.wasm",
 	})

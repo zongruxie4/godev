@@ -60,9 +60,9 @@ func TestBuildModeToggleIntegration(t *testing.T) {
 	require.Error(t, err, "wasm file should NOT be created in memory mode after file event")
 
 	// 2. Switch to Disk Mode
-	progress := make(chan string, 10)
+	// 2. Switch to Disk Mode
 	buildMode := &BuildModeOnDisk{h: h}
-	buildMode.Execute(progress)
+	buildMode.Execute()
 
 	// Verify persistence in DB
 	val, err := h.db.Get(StoreKeyBuildModeOnDisk)
@@ -85,7 +85,7 @@ func TestBuildModeToggleIntegration(t *testing.T) {
 	}, 15*time.Second, 500*time.Millisecond, "wasm file should be written to disk after mode switch and file change")
 
 	// 4. Switch back to Memory Mode
-	buildMode.Execute(progress)
+	buildMode.Execute()
 	val, err = h.db.Get(StoreKeyBuildModeOnDisk)
 	require.NoError(t, err)
 	require.Equal(t, "false", val)

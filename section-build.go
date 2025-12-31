@@ -12,43 +12,21 @@ import (
 	"github.com/tinywasm/server"
 )
 
-func (h *handler) AddSectionBUILD() {
+func (h *handler) AddSectionBUILD() any {
 
 	// LDFlags      func() []string // eg: []string{"-X 'main.version=v1.0.0'","-X 'main.buildDate=2023-01-01'"}
 
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 
 	// WRITERS
-	wasmLogger := h.tui.AddLogger("WASM", true, colorPurpleMedium, sectionBuild)
-	serverLogger := h.tui.AddLogger("SERVER", false, colorBlueMedium, sectionBuild)
-	assetsLogger := h.tui.AddLogger("ASSETS", false, colorGreenMedium, sectionBuild)
-	watchLogger := h.tui.AddLogger("WATCH", false, colorYellowMedium, sectionBuild)
-	configLogger := h.tui.AddLogger("CONFIG", true, colorTealMedium, sectionBuild)
-	browserLogger := h.tui.AddLogger("BROWSER", true, colorPinkMedium, sectionBuild)
-
 	// CONFIG
-	h.config = NewConfig(h.rootDir, configLogger) // Use the provided logger
-	// ✅ No scanning needed - using conventional paths
+	h.config = NewConfig(h.rootDir, nil) // Logger will be injected via AddHandler
 
 	//WASM
 	h.wasmClient = client.New(&client.Config{
 		SourceDir: h.config.CmdWebClientDir(),
 		OutputDir: h.config.WebPublicDir(),
-		Logger:    wasmLogger,
 		Database:  h.db,
-		OnWasmExecChange: func() {
-			// This callback is executed when wasm_exec.js content changes (e.g. mode switch)
-			// We need to get the new content and update AssetMin
-			// Note: We can't access h.wasmClient here directly if it's not assigned yet,
-			// but since this callback is stored in config and called later, we need a way to get content.
-			// However, we are inside AddSectionBUILD, so we can define the callback to use the handler variable
-			// BUT we need to be careful about closure capture.
-			// Actually, better approach: define the callback AFTER creating the instance?
-			// No, Config is passed to New.
-			// Alternative: The callback just signals "something changed", and we pull from handler?
-			// Or we can use a closure that captures the *future* handler instance?
-			// Let's try to capture the handler instance.
-		},
 	})
 
 	h.wasmClient.SetAppRootDir(h.config.RootDir())
@@ -57,7 +35,6 @@ func (h *handler) AddSectionBUILD() {
 	//ASSETS
 	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: filepath.Join(h.rootDir, h.config.WebPublicDir()),
-		Logger:    assetsLogger,
 		GetRuntimeInitializerJS: func() (string, error) {
 			return h.wasmClient.JavascriptForInitializing()
 		},
@@ -79,33 +56,20 @@ func (h *handler) AddSectionBUILD() {
 			}
 		},
 		AppPort:  h.config.ServerPort(),
-		Logger:   serverLogger,
 		ExitChan: h.exitChan,
 	})
 
 	// BROWSER
-	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan, browserLogger)
+	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan)
 
-	// Wire up TinyWasm to AssetMin
-	h.wasmClient.OnWasmExecChange = func() {
-		// Notify AssetMin to refresh JS assets (this will pull the new initializer JS)
-		h.assetsHandler.RefreshAsset(".js")
-		wasmLogger("Refreshed script.js via AssetMin")
-
-		// Reload the browser to apply changes
-		if h.watcher != nil && h.watcher.BrowserReload != nil {
-			if err := h.watcher.BrowserReload(); err != nil {
-				wasmLogger("Error reloading browser:", err)
-			} else {
-				wasmLogger("Browser reload triggered (via watcher)")
-			}
-		} else {
-			if err := h.browser.Reload(); err != nil {
-				wasmLogger("Error reloading browser:", err)
-			} else {
-				wasmLogger("Browser reload triggered (direct)")
-			}
+	// Create browser reload wrapper that supports test hooks
+	browserReloadFunc := func() error {
+		// Check if test hook is set (for testing)
+		if InitialBrowserReloadFunc != nil {
+			return InitialBrowserReloadFunc()
 		}
+		// Use real browser reload (production)
+		return h.browser.Reload()
 	}
 
 	// WATCHER
@@ -113,8 +77,7 @@ func (h *handler) AddSectionBUILD() {
 		AppRootDir:         h.config.RootDir(),
 		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmClient, h.serverHandler, h.assetsHandler},
 		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
-		BrowserReload:      h.browser.Reload,
-		Logger:             watchLogger,
+		BrowserReload:      browserReloadFunc,
 		ExitChan:           h.exitChan,
 		UnobservedFiles: func() []string {
 
@@ -134,23 +97,32 @@ func (h *handler) AddSectionBUILD() {
 		},
 	})
 
-	// If tests set a pending browser reload callback before the watcher was
-	// created, apply it now so tests can observe reload calls.
-	if h.pendingBrowserReload != nil {
-		// override the watcher callback
-		h.watcher.BrowserReload = h.pendingBrowserReload
-		// clear pending to avoid accidental reuse
-		h.pendingBrowserReload = nil
+	// HANDLER REGISTRATION (Loggers)
+	h.tui.AddHandler(h.wasmClient, 0, colorPurpleMedium, sectionBuild)
+	h.tui.AddHandler(h.serverHandler, 0, colorBlueMedium, sectionBuild)
+	h.tui.AddHandler(h.assetsHandler, 0, colorGreenMedium, sectionBuild)
+	h.tui.AddHandler(h.watcher, 0, colorYellowMedium, sectionBuild)
+	h.tui.AddHandler(h.config, 0, colorTealMedium, sectionBuild)
+	h.tui.AddHandler(h.browser, 0, colorPinkMedium, sectionBuild)
+
+	// Wire up TinyWasm to AssetMin
+	h.wasmClient.OnWasmExecChange = func() {
+		// Notify AssetMin to refresh JS assets (this will pull the new initializer JS)
+		h.assetsHandler.RefreshAsset(".js")
+		h.wasmClient.Logger("Refreshed script.js via AssetMin")
+
+		// Reload the browser to apply changes
+		if err := h.browser.Reload(); err != nil {
+			h.wasmClient.Logger("Error reloading browser:", err)
+		} else {
+			h.wasmClient.Logger("Browser reload triggered")
+		}
 	}
 
 	// Agregar manejadores que requieren interacción del desarrollador
-	// BROWSER
-	h.tui.AddHandler(h.browser, time.Millisecond*500, colorPinkMedium, sectionBuild)
-	// WASM compilar wasm de forma dinámica
-	h.tui.AddHandler(h.wasmClient, time.Millisecond*500, colorPurpleMedium, sectionBuild)
-
 	// WORK MODES (Build and Server)
 	h.tui.AddHandler(&BuildModeOnDisk{h: h}, time.Millisecond*500, colorTealMedium, sectionBuild)
 	h.tui.AddHandler(h.NewServerModeHandler(), time.Millisecond*500, colorBlueMedium, sectionBuild)
 
+	return sectionBuild
 }

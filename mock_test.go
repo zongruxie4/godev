@@ -24,7 +24,20 @@ func (m *mockTUI) NewTabSection(title, description string) any {
 }
 
 func (m *mockTUI) AddHandler(handler any, timeout time.Duration, color string, tabSection any) {
-	// no-op
+	// Mimic DevTUI's behavior: call SetLog if handler implements Loggable
+	type Loggable interface {
+		Name() string
+		SetLog(logger func(message ...any))
+	}
+
+	if loggable, ok := handler.(Loggable); ok {
+		logFunc := func(message ...any) {
+			if m.logger != nil {
+				m.logger(message...)
+			}
+		}
+		loggable.SetLog(logFunc)
+	}
 }
 
 func (m *mockTUI) AddLogger(name string, enableTracking bool, color string, tabSection any) func(message ...any) {

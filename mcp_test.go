@@ -1,51 +1,46 @@
 package app
 
 import (
-	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tinywasm/mcpserve"
 )
+
+func setupMCPTest(t *testing.T) (*mcpserve.Handler, chan bool) {
+	exitChan := make(chan bool)
+	mcpConfig := mcpserve.Config{
+		Port:          "3030",
+		ServerName:    "TINYWASM",
+		ServerVersion: "1.0.0",
+	}
+	m := mcpserve.NewHandler(mcpConfig, nil, nil, exitChan)
+	return m, exitChan
+}
 
 func TestMCPServerInitialization(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping MCP test in short mode")
 	}
 
-	// Create minimal handler for testing
-	tmp := t.TempDir()
-	exitChan := make(chan bool)
-
-	// Capture any errors during startup
+	m, exitChan := setupMCPTest(t)
 	startupErrors := make(chan error, 1)
 
-	h := &handler{
-		frameworkName: "GOLITE",
-		rootDir:       tmp,
-		config: NewConfig(tmp, func(messages ...any) {
-			// Log to test output
-			// t.Log(messages...)
-		}),
-		exitChan: exitChan,
-	}
-
-	// Test that ServeMCP doesn't panic on initialization
+	// Test that Serve doesn't panic on initialization
 	require.NotPanics(t, func() {
 		go func() {
-			// Catch any panic during ServeMCP
+			// Catch any panic during Serve
 			defer func() {
 				if r := recover(); r != nil {
 					startupErrors <- assert.AnError
-					t.Errorf("ServeMCP panicked: %v", r)
+					t.Errorf("Serve panicked: %v", r)
 				}
 			}()
-			h.ServeMCP()
+			m.Serve()
 		}()
 	})
 
@@ -61,7 +56,7 @@ func TestMCPServerInitialization(t *testing.T) {
 	}
 
 	// Try to connect to verify server is actually running
-	resp, err := http.Post("http://localhost:"+MCPPort+"/mcp",
+	resp, err := http.Post("http://localhost:3030/mcp",
 		"application/json",
 		strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`))
 
@@ -78,36 +73,10 @@ func TestMCPServerInitialization(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func TestMCPToolGetStatus(t *testing.T) {
-	tmp := t.TempDir()
+func TestMCPConfigureIDEs(t *testing.T) {
+	m, exitChan := setupMCPTest(t)
+	defer close(exitChan)
 
-	h := &handler{
-		frameworkName: "GOLITE",
-		rootDir:       tmp,
-		config:        NewConfig(tmp, func(...any) {}),
-	}
-
-	// Create mock components
-	// (In real usage these are created in AddSectionBUILD)
-
-	ctx := context.Background()
-	req := mcp.CallToolRequest{}
-
-	result, err := h.mcpToolGetStatus(ctx, req)
-
-	require.NoError(t, err, "mcpToolGetStatus should not return error")
-	require.NotNil(t, result, "result should not be nil")
-
-	// Verify result contains valid JSON
-	var status map[string]any
-	err = json.Unmarshal([]byte(result.Content[0].(mcp.TextContent).Text), &status)
-	require.NoError(t, err, "result should contain valid JSON")
-
-	// Verify expected fields
-	assert.Equal(t, "GOLITE", status["framework"], "framework should be GOLITE")
-	assert.Equal(t, tmp, status["root_dir"], "root_dir should match")
-	assert.Contains(t, status, "server", "should contain server status")
-	assert.Contains(t, status, "wasm", "should contain wasm status")
-	assert.Contains(t, status, "browser", "should contain browser status")
-	assert.Contains(t, status, "assets", "should contain assets status")
+	// Should not panic even if IDEs aren't installed
+	m.ConfigureIDEs()
 }

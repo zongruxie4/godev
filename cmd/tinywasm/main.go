@@ -34,5 +34,6 @@ func main() {
 
 	// Start TinyWasm - this will initialize handlers and start all goroutines
 	// The Start function will block until exit
-	app.Start(rootDir, logger.Logger, ui, exitChan)
+	// Pass ui as MCP tool handler so devtui_get_section_logs tool is registered
+	app.Start(rootDir, logger.Logger, ui, exitChan, ui)
 }

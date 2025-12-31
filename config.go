@@ -27,6 +27,16 @@ func NewConfig(rootDir string, logger func(message ...any)) *Config {
 	}
 }
 
+// Name returns the handler name for Loggable interface
+func (c *Config) Name() string {
+	return "Config"
+}
+
+// SetLog implements Loggable interface
+func (c *Config) SetLog(f func(message ...any)) {
+	c.logger = f
+}
+
 // GetAppName returns the detected application name
 func (c *Config) GetAppName() string {
 	if c.AppName == "" {

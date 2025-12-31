@@ -3,12 +3,11 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/mark3labs/mcp-go v0.43.2
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.4.0
-	github.com/tinywasm/devflow v0.0.25
-	github.com/tinywasm/devtui v0.2.22
-	github.com/tinywasm/goflare v0.0.39
+	github.com/tinywasm/client v0.4.3
+	github.com/tinywasm/devflow v0.0.26
+	github.com/tinywasm/devtui v0.2.25
+	github.com/tinywasm/goflare v0.0.40
 	github.com/tinywasm/kvdb v0.0.17
 )
 
@@ -37,11 +36,12 @@ require (
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
-	github.com/godbus/dbus/v5 v5.2.1 // indirect
+	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect
+	github.com/mark3labs/mcp-go v0.43.2 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
@@ -54,10 +54,10 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.19 // indirect
-	github.com/tinywasm/fmt v0.12.3 // indirect
-	github.com/tinywasm/gobuild v0.0.20 // indirect
+	github.com/tinywasm/fmt v0.12.5 // indirect
+	github.com/tinywasm/gobuild v0.0.21 // indirect
 	github.com/tinywasm/gorun v0.0.15 // indirect
-	github.com/tinywasm/time v0.2.9 // indirect
+	github.com/tinywasm/time v0.2.10 // indirect
 	github.com/tinywasm/unixid v0.2.13 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
@@ -75,10 +75,11 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
-	github.com/tinywasm/assetmin v0.0.70
-	github.com/tinywasm/devbrowser v0.2.4
-	github.com/tinywasm/devwatch v0.0.47
-	github.com/tinywasm/server v0.1.18
+	github.com/tinywasm/assetmin v0.0.71
+	github.com/tinywasm/devbrowser v0.2.5
+	github.com/tinywasm/devwatch v0.0.48
+	github.com/tinywasm/mcpserve v0.0.4
+	github.com/tinywasm/server v0.1.21
 	golang.org/x/sys v0.39.0 // indirect
 )
 
@@ -93,3 +94,7 @@ replace github.com/tinywasm/assetmin => ../assetmin
 replace github.com/tinywasm/goflare => ../goflare
 
 replace github.com/tinywasm/devbrowser => ../devbrowser
+
+replace github.com/tinywasm/mcpserve => ../mcpserve
+
+replace github.com/tinywasm/devtui => ../devtui

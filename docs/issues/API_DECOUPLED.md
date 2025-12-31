@@ -4,19 +4,19 @@
 
 **Objective**: Create a fully decoupled interface for DevTUI to enable clean testing and zero UI dependencies in consumer applications like `tinywasm`.
 
-**Problem**: Current architecture tightly couples `tinywasm` with DevTUI. GOLITE imports DevTUI directly, making tests expensive (too many tokens for LLMs), difficult to maintain, and polluted with unnecessary UI implementation details.
+**Problem**: Current architecture tightly couples `tinywasm` with DevTUI. TINYWASM imports DevTUI directly, making tests expensive (too many tokens for LLMs), difficult to maintain, and polluted with unnecessary UI implementation details.
 
 **Solution**: 
 1. Single universal registration method `AddHandler(handler any, timeout time.Duration, color string)` with internal type casting
-2. **CRITICAL**: GOLITE must NOT import DevTUI at all - UI passed as interface parameter in `Start()`
-3. All UI interaction through minimal interfaces defined in GOLITE
+2. **CRITICAL**: TINYWASM must NOT import DevTUI at all - UI passed as interface parameter in `Start()`
+3. All UI interaction through minimal interfaces defined in TINYWASM
 4. DevTUI initialization ONLY in `main.go`
 
 ---
 
 ## Core Design Principles
 
-1. **Zero UI Imports in GOLITE**: GOLITE package NEVER imports DevTUI
+1. **Zero UI Imports in TINYWASM**: TINYWASM package NEVER imports DevTUI
 2. **UI as Parameter**: UI instance passed to `Start()` from `main.go`
 3. **Single Entry Point**: ONE method `AddHandler()` for ALL handler types
 4. **No Return Value**: `AddHandler()` returns nothing - enforces true decoupling
@@ -204,7 +204,7 @@ func (ts *tabSection) AddLogger(name string, enableTracking bool, color string) 
 
 ### 1.3 DevTUI Implements Interfaces (Consumer Defines Them)
 
-**IMPORTANT**: DevTUI does NOT define the interfaces. Consumer applications (like GOLITE) define their own interfaces, and DevTUI simply implements them through its existing methods.
+**IMPORTANT**: DevTUI does NOT define the interfaces. Consumer applications (like TINYWASM) define their own interfaces, and DevTUI simply implements them through its existing methods.
 
 **File**: `/home/cesar/Dev/Pkg/Mine/devtui/init.go` (add compile-time verification)
 
@@ -261,7 +261,7 @@ func (ts *tabSection) AddInteractiveHandler(handler HandlerInteractive, timeout 
 
 ---
 
-## PART 2: GOLITE Application Refactoring
+## PART 2: TINYWASM Application Refactoring
 
 ### 2.1 Create UI Interface Abstraction (NO DevTUI Import)
 
@@ -276,12 +276,12 @@ import (
 )
 
 // ============================================================================
-// UI INTERFACES - GOLITE defines its own interfaces, NO DevTUI import
+// UI INTERFACES - TINYWASM defines its own interfaces, NO DevTUI import
 // ============================================================================
 
-// TuiInterface defines the minimal UI interface needed by GOLITE.
-// This interface is implemented by DevTUI but GOLITE doesn't know that.
-// GOLITE never imports DevTUI package.
+// TuiInterface defines the minimal UI interface needed by TINYWASM.
+// This interface is implemented by DevTUI but TINYWASM doesn't know that.
+// TINYWASM never imports DevTUI package.
 type TuiInterface interface {
 	// NewTabSection creates a new tab section
 	NewTabSection(title, description string) TabSectionInterface
@@ -319,7 +319,7 @@ import (
 type handler struct {
 	rootDir   string
 	config    *Config
-	tui       TuiInterface // Interface defined in GOLITE, not DevTUI
+	tui       TuiInterface // Interface defined in TINYWASM, not DevTUI
 	exitChan  chan bool
 	
 	// Build dependencies
@@ -406,13 +406,13 @@ func main() {
 
 	// Create DevTUI instance (ONLY in main.go)
 	ui := devtui.NewTUI(&devtui.TuiConfig{
-		AppName:  "GOLITE",
+		AppName:  "TINYWASM",
 		ExitChan: exitChan,
 		Color:    devtui.DefaultPalette(),
 		Logger:   func(messages ...any) { logger.Logger(messages...) },
 	})
 
-	// Pass UI as interface to Start - GOLITE doesn't know it's DevTUI
+	// Pass UI as interface to Start - TINYWASM doesn't know it's DevTUI
 	tinywasm.Start(rootDir, logger.Logger, ui, exitChan)
 }
 ```
@@ -449,7 +449,7 @@ import (
 )
 
 func (h *handler) AddSectionBUILD() {
-	// h.tui is TuiInterface defined in GOLITE, not DevTUI
+	// h.tui is TuiInterface defined in TINYWASM, not DevTUI
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 	
 	// Logger creation returns func(message ...any)
@@ -464,7 +464,7 @@ func (h *handler) AddSectionBUILD() {
 	h.config = NewConfig(h.rootDir, configLogger)
 	
 	// Initialize handlers - these use the loggers above
-	// Loggers are anonymous functions, implementation unknown to GOLITE
+	// Loggers are anonymous functions, implementation unknown to TINYWASM
 	
 	// If there are any direct handler registrations, update them:
 	// OLD: tab.AddEditHandler(handler, timeout, color)
@@ -478,7 +478,7 @@ func (h *handler) AddSectionBUILD() {
 
 Apply same pattern as section-build.go:
 - NO DevTUI import
-- Use `h.tui` as `TuiInterface` (defined in GOLITE)
+- Use `h.tui` as `TuiInterface` (defined in TINYWASM)
 - Use `AddHandler()` for any handler registrations
 - Logger creation returns `func(message ...any)` - simple functions
 
@@ -490,7 +490,7 @@ Apply same pattern as section-build.go:
 
 **File**: `/home/cesar/Dev/Pkg/Mine/tinywasm/ui_mock_test.go` (new file)
 
-**CRITICAL**: Mock implementation in GOLITE, NO DevTUI import needed!
+**CRITICAL**: Mock implementation in TINYWASM, NO DevTUI import needed!
 
 ```go
 package tinywasm
@@ -506,7 +506,7 @@ import (
 // ============================================================================
 
 // mockTui implements TuiInterface for testing
-// This is defined in GOLITE, not DevTUI
+// This is defined in TINYWASM, not DevTUI
 type mockTui struct {
 	sections []*mockTabSection
 }
@@ -580,7 +580,7 @@ func TestAddSectionBUILD(t *testing.T) {
 	// Create handler with mock - completely decoupled
 	h := &handler{
 		rootDir:  "/test/dir",
-		tui:      mockTUI,  // TuiInterface defined in GOLITE
+		tui:      mockTUI,  // TuiInterface defined in TINYWASM
 		exitChan: make(chan bool),
 	}
 	
@@ -642,7 +642,7 @@ func NewMockTUI() TuiInterface {
 5. Run all DevTUI tests to ensure functionality
 6. Update DevTUI README with new API examples
 
-### Step 2: Update GOLITE Application
+### Step 2: Update TINYWASM Application
 1. **Create `ui_interface.go`** with interface definitions (TuiInterface, TabSectionInterface)
 2. **Update `start.go`**:
    - Change `Start()` signature to accept `TuiInterface` parameter
@@ -662,8 +662,8 @@ func NewMockTUI() TuiInterface {
 7. **Write clean tests**: Using mocks with NO DevTUI imports
 
 ### Step 3: Verify Complete Decoupling
-1. **Verify GOLITE has NO DevTUI imports** except in `cmd/tinywasm/main.go`
-2. Run `go list -f '{{.Imports}}' ./...` to verify no DevTUI in GOLITE package
+1. **Verify TINYWASM has NO DevTUI imports** except in `cmd/tinywasm/main.go`
+2. Run `go list -f '{{.Imports}}' ./...` to verify no DevTUI in TINYWASM package
 3. Run all tests to ensure mocks work correctly
 4. Verify test files have NO DevTUI imports
 5. Measure test code size reduction
@@ -671,7 +671,7 @@ func NewMockTUI() TuiInterface {
 ### Step 4: Cleanup and Documentation
 1. Remove any unused builder patterns in DevTUI
 2. Update DevTUI README emphasizing decoupled architecture
-3. Update GOLITE documentation
+3. Update TINYWASM documentation
 4. Add migration guide for other consumers
 5. Document interface pattern for other projects
 
@@ -687,9 +687,9 @@ func NewMockTUI() TuiInterface {
 - ✅ Better encapsulation - internal details hidden from consumers
 - ✅ **Consumer-agnostic** - doesn't know or care who uses it
 
-### For GOLITE Application:
-- ✅ **ZERO coupling** - GOLITE package has NO DevTUI import
-- ✅ **Consumer defines interfaces** - GOLITE controls its own contracts
+### For TINYWASM Application:
+- ✅ **ZERO coupling** - TINYWASM package has NO DevTUI import
+- ✅ **Consumer defines interfaces** - TINYWASM controls its own contracts
 - ✅ **Testable** - easy to mock TUI for unit tests
 - ✅ **No UI pollution in tests** - test only business logic
 - ✅ **Cheaper tests** - fewer tokens for LLMs (>50% reduction)
@@ -722,16 +722,16 @@ func NewMockTUI() TuiInterface {
 - `AddLogger()` returns `func(message ...any)` - simple function
 - **Consistent API**: All registration methods start with `Add` prefix
 
-### API Changes (GOLITE):
+### API Changes (TINYWASM):
 - **CRITICAL**: `Start()` signature changed to accept UI parameter
-- **CRITICAL**: GOLITE package has NO DevTUI import
+- **CRITICAL**: TINYWASM package has NO DevTUI import
 - Consumer defines own interfaces (TuiInterface, TabSectionInterface)
 - Logger creation uses `AddLogger()` instead of `NewLogger()`
 - Logger usage remains `log("message")` - NO changes needed
 
 ### Migration Example:
 
-**OLD CODE** (GOLITE):
+**OLD CODE** (TINYWASM):
 ```go
 // start.go
 package tinywasm
@@ -749,7 +749,7 @@ log := tab.NewLogger("Builder", true, "#10b981") // ❌ OLD: NewLogger
 log("Building project...")
 ```
 
-**NEW CODE** (GOLITE):
+**NEW CODE** (TINYWASM):
 ```go
 // ui_interface.go (NEW FILE)
 package tinywasm
@@ -797,7 +797,7 @@ log("Building project...") // ✅ Simple function call, no .Log()
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ GOLITE Package (github.com/tinywasm/tinywasm)                    │
+│ TINYWASM Package (github.com/tinywasm/tinywasm)                    │
 │ - NO DevTUI import!                                         │
 │ - Defines own interfaces (ui_interface.go):                 │
 │   • TuiInterface                                            │
@@ -841,10 +841,10 @@ log("Building project...") // ✅ Simple function call, no .Log()
 ## Implementation Priority
 
 ### Phase 1 (Critical - Enables Testing):
-1. Create minimal interfaces in GOLITE (TuiInterface, TabSectionInterface)
+1. Create minimal interfaces in TINYWASM (TuiInterface, TabSectionInterface)
 2. Implement AddHandler() method in DevTUI
-3. Update GOLITE to receive UI as parameter in Start()
-4. Update GOLITE to use interfaces (no DevTUI import)
+3. Update TINYWASM to receive UI as parameter in Start()
+4. Update TINYWASM to use interfaces (no DevTUI import)
 
 ### Phase 2 (Cleanup):
 5. Remove deprecated methods
@@ -862,10 +862,10 @@ log("Building project...") // ✅ Simple function call, no .Log()
 
 - ✅ Single AddHandler() method handles all handler types
 - ✅ No method returns *tabSection (full decoupling)
-- ✅ **GOLITE package has ZERO DevTUI imports** (except cmd/tinywasm/main.go)
-- ✅ **GOLITE defines its own interfaces** (TuiInterface, TabSectionInterface)
+- ✅ **TINYWASM package has ZERO DevTUI imports** (except cmd/tinywasm/main.go)
+- ✅ **TINYWASM defines its own interfaces** (TuiInterface, TabSectionInterface)
 - ✅ **UI passed as parameter to Start()** from main.go
-- ✅ GOLITE tests can run without creating real DevTUI instance
+- ✅ TINYWASM tests can run without creating real DevTUI instance
 - ✅ Test code size reduced by >50%
 - ✅ Mock implementation is <100 lines of code
 - ✅ All existing functionality preserved
@@ -877,15 +877,15 @@ log("Building project...") // ✅ Simple function call, no .Log()
 ## Key Architectural Decision
 
 **CRITICAL POINT**: 
-- **GOLITE does NOT import DevTUI** (except in main.go)
-- **GOLITE defines its own interfaces** that describe what it needs
+- **TINYWASM does NOT import DevTUI** (except in main.go)
+- **TINYWASM defines its own interfaces** that describe what it needs
 - **DevTUI implements methods** that happen to match those interfaces
 - **main.go** is the only place that knows about DevTUI concrete type
 - **This enables true decoupling** - business logic knows nothing about UI
 
 This is the **Dependency Inversion Principle** in action:
-- High-level module (GOLITE) does NOT depend on low-level module (DevTUI)
-- Both depend on abstractions (interfaces defined by GOLITE)
+- High-level module (TINYWASM) does NOT depend on low-level module (DevTUI)
+- Both depend on abstractions (interfaces defined by TINYWASM)
 - UI implementation is injected at runtime (in main.go)
 
 ---
@@ -894,8 +894,8 @@ This is the **Dependency Inversion Principle** in action:
 
 **Por favor, revisa este plan ACTUALIZADO y responde:**
 
-1. ✅ ¿Ahora está claro que GOLITE NO importa DevTUI? (excepto main.go)
-2. ✅ ¿Entiendes que GOLITE define sus propias interfaces?
+1. ✅ ¿Ahora está claro que TINYWASM NO importa DevTUI? (excepto main.go)
+2. ✅ ¿Entiendes que TINYWASM define sus propias interfaces?
 3. ✅ ¿Está claro que la UI se pasa como parámetro a Start()?
 4. ✅ ¿Está claro que AddLogger() retorna función anónima, NO interfaz?
 5. ✅ ¿El renombre de NewLogger → AddLogger mantiene consistencia con AddHandler?

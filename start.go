@@ -10,6 +10,7 @@ import (
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/goflare"
 	"github.com/tinywasm/kvdb"
+	"github.com/tinywasm/mcpserve"
 	"github.com/tinywasm/server"
 )
 
@@ -24,7 +25,7 @@ type handler struct {
 	frameworkName string // eg: "TINYWASM", "DEVGO", etc.
 	rootDir       string
 	config        *Config
-	tui           TuiInterface // Interface defined in GOLITE, not DevTUI
+	tui           TuiInterface // Interface defined in TINYWASM, not DevTUI
 	exitChan      chan bool
 
 	db Store // Key-value store interface
@@ -39,8 +40,8 @@ type handler struct {
 	// Deploy dependencies
 	deployCloudflare *goflare.Goflare
 
-	// MCP server for shutdown (stored as any to avoid import cycles)
-	mcpServer any
+	// MCP handler for LLM integration
+	mcp *mcpserve.Handler
 
 	// Test hooks
 	pendingBrowserReload func() error
@@ -48,7 +49,8 @@ type handler struct {
 
 // Start is called from main.go with UI passed as parameter
 // CRITICAL: UI instance created in main.go, passed here as interface
-func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool) {
+// mcpToolHandlers: optional external handlers that implement GetMCPToolsMetadata() for MCP tool discovery
+func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool, mcpToolHandlers ...any) {
 
 	db, err := kvdb.New(".env", logger, FileStore{})
 	if err != nil {
@@ -76,7 +78,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	// ADD SECTIONS using the passed UI interface
 	// CRITICAL: Initialize sections BEFORE starting goroutines
 	// This ensures h.config, h.wasmClient, etc. are set before ServeMCP() tries to use them
-	h.AddSectionBUILD()
+	sectionBuild := h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
 
 	// Apply persisted work modes
@@ -102,19 +104,36 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		}
 	}
 
-	// Auto-configure VS Code MCP integration (silent, non-blocking)
-	ConfigureVSCodeMCP()
+	// Auto-configure IDE MCP integration (silent, non-blocking)
+	mcpConfig := mcpserve.Config{
+		Port:          "3030",
+		ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
+		ServerVersion: "1.0.0",
+	}
+	toolHandlers := []any{}
+	if h.wasmClient != nil {
+		toolHandlers = append(toolHandlers, h.wasmClient)
+	}
+	if h.browser != nil {
+		toolHandlers = append(toolHandlers, h.browser)
+	}
+	// Add external MCP tool handlers (e.g., DevTUI for devtui_get_section_logs)
+	toolHandlers = append(toolHandlers, mcpToolHandlers...)
+	h.mcp = mcpserve.NewHandler(mcpConfig, toolHandlers, h.tui, h.exitChan)
+	// Register MCP handler in BUILD section for logging visibility
+	h.tui.AddHandler(h.mcp, 0, "#FF9500", sectionBuild) // Orange color for MCP
+
+	h.mcp.ConfigureIDEs()
 
 	SetActiveHandler(h)
 
 	var wg sync.WaitGroup
 	wg.Add(4) // UI, server, watcher, and MCP server
 
-	// Start MCP HTTP server on port 3030
-	// Now safe because h.config and handlers are initialized
+	// Start MCP HTTP server on the configured port
 	go func() {
 		defer wg.Done()
-		h.ServeMCP()
+		h.mcp.Serve()
 	}()
 
 	// Start the UI (passed from main.go)

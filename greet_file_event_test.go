@@ -139,17 +139,17 @@ func main() {
 	h := GetActiveHandler()
 	require.NotNil(t, h)
 
-	// t.Log("=== Initial state ready ===")
+	t.Log("=== Initial state ready ===")
 	initialCompilations := atomic.LoadInt32(&wasmCompilations)
 	initialReloads := atomic.LoadInt32(&browserReloads)
-	// t.Logf("Initial compilations: %d, reloads: %d", initialCompilations, initialReloads)
+	t.Logf("Initial compilations: %d, reloads: %d", initialCompilations, initialReloads)
 
 	// Clear logs for cleaner output
 	// Clear logs for cleaner output
 	logs.Clear()
 
 	// Edit greet.go (simulate user editing the file)
-	// t.Log("\n=== Editing greet.go (dependency file) ===")
+	t.Log("\n=== Editing greet.go (dependency file) ===")
 	updatedGreetContent := `package greet
 
 import . "github.com/tinywasm/fmt"
@@ -171,21 +171,22 @@ func Greet(target string) string {
 	compilationsDelta := finalCompilations - initialCompilations
 	reloadsDelta := finalReloads - initialReloads
 
-	// t.Log("\n=== Results ===")
-	// t.Logf("WASM compilations triggered: %d", compilationsDelta)
-	// t.Logf("Browser reloads triggered: %d", reloadsDelta)
+	t.Log("\n=== Results ===")
+	t.Logf("WASM compilations triggered: %d", compilationsDelta)
+	t.Logf("Browser reloads triggered: %d", reloadsDelta)
 
 	// Print relevant logs
 	logOutput := logs.String()
-	// t.Log("\n=== Captured Logs ===")
-	// for _, line := range strings.Split(logOutput, "\n") {
-	// 	if strings.Contains(line, "DEBUG") ||
-	// 		strings.Contains(line, "greet") ||
-	// 		strings.Contains(line, "WASM") ||
-	// 		strings.Contains(line, "ThisFileIsMine") {
-	// 		t.Log(line)
-	// 	}
-	// }
+	t.Log("\n=== Captured Logs ===")
+	for _, line := range strings.Split(logOutput, "\n") {
+		if strings.Contains(line, "DEBUG") ||
+			strings.Contains(line, "greet") ||
+			strings.Contains(line, "WASM") ||
+			strings.Contains(line, "compil") ||
+			strings.Contains(line, "ThisFileIsMine") {
+			t.Log(line)
+		}
+	}
 
 	// Verify expectations
 	if compilationsDelta == 0 {
@@ -195,7 +196,7 @@ func Greet(target string) string {
 		t.Log("\nFull logs:")
 		t.Log(logOutput)
 	} else {
-		// t.Logf("✅ CORRECT: greet.go edit triggered %d WASM compilation(s)", compilationsDelta)
+		t.Logf("✅ CORRECT: greet.go edit triggered %d WASM compilation(s)", compilationsDelta)
 	}
 
 	if reloadsDelta == 0 {
@@ -204,7 +205,7 @@ func Greet(target string) string {
 		// we accept that reload might not happen, as long as compilation WAS triggered.
 		t.Log("⚠️ No browser reload happened (likely due to checking compilation failures in this test setup)")
 	} else {
-		// t.Logf("✅ Browser reload happened (%d time(s))", reloadsDelta)
+		t.Logf("✅ Browser reload happened (%d time(s))", reloadsDelta)
 	}
 
 	// Cleanup

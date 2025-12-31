@@ -5,7 +5,12 @@ import "github.com/tinywasm/server"
 const StoreKeyBuildModeOnDisk = "build_mode_ondisk"
 
 type BuildModeOnDisk struct {
-	h *handler
+	h   *handler
+	log func(message ...any)
+}
+
+func (b *BuildModeOnDisk) SetLog(f func(message ...any)) {
+	b.log = f
 }
 
 func (b *BuildModeOnDisk) Name() string {
@@ -19,12 +24,12 @@ func (b *BuildModeOnDisk) Label() string {
 	}
 
 	if onDisk {
-		return "BUILD: DISK"
+		return "BUILD FILES: ONDISK"
 	}
-	return "BUILD: MEMORY"
+	return "BUILD FILES: IN-MEMORY"
 }
 
-func (b *BuildModeOnDisk) Execute(progress chan<- string) {
+func (b *BuildModeOnDisk) Execute() {
 	onDisk := "false"
 	if val, err := b.h.db.Get(StoreKeyBuildModeOnDisk); err == nil && val == "true" {
 		onDisk = "true"
@@ -45,10 +50,12 @@ func (b *BuildModeOnDisk) Execute(progress chan<- string) {
 	b.h.assetsHandler.SetBuildOnDisk(isDisk)
 	b.h.serverHandler.SetBuildOnDisk(isDisk)
 
-	if isDisk {
-		progress <- "Switched to Build On Disk Mode"
-	} else {
-		progress <- "Switched to In-Memory Build Mode"
+	if b.log != nil {
+		if isDisk {
+			b.log("Switched to Build Files: ONDISK Mode")
+		} else {
+			b.log("Switched to Build Files: IN-MEMORY Mode")
+		}
 	}
 
 	b.h.tui.RefreshUI()
