@@ -109,13 +109,11 @@ func (h *handler) AddSectionBUILD() any {
 	h.wasmClient.OnWasmExecChange = func() {
 		// Notify AssetMin to refresh JS assets (this will pull the new initializer JS)
 		h.assetsHandler.RefreshAsset(".js")
-		h.wasmClient.Logger("Refreshed script.js via AssetMin")
+		//h.wasmClient.Logger(" DEBUG: Refreshed script.js via AssetMin")
 
 		// Reload the browser to apply changes
 		if err := h.browser.Reload(); err != nil {
 			h.wasmClient.Logger("Error reloading browser:", err)
-		} else {
-			h.wasmClient.Logger("Browser reload triggered")
 		}
 	}
 

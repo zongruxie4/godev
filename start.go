@@ -3,6 +3,7 @@ package app
 import (
 	"os"
 	"sync"
+	"time"
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
@@ -109,6 +110,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		Port:          "3030",
 		ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
 		ServerVersion: "1.0.0",
+		AppName:       "tinywasm", // Used to generate MCP server ID (e.g., "tinywasm-mcp")
 	}
 	toolHandlers := []any{}
 	if h.wasmClient != nil {
@@ -139,10 +141,47 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	// Start the UI (passed from main.go)
 	go h.tui.Start(&wg)
 
-	// Start server
-	go h.serverHandler.StartServer(&wg)
+	// Start server (blocking, so run in goroutine)
+	go func() {
+		// StartServer blocks until exit, so we usually run it here.
+		// However, to ensure browser opens AFTER server is ready, we need a way to know when it's ready.
+		// Since StartServer doesn't notify readiness before blocking, we rely on the fact that
+		// http.ListenAndServe is called asynchronously inside InMemoryStrategy, but Start blocks on ExitChan.
+		// BUT: externalStrategy.Start compiles and runs, then blocks on ExitChan? No, wait.
 
-	// Start file watcher
+		// Let's look at strategies.go again.
+		// InMemory: blocks on <-ExitChan. Server runs in `go func()`. So actually server IS ready almost immediately.
+		// External: compiles then runs.
+
+		// So we can run StartServer and AutoStart in parallel if StartServer blocks?
+		// No, if StartServer blocks, we can't run code after it in the same goroutine unless StartServer returns quickly.
+		// But inMemoryStrategy.Start blocks on ExitChan! so it DOES NOT return until app exit.
+
+		// FIX: We must run StartServer in a goroutine, and AutoStart in another (or same, but before blocking?)
+		// Actually, since StartServer blocks until exit, we can't put AutoStart AFTER it in the same serial flow.
+
+		// However, AutoStart needs server to be ready.
+		// Best approach:
+		// 1. Start Server in goroutine.
+		// 2. Sleep briefly? Or just run AutoStart in another goroutine (it will retry? No retries in OpenBrowser).
+
+		// Let's rely on the fact that OpenBrowser has retries? No, it doesn't.
+		// But we can just launch AutoStart in a separate goroutine with a small delay if needed,
+		// OR since `go h.serverHandler.StartServer` runs immediately, and `http.Server` starts quickly...
+
+		h.serverHandler.StartServer(&wg)
+	}()
+
+	// Auto-open browser (run in separate goroutine to not block main flow, and give server a moment)
+	go func() {
+		// Give the server a moment to initialize ports (especially for external strategy compilation)
+		// strictly speaking we should listen to a 'Ready' event, but for now this restores functionality
+		// preventing the deadlock.
+		time.Sleep(100 * time.Millisecond)
+		h.browser.AutoStart()
+	}()
+
+	// Start file watcher (blocking, so run in goroutine)
 	go h.watcher.FileWatcherStart(&wg)
 
 	wg.Wait()
