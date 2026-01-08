@@ -53,7 +53,12 @@ type handler struct {
 // mcpToolHandlers: optional external handlers that implement GetMCPToolsMetadata() for MCP tool discovery
 func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool, mcpToolHandlers ...any) {
 
-	db, err := kvdb.New(".env", logger, FileStore{})
+	var storeToUse kvdb.Store = FileStore{}
+	if TestMode {
+		storeToUse = NewMemoryStore()
+	}
+
+	db, err := kvdb.New(".env", logger, storeToUse)
 	if err != nil {
 		logger("Failed to initialize database:", err)
 		return

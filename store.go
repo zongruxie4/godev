@@ -1,6 +1,9 @@
 package app
 
-import "os"
+import (
+	"os"
+	"sync"
+)
 
 type FileStore struct{}
 
@@ -23,4 +26,40 @@ func (fs FileStore) AddToFile(path string, data []byte) error {
 	defer f.Close()
 	_, err = f.Write(data)
 	return err
+}
+
+// MemoryStore implements the kvdb.Store interface in-memory.
+// It is used during tests to avoid disk I/O and side effects.
+type MemoryStore struct {
+	mu   sync.RWMutex
+	data map[string][]byte
+}
+
+func NewMemoryStore() *MemoryStore {
+	return &MemoryStore{
+		data: make(map[string][]byte),
+	}
+}
+
+func (m *MemoryStore) GetFile(path string) ([]byte, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if data, ok := m.data[path]; ok {
+		return data, nil
+	}
+	return nil, os.ErrNotExist
+}
+
+func (m *MemoryStore) SetFile(path string, data []byte) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.data[path] = data
+	return nil
+}
+
+func (m *MemoryStore) AddToFile(path string, data []byte) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.data[path] = append(m.data[path], data...)
+	return nil
 }
