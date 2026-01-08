@@ -92,8 +92,23 @@ var activeHandlerMu sync.RWMutex
 // TestMode disables browser auto-start when running tests
 var TestMode bool
 
-// InitialBrowserReloadFunc allows validating browser reloads without race conditions
-var InitialBrowserReloadFunc func() error
+// initialBrowserReloadFunc allows validating browser reloads without race conditions
+var initialBrowserReloadFunc func() error
+var initialBrowserReloadMu sync.RWMutex
+
+// SetInitialBrowserReloadFunc sets the browser reload test hook thread-safely
+func SetInitialBrowserReloadFunc(f func() error) {
+	initialBrowserReloadMu.Lock()
+	defer initialBrowserReloadMu.Unlock()
+	initialBrowserReloadFunc = f
+}
+
+// GetInitialBrowserReloadFunc gets the browser reload test hook thread-safely
+func GetInitialBrowserReloadFunc() func() error {
+	initialBrowserReloadMu.RLock()
+	defer initialBrowserReloadMu.RUnlock()
+	return initialBrowserReloadFunc
+}
 
 // SetActiveHandler sets the global handler instance thread-safely
 func SetActiveHandler(h *handler) {

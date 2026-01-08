@@ -109,9 +109,6 @@ func waitForServerContains(port, substr string, timeout time.Duration) error {
 func startTestApp(t *testing.T, rootDir string) (*handler, func()) {
 	exitChan := make(chan bool)
 
-	// Disable browser auto-start for tests
-	TestMode = true
-
 	logger := func(messages ...any) {
 		var msg string
 		for i, m := range messages {
@@ -135,7 +132,6 @@ func startTestApp(t *testing.T, rootDir string) (*handler, func()) {
 	cleanup := func() {
 		close(exitChan)
 		SetActiveHandler(nil)
-		TestMode = false // Reset for next test
 	}
 
 	return h, cleanup

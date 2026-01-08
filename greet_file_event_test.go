@@ -117,15 +117,15 @@ func main() {
 
 	// Spy on browser reload calls
 	reloadChan := make(chan struct{}, 10)
-	InitialBrowserReloadFunc = func() error {
+	SetInitialBrowserReloadFunc(func() error {
 		atomic.AddInt32(&browserReloads, 1)
 		select {
 		case reloadChan <- struct{}{}:
 		default:
 		}
 		return nil
-	}
-	defer func() { InitialBrowserReloadFunc = nil }()
+	})
+	defer SetInitialBrowserReloadFunc(nil)
 
 	// Start tinywasm
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)

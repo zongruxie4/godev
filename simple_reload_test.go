@@ -34,12 +34,12 @@ func TestSimpleBrowserReload(t *testing.T) {
 
 	exitChan := make(chan bool)
 	// Set up browser reload tracking
-	InitialBrowserReloadFunc = func() error {
+	SetInitialBrowserReloadFunc(func() error {
 		count := atomic.AddInt64(&reloadCount, 1)
 		logIfVerbose(t, "*** BROWSER RELOAD CALLED! Count: %d ***", count)
 		return nil
-	}
-	defer func() { InitialBrowserReloadFunc = nil }()
+	})
+	defer SetInitialBrowserReloadFunc(nil)
 
 	// Start tinywasm
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)

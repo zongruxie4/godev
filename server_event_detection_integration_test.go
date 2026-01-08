@@ -58,11 +58,12 @@ func main() {
 
 	var reloadCount int64
 
-	InitialBrowserReloadFunc = func() error {
+	// Set up browser reload tracking
+	SetInitialBrowserReloadFunc(func() error {
 		atomic.AddInt64(&reloadCount, 1)
 		return nil
-	}
-	defer func() { InitialBrowserReloadFunc = nil }()
+	})
+	defer SetInitialBrowserReloadFunc(nil)
 
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)

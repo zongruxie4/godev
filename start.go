@@ -65,7 +65,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		tui:           ui, // UI passed from main.go
 		exitChan:      exitChan,
 
-		pendingBrowserReload: InitialBrowserReloadFunc,
+		pendingBrowserReload: GetInitialBrowserReloadFunc(),
 		db:                   db,
 	}
 

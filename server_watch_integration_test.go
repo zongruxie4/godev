@@ -72,13 +72,13 @@ func main() {
 	logs := &SafeBuffer{}
 	logger := logs.Log
 
+	// Set up browser reload tracking
 	var reloadCount int64
-
-	InitialBrowserReloadFunc = func() error {
+	SetInitialBrowserReloadFunc(func() error {
 		atomic.AddInt64(&reloadCount, 1)
 		return nil
-	}
-	defer func() { InitialBrowserReloadFunc = nil }()
+	})
+	defer SetInitialBrowserReloadFunc(nil)
 
 	// Start tinywasm
 	exitChan := make(chan bool)

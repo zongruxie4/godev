@@ -101,9 +101,13 @@ func main() {
 		}
 	}
 
-	// Browser reload validation (stub)
-	InitialBrowserReloadFunc = func() error { return nil }
-	defer func() { InitialBrowserReloadFunc = nil }()
+	// Spy on browser reload calls
+	var browserReloads int32
+	SetInitialBrowserReloadFunc(func() error {
+		atomic.AddInt32(&browserReloads, 1)
+		return nil
+	})
+	defer SetInitialBrowserReloadFunc(nil)
 
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)

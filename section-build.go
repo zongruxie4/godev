@@ -65,8 +65,8 @@ func (h *handler) AddSectionBUILD() any {
 	// Create browser reload wrapper that supports test hooks
 	browserReloadFunc := func() error {
 		// Check if test hook is set (for testing)
-		if InitialBrowserReloadFunc != nil {
-			return InitialBrowserReloadFunc()
+		if f := GetInitialBrowserReloadFunc(); f != nil {
+			return f()
 		}
 		// Use real browser reload (production)
 		return h.browser.Reload()
