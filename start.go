@@ -173,16 +173,24 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	}()
 
 	// Auto-open browser (run in separate goroutine to not block main flow, and give server a moment)
-	go func() {
-		// Give the server a moment to initialize ports (especially for external strategy compilation)
-		// strictly speaking we should listen to a 'Ready' event, but for now this restores functionality
-		// preventing the deadlock.
-		time.Sleep(100 * time.Millisecond)
-		h.browser.AutoStart()
-	}()
+	// Skip in TestMode to prevent browser from opening during tests
+	if !TestMode {
+		go func() {
+			// Give the server a moment to initialize ports (especially for external strategy compilation)
+			// strictly speaking we should listen to a 'Ready' event, but for now this restores functionality
+			// preventing the deadlock.
+			time.Sleep(100 * time.Millisecond)
+			h.browser.AutoStart()
+		}()
+	}
 
 	// Start file watcher (blocking, so run in goroutine)
 	go h.watcher.FileWatcherStart(&wg)
 
 	wg.Wait()
+}
+
+// Browser returns the DevBrowser instance for external access (e.g., tests)
+func (h *handler) Browser() *devbrowser.DevBrowser {
+	return h.browser
 }

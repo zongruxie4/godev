@@ -99,3 +99,44 @@ func waitForServerContains(port, substr string, timeout time.Duration) error {
 	}
 	return fmt.Errorf("timeout waiting for %q on %s (last status: %s)", substr, url, lastErr)
 }
+
+// startTestApp starts the app for testing and disables browser auto-start.
+// Returns the handler and a cleanup function that should be deferred.
+// Usage:
+//
+//	h, cleanup := startTestApp(t, tmpDir)
+//	defer cleanup()
+func startTestApp(t *testing.T, rootDir string) (*handler, func()) {
+	exitChan := make(chan bool)
+
+	// Disable browser auto-start for tests
+	TestMode = true
+
+	logger := func(messages ...any) {
+		var msg string
+		for i, m := range messages {
+			if i > 0 {
+				msg += " "
+			}
+			msg += fmt.Sprint(m)
+		}
+		logIfVerbose(t, "LOG: %s", msg)
+	}
+
+	// Start tinywasm
+	go Start(rootDir, logger, newUiMockTest(logger), exitChan)
+
+	// Wait for handler initialization
+	h := WaitForActiveHandler(5 * time.Second)
+	if h == nil {
+		t.Fatal("Failed to get active handler")
+	}
+
+	cleanup := func() {
+		close(exitChan)
+		SetActiveHandler(nil)
+		TestMode = false // Reset for next test
+	}
+
+	return h, cleanup
+}

@@ -9,6 +9,12 @@ import (
 	"github.com/tinywasm/devwatch"
 )
 
+// init sets TestMode=true for all tests in this package
+// This prevents browser auto-start during test execution
+func init() {
+	TestMode = true
+}
+
 // SafeBuffer is a thread-safe buffer for capturing logs in tests
 type SafeBuffer struct {
 	mu           sync.Mutex
@@ -82,6 +88,9 @@ func (s *SafeBuffer) LastLog() string {
 // activeHandler is set when Start is called so tests can access the live handler
 var activeHandler *handler
 var activeHandlerMu sync.RWMutex
+
+// TestMode disables browser auto-start when running tests
+var TestMode bool
 
 // InitialBrowserReloadFunc allows validating browser reloads without race conditions
 var InitialBrowserReloadFunc func() error
