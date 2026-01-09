@@ -99,6 +99,7 @@ func (h *handler) AddSectionBUILD() any {
 			return uf
 		},
 	})
+	h.watcher.SetShouldWatch(h.isInitializedProject)
 
 	// HANDLER REGISTRATION (Loggers)
 	h.tui.AddHandler(h.wasmClient, 0, colorPurpleMedium, sectionBuild)

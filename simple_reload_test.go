@@ -41,6 +41,9 @@ func TestSimpleBrowserReload(t *testing.T) {
 	})
 	defer SetInitialBrowserReloadFunc(nil)
 
+	// Create go.mod to pass the guard
+	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644))
+
 	// Start tinywasm
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 	// Wait for initialization
