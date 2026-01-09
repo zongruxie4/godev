@@ -46,7 +46,7 @@ func (b *BuildModeOnDisk) Execute() {
 
 	// Update handlers
 	isDisk := (onDisk == "true")
-	b.h.wasmClient.SetBuildOnDisk(isDisk)
+	b.h.wasmClient.SetBuildOnDisk(isDisk, true)
 	b.h.assetsHandler.SetBuildOnDisk(isDisk)
 	b.h.serverHandler.SetBuildOnDisk(isDisk)
 

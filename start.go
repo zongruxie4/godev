@@ -91,12 +91,12 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	if h.db != nil {
 		if val, err := h.db.Get(StoreKeyBuildModeOnDisk); err == nil && val != "" {
 			isDisk := (val == "true")
-			h.wasmClient.SetBuildOnDisk(isDisk)
+			h.wasmClient.SetBuildOnDisk(isDisk, true)
 			h.assetsHandler.SetBuildOnDisk(isDisk)
 			h.serverHandler.SetBuildOnDisk(isDisk)
 		} else {
 			// Default to false (In-Memory) as requested
-			h.wasmClient.SetBuildOnDisk(false)
+			h.wasmClient.SetBuildOnDisk(false, true)
 			h.assetsHandler.SetBuildOnDisk(false)
 			h.serverHandler.SetBuildOnDisk(false)
 		}

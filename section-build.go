@@ -30,6 +30,7 @@ func (h *handler) AddSectionBUILD() any {
 	})
 
 	h.wasmClient.SetAppRootDir(h.config.RootDir())
+	h.wasmClient.SetShouldCreateIDEConfig(h.isInitializedProject)
 	h.wasmClient.CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
@@ -55,8 +56,9 @@ func (h *handler) AddSectionBUILD() any {
 				"-port=" + h.config.ServerPort(),
 			}
 		},
-		AppPort:  h.config.ServerPort(),
-		ExitChan: h.exitChan,
+		AppPort:              h.config.ServerPort(),
+		DisableGlobalCleanup: TestMode,
+		ExitChan:             h.exitChan,
 	})
 
 	// BROWSER
