@@ -36,6 +36,7 @@ type handler struct {
 	// Build dependencies
 	serverHandler *server.ServerHandler
 	assetsHandler *assetmin.AssetMin
+	goHandler     *devflow.Go
 	wasmClient    *client.WasmClient
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
@@ -59,6 +60,10 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	gitHandler, _ := devflow.NewGit()
 	gitHandler.SetRootDir(rootDir)
 
+	// Initialize Go handler
+	goHandler, _ := devflow.NewGo(gitHandler)
+	goHandler.SetRootDir(rootDir)
+
 	fileStore := &FileStore{}
 	var storeToUse kvdb.Store = fileStore
 	if TestMode {
@@ -79,6 +84,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 
 		pendingBrowserReload: GetInitialBrowserReloadFunc(),
 		db:                   db,
+		goHandler:            goHandler,
 	}
 
 	// Wire FileStore guard and gitignore notification (only if not TestMode)

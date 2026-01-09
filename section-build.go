@@ -31,6 +31,7 @@ func (h *handler) AddSectionBUILD() any {
 
 	h.wasmClient.SetAppRootDir(h.config.RootDir())
 	h.wasmClient.SetShouldCreateIDEConfig(h.isInitializedProject)
+	h.wasmClient.SetShouldGenerateDefaultFile(h.canGenerateDefaultWasmClient)
 	h.wasmClient.CreateDefaultWasmFileClientIfNotExist()
 
 	//ASSETS
