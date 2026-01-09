@@ -6,8 +6,23 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
 )
+
+// NewTestHandler creates a handler configured for testing.
+// It initializes all required dependencies including goHandler.
+func NewTestHandler(rootDir string) *handler {
+	git, _ := devflow.NewGit()
+	gh, _ := devflow.NewGo(git)
+	gh.SetRootDir(rootDir)
+	git.SetRootDir(rootDir)
+
+	return &handler{
+		config:    NewConfig(rootDir, func(...any) {}),
+		goHandler: gh,
+	}
+}
 
 // SafeBuffer is a thread-safe buffer for capturing logs in tests
 type SafeBuffer struct {

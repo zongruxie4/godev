@@ -4,22 +4,15 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/tinywasm/devflow"
 )
 
 func TestIsInitializedProject(t *testing.T) {
-	tmp := t.TempDir()
-
 	t.Run("ReturnsTrueIfGoModExists", func(t *testing.T) {
-		h := &handler{
-			config: NewConfig(tmp, nil),
-		}
-
-		// Create go.mod
+		tmp := t.TempDir()
 		if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644); err != nil {
 			t.Fatalf("failed to create go.mod: %v", err)
 		}
+		h := NewTestHandler(tmp)
 
 		if !h.isInitializedProject() {
 			t.Error("expected isInitializedProject to return true when go.mod exists")
@@ -27,33 +20,45 @@ func TestIsInitializedProject(t *testing.T) {
 	})
 
 	t.Run("ReturnsFalseIfGoModDoesNotExist", func(t *testing.T) {
-		tmp2 := t.TempDir()
-		h := &handler{
-			config: NewConfig(tmp2, nil),
-		}
+		tmp := t.TempDir()
+		h := NewTestHandler(tmp)
 
 		if h.isInitializedProject() {
 			t.Error("expected isInitializedProject to return false when go.mod does not exist")
 		}
 	})
+
+	t.Run("ReturnsTrueIfGoModExistsInParent", func(t *testing.T) {
+		parent := t.TempDir()
+		child := filepath.Join(parent, "subdir")
+		os.Mkdir(child, 0755)
+		os.WriteFile(filepath.Join(parent, "go.mod"), []byte("module test"), 0644)
+
+		h := NewTestHandler(child)
+
+		if !h.isInitializedProject() {
+			t.Error("expected isInitializedProject to return true when go.mod exists in parent")
+		}
+	})
 }
 
 func TestIsDirectoryEmpty(t *testing.T) {
-	tmp := t.TempDir()
-	h := &handler{
-		config: NewConfig(tmp, nil),
-	}
-
 	t.Run("ReturnsTrueIfEmpty", func(t *testing.T) {
+		tmp := t.TempDir()
+		h := NewTestHandler(tmp)
+
 		if !h.isDirectoryEmpty() {
 			t.Error("expected isDirectoryEmpty to return true for empty dir")
 		}
 	})
 
 	t.Run("ReturnsFalseIfNotEmpty", func(t *testing.T) {
+		tmp := t.TempDir()
 		if err := os.WriteFile(filepath.Join(tmp, "file.txt"), []byte("data"), 0644); err != nil {
 			t.Fatalf("failed to create file: %v", err)
 		}
+		h := NewTestHandler(tmp)
+
 		if h.isDirectoryEmpty() {
 			t.Error("expected isDirectoryEmpty to return false for non-empty dir")
 		}
@@ -61,37 +66,34 @@ func TestIsDirectoryEmpty(t *testing.T) {
 }
 
 func TestCanGenerateDefaultWasmClient(t *testing.T) {
-	tmpParent := t.TempDir()
-	tmpCurrent := filepath.Join(tmpParent, "current")
-	os.Mkdir(tmpCurrent, 0755)
-
-	git, _ := devflow.NewGit()
-	gh, _ := devflow.NewGo(git)
-	gh.SetRootDir(tmpCurrent)
-
-	h := &handler{
-		config:    NewConfig(tmpCurrent, nil),
-		goHandler: gh,
-	}
-
 	t.Run("ReturnsFalseIfNotEmpty", func(t *testing.T) {
-		os.WriteFile(filepath.Join(tmpCurrent, "file.txt"), []byte("data"), 0644)
+		parent := t.TempDir()
+		os.WriteFile(filepath.Join(parent, "go.mod"), []byte("module test"), 0644)
+		current := filepath.Join(parent, "current")
+		os.Mkdir(current, 0755)
+		os.WriteFile(filepath.Join(current, "file.txt"), []byte("data"), 0644)
+
+		h := NewTestHandler(current)
+
 		if h.canGenerateDefaultWasmClient() {
 			t.Error("expected false because dir is not empty")
 		}
-		os.Remove(filepath.Join(tmpCurrent, "file.txt"))
 	})
 
 	t.Run("ReturnsFalseIfEmptyButNoGoMod", func(t *testing.T) {
+		tmp := t.TempDir()
+		h := NewTestHandler(tmp)
+
 		if h.canGenerateDefaultWasmClient() {
 			t.Error("expected false because no go.mod in current or parent")
 		}
 	})
 
 	t.Run("ReturnsFalseIfGoModInCurrent", func(t *testing.T) {
-		path := filepath.Join(tmpCurrent, "go.mod")
-		os.WriteFile(path, []byte("module test"), 0644)
-		defer os.Remove(path)
+		// go.mod in current makes directory NOT empty
+		tmp := t.TempDir()
+		os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644)
+		h := NewTestHandler(tmp)
 
 		if h.canGenerateDefaultWasmClient() {
 			t.Error("expected false because go.mod makes directory not empty")
@@ -99,9 +101,12 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 	})
 
 	t.Run("ReturnsTrueIfEmptyAndGoModInParent", func(t *testing.T) {
-		path := filepath.Join(tmpParent, "go.mod")
-		os.WriteFile(path, []byte("module test-parent"), 0644)
-		defer os.Remove(path)
+		parent := t.TempDir()
+		os.WriteFile(filepath.Join(parent, "go.mod"), []byte("module test-parent"), 0644)
+		current := filepath.Join(parent, "current")
+		os.Mkdir(current, 0755)
+
+		h := NewTestHandler(current)
 
 		if !h.canGenerateDefaultWasmClient() {
 			t.Error("expected true because empty and go.mod in parent")

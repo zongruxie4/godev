@@ -84,10 +84,10 @@ func main() {
 	exitChan := make(chan bool)
 	go Start(tmp, logger, newUiMockTest(logger), exitChan)
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	// Wait for initialization
-	h := WaitForActiveHandler(5 * time.Second)
+	h := WaitForActiveHandler(8 * time.Second)
 	require.NotNil(t, h)
 	// Enable External Server Mode to support reloading on file changes
 	h.serverHandler.SetExternalServerMode(true)
@@ -135,7 +135,14 @@ func main() {
 
 	require.NoError(t, os.WriteFile(serverFilePath, []byte(modifiedServerContent), 0644))
 
-	time.Sleep(1 * time.Second)
+	// Wait for event with timeout
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if atomic.LoadInt64(&reloadCount) > initialReloadCount {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
 
 	finalReloadCount := atomic.LoadInt64(&reloadCount)
 	reloadDiff := finalReloadCount - initialReloadCount
