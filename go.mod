@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.5
-	github.com/tinywasm/devflow v0.0.31
+	github.com/tinywasm/devflow v0.0.32
 	github.com/tinywasm/devtui v0.2.26
 	github.com/tinywasm/goflare v0.0.43
 	github.com/tinywasm/kvdb v0.0.17

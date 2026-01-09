@@ -2,12 +2,14 @@ package app
 
 import (
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/devbrowser"
+	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/goflare"
 	"github.com/tinywasm/kvdb"
@@ -53,7 +55,12 @@ type handler struct {
 // mcpToolHandlers: optional external handlers that implement GetMCPToolsMetadata() for MCP tool discovery
 func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitChan chan bool, mcpToolHandlers ...any) {
 
-	var storeToUse kvdb.Store = FileStore{}
+	// Initialize Git handler for gitignore management
+	gitHandler, _ := devflow.NewGit()
+	gitHandler.SetRootDir(rootDir)
+
+	fileStore := &FileStore{}
+	var storeToUse kvdb.Store = fileStore
 	if TestMode {
 		storeToUse = NewMemoryStore()
 	}
@@ -72,6 +79,17 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 
 		pendingBrowserReload: GetInitialBrowserReloadFunc(),
 		db:                   db,
+	}
+
+	// Wire FileStore guard and gitignore notification (only if not TestMode)
+	if !TestMode {
+		fileStore.SetShouldWrite(h.isInitializedProject)
+		gitHandler.SetShouldWrite(h.isInitializedProject)
+		fileStore.SetOnFileCreated(func(path string) {
+			if filepath.Base(path) == ".env" {
+				gitHandler.GitIgnoreAdd(".env")
+			}
+		})
 	}
 
 	// Validate directory
