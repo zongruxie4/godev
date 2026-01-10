@@ -69,3 +69,7 @@ func (m *mockTUI) RefreshUI() {
 func (m *mockTUI) ReturnFocus() error {
 	return nil
 }
+
+func (m *mockTUI) RemoveTabSection(section any) {
+	// no-op
+}
