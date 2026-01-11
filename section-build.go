@@ -20,7 +20,9 @@ func (h *handler) AddSectionBUILD() any {
 
 	// WRITERS
 	// CONFIG
-	h.config = NewConfig(h.rootDir, nil) // Logger will be injected via AddHandler
+	if h.config == nil {
+		h.config = NewConfig(h.rootDir, nil) // Logger will be injected via AddHandler
+	}
 
 	//WASM
 	h.wasmClient = client.New(&client.Config{

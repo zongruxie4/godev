@@ -146,6 +146,16 @@ func (c *Config) ServerPort() string {
 	return "6060" // Default HTTPS development port
 }
 
+// SetRootDir updates the root directory path
+func (c *Config) SetRootDir(path string) {
+	c.rootDir = path
+}
+
+// SetAppName updates the application name
+func (c *Config) SetAppName(name string) {
+	c.AppName = name
+}
+
 // RootDir returns the root directory
 func (c *Config) RootDir() string {
 	return c.rootDir

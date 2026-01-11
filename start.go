@@ -107,7 +107,10 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 
 	// ADD SECTIONS using the passed UI interface
 	// CRITICAL: Initialize sections BEFORE starting goroutines
-	// This ensures h.config, h.wasmClient, etc. are set before ServeMCP() tries to use them
+	if !h.isPartOfProject() {
+		h.AddSectionWIZARD()
+	}
+
 	sectionBuild := h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
 
