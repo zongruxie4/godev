@@ -6,7 +6,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.6
 	github.com/tinywasm/devflow v0.0.35
-	github.com/tinywasm/devtui v0.2.30
+	github.com/tinywasm/devtui v0.2.31
 	github.com/tinywasm/goflare v0.0.43
 	github.com/tinywasm/kvdb v0.0.17
 )

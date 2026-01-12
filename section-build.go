@@ -31,11 +31,6 @@ func (h *handler) AddSectionBUILD() any {
 		Database:  h.db,
 	})
 
-	h.wasmClient.SetAppRootDir(h.config.RootDir())
-	h.wasmClient.SetShouldCreateIDEConfig(h.isInitializedProject)
-	h.wasmClient.SetShouldGenerateDefaultFile(h.canGenerateDefaultWasmClient)
-	h.wasmClient.CreateDefaultWasmFileClientIfNotExist()
-
 	//ASSETS
 	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: filepath.Join(h.rootDir, h.config.WebPublicDir()),

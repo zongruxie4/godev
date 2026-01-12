@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
@@ -43,6 +42,10 @@ type handler struct {
 
 	// Deploy dependencies
 	deployCloudflare *goflare.Goflare
+
+	// Lifecycle management
+	startOnce    sync.Once
+	sectionBuild any // Store reference to build tab
 
 	// MCP handler for LLM integration
 	mcp *mcpserve.Handler
@@ -105,68 +108,21 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		return
 	}
 
-	sectionBuild := h.AddSectionBUILD()
-	h.AddSectionDEPLOY()
-
 	var wg sync.WaitGroup
 	wg.Add(4) // UI, server, watcher, and MCP server
 
-	var startOnce sync.Once
-
-	// startServices launches the server and browser
-	// It is called either immediately (if project exists) or after Wizard (if setup needed)
-	startServices := func() {
-		startOnce.Do(func() {
-			h.tui.SetActiveTab(sectionBuild)
-
-			// Start server (blocking, so run in goroutine)
-			go h.serverHandler.StartServer(&wg)
-
-			// Start file watcher (blocking, so run in goroutine)
-			go h.watcher.FileWatcherStart(&wg)
-
-			// Auto-open browser (run in separate goroutine to not block main flow)
-			// Skip in TestMode to prevent browser from opening during tests
-			if !TestMode {
-				go func() {
-					time.Sleep(100 * time.Millisecond)
-					h.browser.AutoStart()
-				}()
-			}
-		})
-	}
-
 	// ADD SECTIONS using the passed UI interface
-	// CRITICAL: Initialize sections BEFORE starting goroutines
+	// CRITICAL: Initialize sections BEFORE starting lifecycle
+	h.sectionBuild = h.AddSectionBUILD()
+	h.AddSectionDEPLOY()
+
 	if !h.isPartOfProject() {
-		sectionWizard := h.AddSectionWIZARD(startServices)
+		sectionWizard := h.AddSectionWIZARD(func() {
+			h.onProjectReady(&wg)
+		})
 		h.tui.SetActiveTab(sectionWizard)
 	} else {
-		h.tui.SetActiveTab(sectionBuild)
-		startServices()
-	}
-
-	// Apply persisted work modes
-	if h.db != nil {
-		if val, err := h.db.Get(StoreKeyBuildModeOnDisk); err == nil && val != "" {
-			isDisk := (val == "true")
-			h.wasmClient.SetBuildOnDisk(isDisk, true)
-			h.assetsHandler.SetBuildOnDisk(isDisk)
-			h.serverHandler.SetBuildOnDisk(isDisk)
-		} else {
-			// Default to false (In-Memory) as requested
-			h.wasmClient.SetBuildOnDisk(false, true)
-			h.assetsHandler.SetBuildOnDisk(false)
-			h.serverHandler.SetBuildOnDisk(false)
-		}
-
-		if val, err := h.db.Get(server.StoreKeyExternalServer); err == nil && val != "" {
-			isExternal := (val == "true")
-			h.serverHandler.SetExternalServerMode(isExternal)
-		} else {
-			// Default to false (Internal) as requested
-			h.serverHandler.SetExternalServerMode(false)
-		}
+		h.onProjectReady(&wg)
 	}
 
 	// Auto-configure IDE MCP integration (silent, non-blocking)
@@ -187,7 +143,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 	toolHandlers = append(toolHandlers, mcpToolHandlers...)
 	h.mcp = mcpserve.NewHandler(mcpConfig, toolHandlers, h.tui, h.exitChan)
 	// Register MCP handler in BUILD section for logging visibility
-	h.tui.AddHandler(h.mcp, 0, "#FF9500", sectionBuild) // Orange color for MCP
+	h.tui.AddHandler(h.mcp, 0, "#FF9500", h.sectionBuild) // Orange color for MCP
 
 	h.mcp.ConfigureIDEs()
 
