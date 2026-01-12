@@ -9,6 +9,6 @@ type TuiInterface interface {
 	AddHandler(handler any, timeout time.Duration, color string, tabSection any)
 	Start(syncWaitGroup ...any) // syncWaitGroup is optional
 	RefreshUI()
-	ReturnFocus() error           // returns focus to main UI
-	RemoveTabSection(section any) // removes a section from the UI
+	ReturnFocus() error       // returns focus to main UI
+	SetActiveTab(section any) // sets the active tab section
 }

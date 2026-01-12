@@ -70,6 +70,6 @@ func (m *mockTUI) ReturnFocus() error {
 	return nil
 }
 
-func (m *mockTUI) RemoveTabSection(section any) {
+func (m *mockTUI) SetActiveTab(section any) {
 	// no-op
 }

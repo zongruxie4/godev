@@ -8,7 +8,7 @@ type WizardDeps interface {
 	SetProjectName(name string)
 	SetRootDir(path string)
 	GetRootDir() string
-	RemoveSection(section any)
+	SetActiveTab(section any)
 }
 
 // Wizard implements HandlerInteractive for project setup
@@ -20,15 +20,17 @@ type Wizard struct {
 	waitingForUser bool
 	wizardSection  any // Store section reference for removal
 
-	step int
+	step       int
+	onComplete func() // Callback to execute after completion
 }
 
-func NewWizard(deps WizardDeps) *Wizard {
+func NewWizard(deps WizardDeps, onComplete func()) *Wizard {
 	return &Wizard{
 		deps:           deps,
 		log:            func(...any) {},
 		label:          "Project Name",
 		waitingForUser: true, // Auto-activate input on start
+		onComplete:     onComplete,
 	}
 }
 
@@ -60,25 +62,42 @@ func (w *Wizard) Change(newValue string) {
 		w.step = 1
 		w.waitingForUser = true // Wait for location input
 
-	case 1: // Step 1: Get project location
+	case 1: // Set project location
 		if newValue == "" {
-			w.log("Please enter a project location")
+			w.log("Error: project location is required")
 			return
 		}
+		w.deps.SetRootDir(newValue) // FIX: Root directory must be updated early
 		w.log("Project location: " + newValue)
 
 		w.label = ""
 		w.step = 2
 		w.waitingForUser = false // Done waiting
-		w.Change("")             // Trigger step 2 immediately
+		w.Change("")             // Trigger step 2 transition
+	case 2: // Accept suggestions
+		if w.onComplete != nil {
+			w.onComplete()
+			w.onComplete = nil // Clear to prevent re-execution
+		}
+		w.step = 3 // Final state: Completed
+		w.waitingForUser = false
 
-	case 2: // Step 2: Close wizard
-		w.deps.RemoveSection(w.wizardSection)
+	case 3:
+		// Silent state: do nothing. This prevents redundant logs during navigation.
 	}
 }
 
 // Loggable implementation
 func (w *Wizard) SetLog(f func(message ...any)) { w.log = f }
+
+// StreamingLoggable implementation - show all logs instead of overwriting
+func (w *Wizard) AlwaysShowAllLogs() bool { return true }
+
+// Cancelable implementation - handle ESC gracefully
+func (w *Wizard) Cancel() {
+	w.waitingForUser = false
+	w.log("Setup cancelled")
+}
 
 // SetSection stores the section reference for later removal
 func (w *Wizard) SetSection(section any) { w.wizardSection = section }
@@ -99,15 +118,15 @@ func (h *handler) GetRootDir() string {
 	return h.rootDir
 }
 
-func (h *handler) RemoveSection(section any) {
-	h.tui.RemoveTabSection(section)
+func (h *handler) SetActiveTab(section any) {
+	h.tui.SetActiveTab(section)
 }
 
 // AddSectionWIZARD registers the Wizard section in the TUI
-func (h *handler) AddSectionWIZARD() any {
+func (h *handler) AddSectionWIZARD(onComplete func()) any {
 	sectionWizard := h.tui.NewTabSection("WIZARD", "Project Initialization")
 
-	wizard := NewWizard(h)
+	wizard := NewWizard(h, onComplete)
 	wizard.SetSection(sectionWizard)
 
 	h.tui.AddHandler(wizard, 0, "#00ADD8", sectionWizard) // Cyan color

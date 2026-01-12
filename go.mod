@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.6
-	github.com/tinywasm/devflow v0.0.33
+	github.com/tinywasm/devflow v0.0.35
 	github.com/tinywasm/devtui v0.2.26
 	github.com/tinywasm/goflare v0.0.43
 	github.com/tinywasm/kvdb v0.0.17
@@ -78,7 +78,7 @@ require (
 	github.com/tinywasm/assetmin v0.0.74
 	github.com/tinywasm/devbrowser v0.2.7
 	github.com/tinywasm/devwatch v0.0.50
-	github.com/tinywasm/mcpserve v0.0.9
+	github.com/tinywasm/mcpserve v0.0.11
 	github.com/tinywasm/server v0.1.24
 	golang.org/x/sys v0.40.0 // indirect
 )
