@@ -6,7 +6,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.6
 	github.com/tinywasm/devflow v0.0.35
-	github.com/tinywasm/devtui v0.2.26
+	github.com/tinywasm/devtui v0.2.30
 	github.com/tinywasm/goflare v0.0.43
 	github.com/tinywasm/kvdb v0.0.17
 )
@@ -26,7 +26,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d // indirect
 	github.com/chromedp/chromedp v0.14.2 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
-	github.com/clipperhouse/displaywidth v0.6.2 // indirect
+	github.com/clipperhouse/displaywidth v0.7.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
@@ -67,7 +67,7 @@ require (
 	golang.org/x/exp/shiny v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/image v0.34.0 // indirect
 	golang.org/x/mobile v0.0.0-20251209145715-2553ed8ce294 // indirect
-	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

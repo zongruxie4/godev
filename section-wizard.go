@@ -15,12 +15,13 @@ type WizardDeps interface {
 type Wizard struct {
 	deps           WizardDeps
 	log            func(message ...any)
+	stepMessage    string
+	step           int
 	label          string
 	currentValue   string
 	waitingForUser bool
 	wizardSection  any // Store section reference for removal
 
-	step       int
 	onComplete func() // Callback to execute after completion
 }
 
@@ -28,6 +29,8 @@ func NewWizard(deps WizardDeps, onComplete func()) *Wizard {
 	return &Wizard{
 		deps:           deps,
 		log:            func(...any) {},
+		stepMessage:    "SETUP",
+		step:           0,
 		label:          "Project Name",
 		waitingForUser: true, // Auto-activate input on start
 		onComplete:     onComplete,
@@ -36,7 +39,7 @@ func NewWizard(deps WizardDeps, onComplete func()) *Wizard {
 
 // HandlerInteractive implementation
 
-func (w *Wizard) Name() string { return "ProjectSetup" }
+func (w *Wizard) Name() string { return w.stepMessage }
 func (w *Wizard) Label() string {
 	return w.label
 }
@@ -61,6 +64,7 @@ func (w *Wizard) Change(newValue string) {
 		w.label = "Project Location"
 		w.step = 1
 		w.waitingForUser = true // Wait for location input
+		w.stepMessage = "LOCATION"
 
 	case 1: // Set project location
 		if newValue == "" {
@@ -68,9 +72,8 @@ func (w *Wizard) Change(newValue string) {
 			return
 		}
 		w.deps.SetRootDir(newValue) // FIX: Root directory must be updated early
-		w.log("Project location: " + newValue)
+		w.log(newValue)
 
-		w.label = ""
 		w.step = 2
 		w.waitingForUser = false // Done waiting
 		w.Change("")             // Trigger step 2 transition

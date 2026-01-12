@@ -142,6 +142,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		sectionWizard := h.AddSectionWIZARD(startServices)
 		h.tui.SetActiveTab(sectionWizard)
 	} else {
+		h.tui.SetActiveTab(sectionBuild)
 		startServices()
 	}
 
