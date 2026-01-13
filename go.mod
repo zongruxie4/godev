@@ -5,10 +5,12 @@ go 1.25.2
 require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.6
-	github.com/tinywasm/devflow v0.0.35
-	github.com/tinywasm/devtui v0.2.31
+	github.com/tinywasm/context v0.0.9
+	github.com/tinywasm/devflow v0.0.37
+	github.com/tinywasm/devtui v0.2.35
 	github.com/tinywasm/goflare v0.0.43
 	github.com/tinywasm/kvdb v0.0.17
+	github.com/tinywasm/wizard v0.0.11
 )
 
 require (
@@ -98,3 +100,9 @@ replace github.com/tinywasm/devbrowser => ../devbrowser
 replace github.com/tinywasm/mcpserve => ../mcpserve
 
 replace github.com/tinywasm/devtui => ../devtui
+
+replace github.com/tinywasm/context => ../context
+
+replace github.com/tinywasm/devflow => ../devflow
+
+replace github.com/tinywasm/wizard => ../wizard

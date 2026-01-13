@@ -36,6 +36,7 @@ type handler struct {
 	serverHandler *server.ServerHandler
 	assetsHandler *assetmin.AssetMin
 	goHandler     *devflow.Go
+	goNew         *devflow.GoNew
 	wasmClient    *client.WasmClient
 	watcher       *devwatch.DevWatch
 	browser       *devbrowser.DevBrowser
@@ -79,6 +80,15 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		return
 	}
 
+	// Start GitHub auth in background (non-blocking)
+	githubFuture := devflow.NewFuture(func() (any, error) {
+		return devflow.NewGitHub(logger)
+	})
+
+	// Initialize GoNew orchestrator with the future
+	goNew := devflow.NewGoNew(gitHandler, githubFuture, goHandler)
+	goNew.SetLog(logger)
+
 	h := &handler{
 		frameworkName: "TINYWASM",
 		rootDir:       rootDir,
@@ -88,6 +98,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 		pendingBrowserReload: GetInitialBrowserReloadFunc(),
 		db:                   db,
 		goHandler:            goHandler,
+		goNew:                goNew,
 	}
 
 	// Wire FileStore guard and gitignore notification (only if not TestMode)
