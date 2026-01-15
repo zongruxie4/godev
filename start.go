@@ -45,8 +45,9 @@ type handler struct {
 	deployCloudflare *goflare.Goflare
 
 	// Lifecycle management
-	startOnce    sync.Once
-	sectionBuild any // Store reference to build tab
+	startOnce     sync.Once
+	sectionBuild  any // Store reference to build tab
+	sectionDeploy any // Store reference to deploy tab
 
 	// MCP handler for LLM integration
 	mcp *mcpserve.Handler

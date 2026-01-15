@@ -9,6 +9,9 @@ import (
 // is fully initialized and ready to start its background services.
 // It ensures all components have the correct flags and triggers the startup sequence.
 func (h *handler) onProjectReady(wg *sync.WaitGroup) {
+	// 0. Initialize build handlers with correct paths (lazy initialization)
+	h.initBuildHandlers()
+
 	// 1. Refresh component states
 	// WasmClient needs to know it can now generate files and IDE configs
 	h.wasmClient.SetAppRootDir(h.config.RootDir())

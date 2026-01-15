@@ -13,15 +13,26 @@ import (
 )
 
 func (h *handler) AddSectionBUILD() any {
-
-	// LDFlags      func() []string // eg: []string{"-X 'main.version=v1.0.0'","-X 'main.buildDate=2023-01-01'"}
-
 	sectionBuild := h.tui.NewTabSection("BUILD", "Building and Compiling")
 
-	// WRITERS
-	// CONFIG
+	// CONFIG - only initialize if nil
 	if h.config == nil {
-		h.config = NewConfig(h.rootDir, nil) // Logger will be injected via AddHandler
+		h.config = NewConfig(h.rootDir, nil)
+	}
+
+	// Register mode handlers (these don't depend on rootDir paths)
+	h.tui.AddHandler(&BuildModeOnDisk{h: h}, time.Millisecond*500, colorTealMedium, sectionBuild)
+	h.tui.AddHandler(h.NewServerModeHandler(), time.Millisecond*500, colorBlueMedium, sectionBuild)
+
+	return sectionBuild
+}
+
+// initBuildHandlers initializes all build handlers AFTER the project root is determined.
+// This is called from onProjectReady() to ensure paths are correct.
+func (h *handler) initBuildHandlers() {
+	// Skip if already initialized
+	if h.wasmClient != nil {
+		return
 	}
 
 	// 1. WASM Client - Core logic handlers
@@ -31,7 +42,7 @@ func (h *handler) AddSectionBUILD() any {
 		Database:  h.db,
 	})
 
-	//ASSETS
+	// 2. ASSETS
 	h.assetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: filepath.Join(h.rootDir, h.config.WebPublicDir()),
 		GetRuntimeInitializerJS: func() (string, error) {
@@ -40,7 +51,7 @@ func (h *handler) AddSectionBUILD() any {
 		AppName: h.frameworkName,
 	})
 
-	//SERVER
+	// 3. SERVER
 	h.serverHandler = server.New(&server.Config{
 		AppRootDir:                  h.rootDir,
 		SourceDir:                   h.config.CmdAppServerDir(),
@@ -59,28 +70,25 @@ func (h *handler) AddSectionBUILD() any {
 		ExitChan:             h.exitChan,
 	})
 
-	// BROWSER
+	// 4. BROWSER
 	h.browser = devbrowser.New(h.config, h.tui, h.db, h.exitChan)
 
 	// Create browser reload wrapper that supports test hooks
 	browserReloadFunc := func() error {
-		// Check if test hook is set (for testing)
 		if f := GetInitialBrowserReloadFunc(); f != nil {
 			return f()
 		}
-		// Use real browser reload (production)
 		return h.browser.Reload()
 	}
 
-	// WATCHER
+	// 5. WATCHER
 	h.watcher = devwatch.New(&devwatch.WatchConfig{
 		AppRootDir:         h.config.RootDir(),
 		FilesEventHandlers: []devwatch.FilesEventHandlers{h.wasmClient, h.serverHandler, h.assetsHandler},
-		FolderEvents:       nil, // ✅ No dynamic folder event handling needed
+		FolderEvents:       nil,
 		BrowserReload:      browserReloadFunc,
 		ExitChan:           h.exitChan,
 		UnobservedFiles: func() []string {
-
 			uf := []string{
 				".git",
 				".gitignore",
@@ -89,7 +97,6 @@ func (h *handler) AddSectionBUILD() any {
 				".log",
 				"_test.go",
 			}
-
 			uf = append(uf, h.assetsHandler.UnobservedFiles()...)
 			uf = append(uf, h.wasmClient.UnobservedFiles()...)
 			uf = append(uf, h.serverHandler.UnobservedFiles()...)
@@ -98,30 +105,22 @@ func (h *handler) AddSectionBUILD() any {
 	})
 	h.watcher.SetShouldWatch(h.isPartOfProject)
 
-	// HANDLER REGISTRATION (Loggers)
-	h.tui.AddHandler(h.wasmClient, 0, colorPurpleMedium, sectionBuild)
-	h.tui.AddHandler(h.serverHandler, 0, colorBlueMedium, sectionBuild)
-	h.tui.AddHandler(h.assetsHandler, 0, colorGreenMedium, sectionBuild)
-	h.tui.AddHandler(h.watcher, 0, colorYellowMedium, sectionBuild)
-	h.tui.AddHandler(h.config, 0, colorTealMedium, sectionBuild)
-	h.tui.AddHandler(h.browser, 0, colorPinkMedium, sectionBuild)
+	// 6. Register handlers with TUI for logging
+	h.tui.AddHandler(h.wasmClient, 0, colorPurpleMedium, h.sectionBuild)
+	h.tui.AddHandler(h.serverHandler, 0, colorBlueMedium, h.sectionBuild)
+	h.tui.AddHandler(h.assetsHandler, 0, colorGreenMedium, h.sectionBuild)
+	h.tui.AddHandler(h.watcher, 0, colorYellowMedium, h.sectionBuild)
+	h.tui.AddHandler(h.config, 0, colorTealMedium, h.sectionBuild)
+	h.tui.AddHandler(h.browser, 0, colorPinkMedium, h.sectionBuild)
 
-	// Wire up TinyWasm to AssetMin
+	// 7. Wire up TinyWasm to AssetMin
 	h.wasmClient.OnWasmExecChange = func() {
-		// Notify AssetMin to refresh JS assets (this will pull the new initializer JS)
 		h.assetsHandler.RefreshAsset(".js")
-		//h.wasmClient.Logger(" DEBUG: Refreshed script.js via AssetMin")
-
-		// Reload the browser to apply changes
 		if err := h.browser.Reload(); err != nil {
 			h.wasmClient.Logger("Error reloading browser:", err)
 		}
 	}
 
-	// Agregar manejadores que requieren interacción del desarrollador
-	// WORK MODES (Build and Server)
-	h.tui.AddHandler(&BuildModeOnDisk{h: h}, time.Millisecond*500, colorTealMedium, sectionBuild)
-	h.tui.AddHandler(h.NewServerModeHandler(), time.Millisecond*500, colorBlueMedium, sectionBuild)
-
-	return sectionBuild
+	// 8. Initialize deploy handlers (depends on watcher)
+	h.initDeployHandlers()
 }
