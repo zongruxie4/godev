@@ -124,14 +124,14 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 		}
 	})
 
-	t.Run("ReturnsFalseIfGoModInCurrentMakesNotEmpty", func(t *testing.T) {
-		// go.mod in current makes directory NOT empty
+	t.Run("ReturnsTrueIfGoModInCurrentMakesNotEmpty", func(t *testing.T) {
+		// go.mod in current makes directory NOT empty, but allows generation if initialized
 		tmp := t.TempDir()
 		os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644)
 		h := NewTestHandler(tmp)
 
-		if h.canGenerateDefaultWasmClient() {
-			t.Error("expected false because go.mod makes directory not empty")
+		if !h.canGenerateDefaultWasmClient() {
+			t.Error("expected true because project is initialized")
 		}
 	})
 

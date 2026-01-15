@@ -31,9 +31,12 @@ func (h *handler) isDirectoryEmpty() bool {
 }
 
 // canGenerateDefaultWasmClient returns true if:
-// 1. Directory is completely empty
-// 2. go.mod exists in current or parent directory (isPartOfProject)
+// 1. Project is initialized (go.mod exists in root) - allows adding client to new projects
+// 2. OR Directory is empty AND parent has go.mod (submodule case)
 func (h *handler) canGenerateDefaultWasmClient() bool {
+	if h.isInitializedProject() {
+		return true
+	}
 	if !h.isDirectoryEmpty() {
 		return false
 	}

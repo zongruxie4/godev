@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tinywasm/client"
 	"github.com/tinywasm/context"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/wizard"
@@ -94,6 +95,18 @@ func TestWizardFullIntegration(t *testing.T) {
 		if ctx.Value("project_dir") != "" {
 			os.Chdir(ctx.Value("project_dir"))
 		}
+
+		// Simulate onProjectReady's client generation
+		// This confirms that if called (as it is in prod), it generates the file
+		c := client.New(&client.Config{
+			SourceDir: func() string { return "web" },
+			OutputDir: func() string { return "public" },
+		})
+		c.SetAppRootDir(ctx.Value("project_dir"))
+		// In prod, this is set by h.canGenerateDefaultWasmClient, which we just fixed to return true
+		c.SetShouldGenerateDefaultFile(func() bool { return true })
+		c.CreateDefaultWasmFileClientIfNotExist()
+
 	}, goNew.Module())
 
 	// Provide a mock logger
@@ -123,6 +136,7 @@ func TestWizardFullIntegration(t *testing.T) {
 		"README.md",
 		"LICENSE",
 		projectName + ".go", // handler file
+		"web/client.go",     // WASM client file
 	}
 
 	for _, file := range filesToCheck {
