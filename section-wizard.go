@@ -20,9 +20,11 @@ func (h *handler) AddSectionWIZARD(onComplete func()) any {
 		if projectDir != "" {
 			// Change working directory to new project
 			if err := os.Chdir(projectDir); err == nil {
-				// Update app config and rootDir
+				// Update all path-dependent components
 				h.config.SetRootDir(projectDir)
 				h.rootDir = projectDir
+				h.gitHandler.SetRootDir(projectDir)
+				h.goHandler.SetRootDir(projectDir)
 			}
 		}
 

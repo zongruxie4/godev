@@ -35,6 +35,7 @@ type handler struct {
 	// Build dependencies
 	serverHandler *server.ServerHandler
 	assetsHandler *assetmin.AssetMin
+	gitHandler    *devflow.Git
 	goHandler     *devflow.Go
 	goNew         *devflow.GoNew
 	wasmClient    *client.WasmClient
@@ -98,6 +99,7 @@ func Start(rootDir string, logger func(messages ...any), ui TuiInterface, exitCh
 
 		pendingBrowserReload: GetInitialBrowserReloadFunc(),
 		db:                   db,
+		gitHandler:           gitHandler,
 		goHandler:            goHandler,
 		goNew:                goNew,
 	}

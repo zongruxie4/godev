@@ -133,7 +133,7 @@ func TestWizardFullIntegration(t *testing.T) {
 	}
 
 	// 7. Verify NO files leaked to parent directory
-	parentFiles := []string{".gitignore", "go.mod", "README.md"}
+	parentFiles := []string{".gitignore", "go.mod", "README.md", "logs.log"}
 	for _, file := range parentFiles {
 		path := filepath.Join(parentDir, file)
 		if _, err := os.Stat(path); err == nil {
