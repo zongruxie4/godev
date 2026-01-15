@@ -107,7 +107,7 @@ func TestWizardFullIntegration(t *testing.T) {
 		c.SetShouldGenerateDefaultFile(func() bool { return true })
 		c.CreateDefaultWasmFileClientIfNotExist()
 
-	}, goNew.Module())
+	}, goNew)
 
 	// Provide a mock logger
 	w.SetLog(logs.Log)
@@ -119,7 +119,19 @@ func TestWizardFullIntegration(t *testing.T) {
 	// Step 2: Project Location (use default which is parentDir/projectName)
 	w.Change(projectDir)
 
-	// Step 3: Create Project (press Enter)
+	// Step 3: Project Owner
+	w.Change(ghUser)
+
+	// Step 4: Description
+	w.Change("Integration Test Project")
+
+	// Step 5: Visibility
+	w.Change("public")
+
+	// Step 6: License
+	w.Change("MIT")
+
+	// Step 7: Create Project (press Enter)
 	w.Change("")
 
 	// 5. Verify wizard completed
@@ -190,14 +202,18 @@ func TestWizardLocalOnlyIntegration(t *testing.T) {
 	w := wizard.New(func(ctx *context.Context) {
 		wizardCompleted = true
 		defer wg.Done()
-	}, goNew.Module())
+	}, goNew)
 
 	w.SetLog(logs.Log)
 
 	// Simulate inputs
 	w.Change(projectName)
 	w.Change(projectDir)
-	w.Change("") // Create
+	w.Change("localuser")  // Owner
+	w.Change("Local Test") // Description
+	w.Change("public")     // Visibility
+	w.Change("MIT")        // License
+	w.Change("")           // Create
 
 	wg.Wait()
 

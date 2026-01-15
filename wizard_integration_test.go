@@ -14,12 +14,8 @@ type MockModule struct {
 }
 
 func (m *MockModule) Name() string { return "Mock" }
-func (m *MockModule) GetSteps() []any {
-	res := make([]any, len(m.steps))
-	for i, s := range m.steps {
-		res[i] = s
-	}
-	return res
+func (m *MockModule) GetSteps() []*wizard.Step {
+	return m.steps
 }
 
 func TestWizardLogsIntegration(t *testing.T) {

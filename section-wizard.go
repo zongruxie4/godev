@@ -10,7 +10,6 @@ import (
 // AddSectionWIZARD registers the Wizard section in the TUI
 func (h *handler) AddSectionWIZARD(onComplete func()) any {
 	// Add GoNew wizard steps
-	h.goNew = h.goNew // Ensure it's reachable
 
 	sectionWizard := h.tui.NewTabSection("WIZARD", "Project Initialization")
 
@@ -29,7 +28,7 @@ func (h *handler) AddSectionWIZARD(onComplete func()) any {
 		}
 
 		onComplete()
-	}, h.goNew.Module()) // Passing it as a Module
+	}, h.goNew) // Passing it directly (transparent casting)
 
 	h.tui.AddHandler(w, 0, "#00ADD8", sectionWizard) // Cyan color
 
