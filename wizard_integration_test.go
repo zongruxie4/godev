@@ -9,6 +9,19 @@ import (
 	"github.com/tinywasm/wizard"
 )
 
+type MockModule struct {
+	steps []*wizard.Step
+}
+
+func (m *MockModule) Name() string { return "Mock" }
+func (m *MockModule) GetSteps() []any {
+	res := make([]any, len(m.steps))
+	for i, s := range m.steps {
+		res[i] = s
+	}
+	return res
+}
+
 func TestWizardLogsIntegration(t *testing.T) {
 	// 1. Setup TUI with wizard tab
 	tui := devtui.NewTUI(&devtui.TuiConfig{
@@ -40,7 +53,10 @@ func TestWizardLogsIntegration(t *testing.T) {
 
 	// 3. Initialize Wizard
 	var completed bool
-	w := wizard.New(func() { completed = true }, steps...)
+	mockModule := &MockModule{steps: steps}
+	w := wizard.New(func(ctx *context.Context) {
+		completed = true
+	}, mockModule)
 
 	// 4. Register with TUI
 	tui.AddHandler(w, 0, "#00ADD8", sectionWizard)

@@ -13,8 +13,8 @@ func (h *handler) AddSectionDEPLOY() {
 	// CLOUDFLARE (GOFLARE)
 	h.deployCloudflare = goflare.New(&goflare.Config{
 		AppRootDir:              h.config.rootDir,
-		RelativeInputDirectory:  h.config.CmdEdgeWorkerDir(),
-		RelativeOutputDirectory: h.config.DeployEdgeWorkerDir(),
+		RelativeInputDirectory:  h.config.CmdEdgeWorkerDir,
+		RelativeOutputDirectory: h.config.DeployEdgeWorkerDir,
 		MainInputFile:           "main.go",
 		CompilingArguments:      nil,
 		OutputWasmFileName:      "app.wasm",

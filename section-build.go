@@ -24,10 +24,10 @@ func (h *handler) AddSectionBUILD() any {
 		h.config = NewConfig(h.rootDir, nil) // Logger will be injected via AddHandler
 	}
 
-	//WASM
+	// 1. WASM Client - Core logic handlers
 	h.wasmClient = client.New(&client.Config{
-		SourceDir: h.config.CmdWebClientDir(),
-		OutputDir: h.config.WebPublicDir(),
+		SourceDir: h.config.CmdWebClientDir,
+		OutputDir: h.config.WebPublicDir,
 		Database:  h.db,
 	})
 

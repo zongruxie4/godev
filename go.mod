@@ -5,12 +5,12 @@ go 1.25.2
 require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.6
-	github.com/tinywasm/context v0.0.9
-	github.com/tinywasm/devflow v0.0.37
-	github.com/tinywasm/devtui v0.2.35
-	github.com/tinywasm/goflare v0.0.43
+	github.com/tinywasm/context v0.0.10
+	github.com/tinywasm/devflow v0.0.38
+	github.com/tinywasm/devtui v0.2.45
+	github.com/tinywasm/goflare v0.0.0-00010101000000-000000000000
 	github.com/tinywasm/kvdb v0.0.17
-	github.com/tinywasm/wizard v0.0.11
+	github.com/tinywasm/wizard v0.0.12
 )
 
 require (
@@ -59,8 +59,8 @@ require (
 	github.com/tinywasm/fmt v0.14.0 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
 	github.com/tinywasm/gorun v0.0.17 // indirect
-	github.com/tinywasm/time v0.2.11 // indirect
-	github.com/tinywasm/unixid v0.2.13 // indirect
+	github.com/tinywasm/time v0.3.0 // indirect
+	github.com/tinywasm/unixid v0.2.14 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect

@@ -117,10 +117,10 @@ github.com/tinywasm/gorun v0.0.17 h1:7ZTQBERzE4l9+zysb5RwEN9jPJ/rFXPHTilExYJ1UWc
 github.com/tinywasm/gorun v0.0.17/go.mod h1:9pApF2ZoaH/km6kGBVxL5WlStOoLwEZiV1uG4R4qeKo=
 github.com/tinywasm/kvdb v0.0.17 h1:B7/o66RFu60m15lJGQYIieJs9TUze+HVi9GdR4qb7+E=
 github.com/tinywasm/kvdb v0.0.17/go.mod h1:lWr/Tknrboiupl8qsIHxBnmag6EstOjUnaDshBLy89Y=
-github.com/tinywasm/time v0.2.11 h1:A29DN8UyNnEw6ffTBtad+McIK07AVdganJhuG8J9xk0=
-github.com/tinywasm/time v0.2.11/go.mod h1:o2j76Iz/aZkNcbVHB+gJJ3VVSZTwaEEcRGVAuJU1NHI=
-github.com/tinywasm/unixid v0.2.13 h1:4ahFDC2IF63EfUXxNBttCUMKL5TPUU3oCrKVMGmHfVQ=
-github.com/tinywasm/unixid v0.2.13/go.mod h1:gDON8S0OEHaLv61biFH+AG/m3WtT237Sw65mFoG+mJ4=
+github.com/tinywasm/time v0.3.0 h1:2r1SppZolSvPLf73hrINLQ1RyqR2uDbNDk4KKbqQ/40=
+github.com/tinywasm/time v0.3.0/go.mod h1:dPW5LITwcw3ZKF6SyMmm+DV9KkRVor14SRRyX8KXpyk=
+github.com/tinywasm/unixid v0.2.14 h1:GYsj6Q4t+wcwaUexROXyJ+12j/LWl26igj9MewlblQc=
+github.com/tinywasm/unixid v0.2.14/go.mod h1:l+MCGO2CL6SPF8ZqJ6YokepAOQGoA1sGCBV5r/W5Sr4=
 github.com/wk8/go-ordered-map/v2 v2.1.8 h1:5h/BUHu93oj4gIdvHHHGsScSTMijfx5PeYkE/fJgbpc=
 github.com/wk8/go-ordered-map/v2 v2.1.8/go.mod h1:5nJHM5DyteebpVlHnWMV0rPz6Zp7+xBAnxjb1X5vnTw=
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=
