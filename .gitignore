@@ -4,3 +4,4 @@ tinywasm.exe
 test/*
 *.log/test/
 /example/
+*output*

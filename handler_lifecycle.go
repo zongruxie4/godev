@@ -40,12 +40,12 @@ func (h *handler) applyPersistedWorkModes() {
 		isDisk := (val == "true")
 		h.wasmClient.SetBuildOnDisk(isDisk, true)
 		h.assetsHandler.SetBuildOnDisk(isDisk)
-		h.serverHandler.SetBuildOnDisk(isDisk)
+		h.serverHandler.SetCompilationOnDisk(isDisk)
 	} else {
 		// Default to false (In-Memory) as requested
 		h.wasmClient.SetBuildOnDisk(false, true)
 		h.assetsHandler.SetBuildOnDisk(false)
-		h.serverHandler.SetBuildOnDisk(false)
+		h.serverHandler.SetCompilationOnDisk(false)
 	}
 
 	// SERVER MODE (Internal vs External)
@@ -53,10 +53,10 @@ func (h *handler) applyPersistedWorkModes() {
 	const StoreKeyExternalServer = "external_server"
 	if val, err := h.db.Get(StoreKeyExternalServer); err == nil && val != "" {
 		isExternal := (val == "true")
-		h.serverHandler.SetExternalServerMode(isExternal)
+		_ = h.serverHandler.SetExternalServerMode(isExternal)
 	} else {
 		// Default to false (Internal) as requested
-		h.serverHandler.SetExternalServerMode(false)
+		_ = h.serverHandler.SetExternalServerMode(false)
 	}
 }
 

@@ -74,7 +74,7 @@ func main() {
 	h := WaitForActiveHandler(8 * time.Second)
 	require.NotNil(t, h)
 	// Enable External Server Mode to support reloading on file changes
-	h.serverHandler.SetExternalServerMode(true)
+	require.NoError(t, h.serverHandler.SetExternalServerMode(true))
 
 	watcher := WaitWatcherReady(8 * time.Second)
 	require.NotNil(t, watcher)

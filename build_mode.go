@@ -48,7 +48,7 @@ func (b *BuildModeOnDisk) Execute() {
 	isDisk := (onDisk == "true")
 	b.h.wasmClient.SetBuildOnDisk(isDisk, true)
 	b.h.assetsHandler.SetBuildOnDisk(isDisk)
-	b.h.serverHandler.SetBuildOnDisk(isDisk)
+	b.h.serverHandler.SetCompilationOnDisk(isDisk)
 
 	if b.log != nil {
 		if isDisk {
