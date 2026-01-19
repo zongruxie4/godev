@@ -1,4 +1,6 @@
-package app
+package test
+
+import "github.com/tinywasm/app"
 
 import (
 	"fmt"
@@ -22,7 +24,7 @@ func TestCompileSmoke(t *testing.T) {
 	tmp := t.TempDir()
 
 	// Create proper directory structure using Config methods (type-safe)
-	cfg := NewConfig(tmp, func(message ...any) {})
+	cfg := app.NewConfig(tmp, func(message ...any) {})
 	appServerDir := filepath.Join(tmp, cfg.CmdAppServerDir())
 	if err := os.MkdirAll(appServerDir, 0755); err != nil {
 		t.Fatalf("Failed to create appserver dir: %v", err)

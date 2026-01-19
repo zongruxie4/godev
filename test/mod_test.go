@@ -1,4 +1,6 @@
-package app
+package test
+
+import "github.com/tinywasm/app"
 
 import "testing"
 
@@ -49,7 +51,7 @@ func TestGetModuleName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetModuleName(tt.path)
+			got, err := app.GetModuleName(tt.path)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("GetModuleName(%q) error = %v, wantErr %v", tt.path, err, tt.wantErr)
 				return

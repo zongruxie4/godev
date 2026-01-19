@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"net/http"
@@ -12,14 +12,14 @@ import (
 )
 
 func setupMCPTest(t *testing.T) (*mcpserve.Handler, chan bool) {
-	exitChan := make(chan bool)
+	ExitChan := make(chan bool)
 	mcpConfig := mcpserve.Config{
 		Port:          "3030",
 		ServerName:    "TINYWASM",
 		ServerVersion: "1.0.0",
 	}
-	m := mcpserve.NewHandler(mcpConfig, nil, nil, exitChan)
-	return m, exitChan
+	m := mcpserve.NewHandler(mcpConfig, nil, nil, ExitChan)
+	return m, ExitChan
 }
 
 func TestMCPServerInitialization(t *testing.T) {
@@ -27,7 +27,7 @@ func TestMCPServerInitialization(t *testing.T) {
 		t.Skip("Skipping MCP test in short mode")
 	}
 
-	m, exitChan := setupMCPTest(t)
+	m, ExitChan := setupMCPTest(t)
 	startupErrors := make(chan error, 1)
 
 	// Test that Serve doesn't panic on initialization
@@ -69,13 +69,13 @@ func TestMCPServerInitialization(t *testing.T) {
 	}
 
 	// Cleanup: close exit channel to stop server
-	close(exitChan)
+	close(ExitChan)
 	time.Sleep(50 * time.Millisecond)
 }
 
 func TestMCPConfigureIDEs(t *testing.T) {
-	m, exitChan := setupMCPTest(t)
-	defer close(exitChan)
+	m, ExitChan := setupMCPTest(t)
+	defer close(ExitChan)
 
 	// Should not panic even if IDEs aren't installed
 	m.ConfigureIDEs()

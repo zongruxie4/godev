@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"fmt"
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinywasm/app"
 )
 
 // TestGreetFileRepeatedEdits simulates the EXACT user scenario:
@@ -23,11 +24,11 @@ func TestGreetFileRepeatedEdits(t *testing.T) {
 
 	tmp := t.TempDir()
 
-	// Create config to get proper paths
-	config := NewConfig(tmp, func(messages ...any) {})
+	// Create Config to get proper paths
+	Config := app.NewConfig(tmp, func(messages ...any) {})
 
 	// Create realistic project structure (tinywasm expects web/ directory)
-	err := os.MkdirAll(filepath.Join(tmp, config.WebDir()), 0755)
+	err := os.MkdirAll(filepath.Join(tmp, Config.WebDir()), 0755)
 	require.NoError(t, err)
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
 	require.NoError(t, err)
@@ -57,7 +58,7 @@ func Greet(target string) string {
 	// Create web/client.go (tinywasm's expected WASM entry point)
 	// This file MUST exist before starting tinywasm, otherwise tinywasm creates a default one
 	// without the greet import
-	clientGoFile := filepath.Join(tmp, config.WebDir(), config.ClientFileName())
+	clientGoFile := filepath.Join(tmp, Config.WebDir(), Config.ClientFileName())
 	clientGoContent := `//go:build wasm
 
 package main
@@ -101,21 +102,21 @@ func main() {
 		}
 	}
 
-	// Spy on browser reload calls
+	// Spy on Browser reload calls
 	var browserReloads int32
-	SetInitialBrowserReloadFunc(func() error {
+	app.SetInitialBrowserReloadFunc(func() error {
 		atomic.AddInt32(&browserReloads, 1)
 		return nil
 	})
-	defer SetInitialBrowserReloadFunc(nil)
+	defer app.SetInitialBrowserReloadFunc(nil)
 
-	exitChan := make(chan bool)
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+	ExitChan := make(chan bool)
+	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
 
 	// Wait for initialization
-	watcher := WaitWatcherReady(6 * time.Second)
-	require.NotNil(t, watcher)
-	h := GetActiveHandler()
+	Watcher := app.WaitWatcherReady(6 * time.Second)
+	require.NotNil(t, Watcher)
+	h := app.GetActiveHandler()
 	require.NotNil(t, h)
 
 	// t.Log("\n=== TEST: Repeated edits to greet.go ===")
@@ -159,7 +160,7 @@ func Greet(target string) string {
 		} else {
 			t.Errorf("❌ Edit %d: NO compilation triggered! (total still: %d)", i+1, afterCount)
 			t.Errorf("   Expected: Each edit should trigger compilation")
-			t.Errorf("   Actual: Edit was ignored by the watcher")
+			t.Errorf("   Actual: Edit was ignored by the Watcher")
 		}
 
 		// Small delay between edits (realistic user behavior)
@@ -169,8 +170,8 @@ func Greet(target string) string {
 	}
 
 	// Cleanup
-	close(exitChan)
-	SetActiveHandler(nil)
+	close(ExitChan)
+	app.SetActiveHandler(nil)
 	time.Sleep(200 * time.Millisecond)
 
 	finalCount := atomic.LoadInt32(&compilationCount)

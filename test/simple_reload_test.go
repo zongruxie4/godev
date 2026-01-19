@@ -1,4 +1,6 @@
-package app
+package test
+
+import "github.com/tinywasm/app"
 
 import (
 	"fmt"
@@ -32,22 +34,22 @@ func TestSimpleBrowserReload(t *testing.T) {
 		logIfVerbose(t, "LOG: %s", msg)
 	}
 
-	exitChan := make(chan bool)
-	// Set up browser reload tracking
-	SetInitialBrowserReloadFunc(func() error {
+	ExitChan := make(chan bool)
+	// Set up Browser reload tracking
+	app.SetInitialBrowserReloadFunc(func() error {
 		count := atomic.AddInt64(&reloadCount, 1)
 		logIfVerbose(t, "*** BROWSER RELOAD CALLED! Count: %d ***", count)
 		return nil
 	})
-	defer SetInitialBrowserReloadFunc(nil)
+	defer app.SetInitialBrowserReloadFunc(nil)
 
 	// Create go.mod to pass the guard
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644))
 
-	// Start tinywasm
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+	// app.Start tinywasm
+	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
 	// Wait for initialization
-	h := WaitForActiveHandler(5 * time.Second)
+	h := app.WaitForActiveHandler(5 * time.Second)
 	require.NotNil(t, h)
 
 	time.Sleep(100 * time.Millisecond)
@@ -74,8 +76,8 @@ func TestSimpleBrowserReload(t *testing.T) {
 	finalCount := atomic.LoadInt64(&reloadCount)
 	logIfVerbose(t, "Final reload count: %d", finalCount)
 
-	close(exitChan)
-	SetActiveHandler(nil)
+	close(ExitChan)
+	app.SetActiveHandler(nil)
 
 	if finalCount > initialCount {
 		// t.Logf("✓ Browser reload was called %d times", finalCount-initialCount)

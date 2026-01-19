@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"sync"
@@ -24,7 +24,7 @@ func (m *mockTUI) NewTabSection(title, description string) any {
 }
 
 func (m *mockTUI) AddHandler(handler any, timeout time.Duration, color string, tabSection any) {
-	// Mimic DevTUI's behavior: call SetLog if handler implements Loggable
+	// Mimic DevTUI's behavior: call SetLog if app.Handler implements Loggable
 	type Loggable interface {
 		Name() string
 		SetLog(logger func(message ...any))
@@ -59,7 +59,7 @@ func (m *mockTUI) Start(syncWaitGroup ...any) {
 	// If real TUI blocks, we should probably block until exit?
 	// But mockTUI is simple.
 	// If we just Done() and return, wg decrements.
-	// Start continues waiting for others.
+	// app.Start continues waiting for others.
 }
 
 func (m *mockTUI) RefreshUI() {

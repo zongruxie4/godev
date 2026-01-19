@@ -4,11 +4,11 @@ go 1.25.2
 
 require (
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.4.6
+	github.com/tinywasm/client v0.4.7
 	github.com/tinywasm/context v0.0.10
-	github.com/tinywasm/devflow v0.0.43
+	github.com/tinywasm/devflow v0.0.59
 	github.com/tinywasm/devtui v0.2.45
-	github.com/tinywasm/goflare v0.0.0-00010101000000-000000000000
+	github.com/tinywasm/goflare v0.0.48
 	github.com/tinywasm/kvdb v0.0.17
 	github.com/tinywasm/wizard v0.0.13
 )
@@ -58,7 +58,7 @@ require (
 	github.com/tinywasm/depfind v0.0.19 // indirect
 	github.com/tinywasm/fmt v0.14.0 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
-	github.com/tinywasm/gorun v0.0.17 // indirect
+	github.com/tinywasm/gorun v0.0.18 // indirect
 	github.com/tinywasm/time v0.3.0 // indirect
 	github.com/tinywasm/unixid v0.2.14 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
@@ -81,19 +81,15 @@ require (
 	github.com/tinywasm/devbrowser v0.2.7
 	github.com/tinywasm/devwatch v0.0.50
 	github.com/tinywasm/mcpserve v0.0.11
-	github.com/tinywasm/server v0.1.25
+	github.com/tinywasm/server v0.1.28
 	golang.org/x/sys v0.40.0 // indirect
 )
 
 replace github.com/tinywasm/devwatch => ../devwatch
 
-replace github.com/tinywasm/client => ../client
-
 replace github.com/tinywasm/server => ../server
 
 replace github.com/tinywasm/assetmin => ../assetmin
-
-replace github.com/tinywasm/goflare => ../goflare
 
 replace github.com/tinywasm/devbrowser => ../devbrowser
 
@@ -103,6 +99,10 @@ replace github.com/tinywasm/devtui => ../devtui
 
 replace github.com/tinywasm/context => ../context
 
-replace github.com/tinywasm/devflow => ../devflow
-
 replace github.com/tinywasm/wizard => ../wizard
+
+replace github.com/tinywasm/gorun => ../gorun
+
+replace github.com/tinywasm/gobuild => ../gobuild
+
+replace github.com/tinywasm/kvdb => ../kvdb

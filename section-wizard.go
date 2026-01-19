@@ -8,10 +8,10 @@ import (
 )
 
 // AddSectionWIZARD registers the Wizard section in the TUI
-func (h *handler) AddSectionWIZARD(onComplete func()) any {
+func (h *Handler) AddSectionWIZARD(onSuccess func()) any {
 	// Add GoNew wizard steps
 
-	sectionWizard := h.tui.NewTabSection("WIZARD", "Project Initialization")
+	sectionWizard := h.Tui.NewTabSection("WIZARD", "Project Initialization")
 
 	w := wizard.New(func(ctx *context.Context) {
 		// Extract project_dir from wizard context
@@ -20,17 +20,17 @@ func (h *handler) AddSectionWIZARD(onComplete func()) any {
 			// Change working directory to new project
 			if err := os.Chdir(projectDir); err == nil {
 				// Update all path-dependent components
-				h.config.SetRootDir(projectDir)
-				h.rootDir = projectDir
-				h.gitHandler.SetRootDir(projectDir)
-				h.goHandler.SetRootDir(projectDir)
+				h.Config.SetRootDir(projectDir)
+				h.RootDir = projectDir
+				h.GitHandler.SetRootDir(projectDir)
+				h.GoHandler.SetRootDir(projectDir)
 			}
 		}
 
-		onComplete()
-	}, h.goNew) // Passing it directly (transparent casting)
+		onSuccess()
+	}, h.GoNew) // Passing it directly (transparent casting)
 
-	h.tui.AddHandler(w, 0, "#00ADD8", sectionWizard) // Cyan color
+	h.Tui.AddHandler(w, 0, "#00ADD8", sectionWizard) // Cyan color
 
 	return sectionWizard
 }

@@ -8,7 +8,7 @@ import (
 
 // Logger handles logging operations
 type Logger struct {
-	rootDir     string
+	RootDir     string
 	initialized bool
 }
 
@@ -19,7 +19,7 @@ func NewLogger() *Logger {
 
 // SetRootDir sets the root directory for log file
 func (l *Logger) SetRootDir(path string) {
-	l.rootDir = path
+	l.RootDir = path
 	l.initialized = true
 }
 
@@ -31,8 +31,8 @@ func (l *Logger) Logger(messages ...any) {
 	}
 
 	logPath := "logs.log"
-	if l.rootDir != "" {
-		logPath = l.rootDir + "/logs.log"
+	if l.RootDir != "" {
+		logPath = l.RootDir + "/logs.log"
 	}
 
 	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

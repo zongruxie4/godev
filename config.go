@@ -7,27 +7,27 @@ import (
 // Config holds conventional configuration paths for Go projects
 // using the root directory as source
 type Config struct {
-	rootDir string               // Root directory (default: ".")
+	RootDir string               // Root directory (default: ".")
 	logger  func(message ...any) // Logging function
 	AppName string               // Application name (directory name)
 }
 
 // NewConfig creates a new configuration with conventional paths
-func NewConfig(rootDir string, logger func(message ...any)) *Config {
+func NewConfig(RootDir string, logger func(message ...any)) *Config {
 	root := "." // Default to current directory
 
-	if rootDir != root {
-		root = rootDir
+	if RootDir != root {
+		root = RootDir
 	}
 
 	return &Config{
-		rootDir: root,
+		RootDir: root,
 		logger:  logger,
 		AppName: filepath.Base(root),
 	}
 }
 
-// Name returns the handler name for Loggable interface
+// Name returns the Handler name for Loggable interface
 func (c *Config) Name() string {
 	return "Config"
 }
@@ -40,7 +40,7 @@ func (c *Config) SetLog(f func(message ...any)) {
 // GetAppName returns the detected application name
 func (c *Config) GetAppName() string {
 	if c.AppName == "" {
-		return filepath.Base(c.rootDir)
+		return filepath.Base(c.RootDir)
 	}
 	return c.AppName
 }
@@ -148,15 +148,10 @@ func (c *Config) ServerPort() string {
 
 // SetRootDir updates the root directory path
 func (c *Config) SetRootDir(path string) {
-	c.rootDir = path
+	c.RootDir = path
 }
 
 // SetAppName updates the application name
 func (c *Config) SetAppName(name string) {
 	c.AppName = name
-}
-
-// RootDir returns the root directory
-func (c *Config) RootDir() string {
-	return c.rootDir
 }

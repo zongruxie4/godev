@@ -5,78 +5,67 @@ import (
 	"time"
 )
 
-// onProjectReady is the centralized lifecycle method called when a project
+const StoreKeyBuildModeOnDisk = "build_mode_ondisk"
+
+// OnProjectReady is the centralized lifecycle method called when a project
 // is fully initialized and ready to start its background services.
 // It ensures all components have the correct flags and triggers the startup sequence.
-func (h *handler) onProjectReady(wg *sync.WaitGroup) {
-	// 0. Initialize build handlers with correct paths (lazy initialization)
-	h.initBuildHandlers()
+func (h *Handler) OnProjectReady(wg *sync.WaitGroup) {
+	// 0. Initialize build Handlers with correct paths (lazy initialization)
+	h.InitBuildHandlers()
 
 	// 1. Refresh component states
 	// WasmClient needs to know it can now generate files and IDE configs
-	h.wasmClient.SetAppRootDir(h.config.RootDir())
-	h.wasmClient.SetShouldCreateIDEConfig(h.isInitializedProject)
-	h.wasmClient.SetShouldGenerateDefaultFile(h.canGenerateDefaultWasmClient)
-	h.wasmClient.CreateDefaultWasmFileClientIfNotExist()
+	h.WasmClient.SetAppRootDir(h.Config.RootDir)
+	h.WasmClient.SetShouldCreateIDEConfig(h.IsInitializedProject)
+	h.WasmClient.SetShouldGenerateDefaultFile(h.CanGenerateDefaultWasmClient)
+	h.WasmClient.CreateDefaultWasmFileClientIfNotExist()
 
 	// DevWatch needs to know it should start watching files
-	h.watcher.SetShouldWatch(h.isPartOfProject)
+	h.Watcher.SetShouldWatch(h.IsPartOfProject)
 
 	// 2. Apply persisted work modes (Build Mode, External Server)
-	h.applyPersistedWorkModes()
+	h.ApplyPersistedWorkModes()
 
 	// 3. Trigger background services sequence
-	h.startBackgroundServices(wg)
+	h.StartBackgroundServices(wg)
 }
 
-// applyPersistedWorkModes reads work modes from the database and applies them to handlers.
-func (h *handler) applyPersistedWorkModes() {
-	if h.db == nil {
+// ApplyPersistedWorkModes reads work modes from the database and applies them to Handlers.
+func (h *Handler) ApplyPersistedWorkModes() {
+	if h.DB == nil {
 		return
 	}
 
 	// BUILD MODE (In-Memory vs On-Disk)
-	if val, err := h.db.Get(StoreKeyBuildModeOnDisk); err == nil && val != "" {
+	if val, err := h.DB.Get(StoreKeyBuildModeOnDisk); err == nil && val != "" {
 		isDisk := (val == "true")
-		h.wasmClient.SetBuildOnDisk(isDisk, true)
-		h.assetsHandler.SetBuildOnDisk(isDisk)
-		h.serverHandler.SetCompilationOnDisk(isDisk)
+		h.WasmClient.SetBuildOnDisk(isDisk, true)
+		h.AssetsHandler.SetBuildOnDisk(isDisk)
 	} else {
 		// Default to false (In-Memory) as requested
-		h.wasmClient.SetBuildOnDisk(false, true)
-		h.assetsHandler.SetBuildOnDisk(false)
-		h.serverHandler.SetCompilationOnDisk(false)
-	}
-
-	// SERVER MODE (Internal vs External)
-	// We use the key defined in the server package for consistency
-	const StoreKeyExternalServer = "external_server"
-	if val, err := h.db.Get(StoreKeyExternalServer); err == nil && val != "" {
-		isExternal := (val == "true")
-		_ = h.serverHandler.SetExternalServerMode(isExternal)
-	} else {
-		// Default to false (Internal) as requested
-		_ = h.serverHandler.SetExternalServerMode(false)
+		h.WasmClient.SetBuildOnDisk(false, true)
+		h.AssetsHandler.SetBuildOnDisk(false)
 	}
 }
 
-// startBackgroundServices launches the server and watcher in goroutines.
+// StartBackgroundServices launches the server and Watcher in goroutines.
 // It uses h.startOnce to guarantee services only start once per process.
-func (h *handler) startBackgroundServices(wg *sync.WaitGroup) {
+func (h *Handler) StartBackgroundServices(wg *sync.WaitGroup) {
 	h.startOnce.Do(func() {
-		h.tui.SetActiveTab(h.sectionBuild)
+		h.Tui.SetActiveTab(h.SectionBuild)
 
 		// Start server (blocking, so run in goroutine)
-		go h.serverHandler.StartServer(wg)
+		go h.ServerHandler.StartServer(wg)
 
-		// Start file watcher (blocking, so run in goroutine)
-		go h.watcher.FileWatcherStart(wg)
+		// Start file Watcher (blocking, so run in goroutine)
+		go h.Watcher.FileWatcherStart(wg)
 
-		// Auto-open browser (run in separate goroutine to not block main flow)
+		// Auto-open Browser (run in separate goroutine to not block main flow)
 		if !TestMode {
 			go func() {
 				time.Sleep(100 * time.Millisecond)
-				h.browser.AutoStart()
+				h.Browser.AutoStart()
 			}()
 		}
 	})

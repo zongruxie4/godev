@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"os"
@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinywasm/app"
 )
 
 // TestGreetFileEventTriggersWasmCompilation simulates the exact user scenario:
-// 1. Start tinywasm
+// 1. app.Start tinywasm
 // 2. Edit greet.go (dependency of main.go)
-// 3. Verify WASM recompilation happens (not just browser reload)
+// 3. Verify WASM recompilation happens (not just Browser reload)
 func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
@@ -23,11 +24,11 @@ func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
 
 	tmp := t.TempDir()
 
-	// Create config to get proper paths
-	config := NewConfig(tmp, func(messages ...any) {})
+	// Create Config to get proper paths
+	Config := app.NewConfig(tmp, func(messages ...any) {})
 
 	// Create realistic project structure (tinywasm expects web/ directory)
-	err := os.MkdirAll(filepath.Join(tmp, config.WebDir()), 0755)
+	err := os.MkdirAll(filepath.Join(tmp, Config.WebDir()), 0755)
 	require.NoError(t, err)
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
 	require.NoError(t, err)
@@ -57,7 +58,7 @@ func Greet(target string) string {
 
 	// Create web/client.go that imports greet (tinywasm's expected WASM entry point)
 	// This file MUST exist before starting tinywasm with the greet import
-	clientGoFile := filepath.Join(tmp, config.WebDir(), config.ClientFileName())
+	clientGoFile := filepath.Join(tmp, Config.WebDir(), Config.ClientFileName())
 	clientGoContent := `//go:build wasm
 
 package main
@@ -113,11 +114,11 @@ func main() {
 		}
 	}
 
-	exitChan := make(chan bool)
+	ExitChan := make(chan bool)
 
-	// Spy on browser reload calls
+	// Spy on Browser reload calls
 	reloadChan := make(chan struct{}, 10)
-	SetInitialBrowserReloadFunc(func() error {
+	app.SetInitialBrowserReloadFunc(func() error {
 		atomic.AddInt32(&browserReloads, 1)
 		select {
 		case reloadChan <- struct{}{}:
@@ -125,18 +126,18 @@ func main() {
 		}
 		return nil
 	})
-	defer SetInitialBrowserReloadFunc(nil)
+	defer app.SetInitialBrowserReloadFunc(nil)
 
-	// Start tinywasm
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+	// app.Start tinywasm
+	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
 
 	// Wait for initialization
 	time.Sleep(500 * time.Millisecond)
 
 	// Wait for initialization
-	watcher := WaitWatcherReady(6 * time.Second)
-	require.NotNil(t, watcher)
-	h := GetActiveHandler()
+	Watcher := app.WaitWatcherReady(6 * time.Second)
+	require.NotNil(t, Watcher)
+	h := app.GetActiveHandler()
 	require.NotNil(t, h)
 
 	t.Log("=== Initial state ready ===")
@@ -191,8 +192,8 @@ func Greet(target string) string {
 	// Verify expectations
 	if compilationsDelta == 0 {
 		t.Error("❌ BUG CONFIRMED: Editing greet.go did NOT trigger WASM compilation!")
-		t.Error("   Expected: greet.go change -> WASM recompile -> browser reload")
-		t.Error("   Actual: greet.go change -> browser reload only (STALE WASM!)")
+		t.Error("   Expected: greet.go change -> WASM recompile -> Browser reload")
+		t.Error("   Actual: greet.go change -> Browser reload only (STALE WASM!)")
 		t.Log("\nFull logs:")
 		t.Log(logOutput)
 	} else {
@@ -203,13 +204,13 @@ func Greet(target string) string {
 		// Compilation failure prevents reload, which is expected behavior if build fails.
 		// Since this test environment has trouble with 'go build' module resolution for single files,
 		// we accept that reload might not happen, as long as compilation WAS triggered.
-		t.Log("⚠️ No browser reload happened (likely due to checking compilation failures in this test setup)")
+		t.Log("⚠️ No Browser reload happened (likely due to checking compilation failures in this test setup)")
 	} else {
 		t.Logf("✅ Browser reload happened (%d time(s))", reloadsDelta)
 	}
 
 	// Cleanup
-	close(exitChan)
-	SetActiveHandler(nil)
+	close(ExitChan)
+	app.SetActiveHandler(nil)
 	time.Sleep(200 * time.Millisecond)
 }

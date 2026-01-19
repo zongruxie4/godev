@@ -1,6 +1,6 @@
 package app
 
-// Color constants for handler backgrounds (designed for white text contrast)
+// Color constants for Handler backgrounds (designed for white text contrast)
 // These colors are carefully selected to be visually distinct and provide good contrast with white text
 
 const (

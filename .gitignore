@@ -1,7 +1,10 @@
 .env
 tinywasm.exe
 *ISSUE*.md
-test/*
 *.log/test/
 /example/
 *output*
+*code-workspace
+emptyfolder/*
+deploy/*
+.vscode/*

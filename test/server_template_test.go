@@ -1,4 +1,4 @@
-package app
+package test
 
 const serverTemplate = `package main
 

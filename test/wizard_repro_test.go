@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"os"
@@ -40,20 +40,20 @@ func TestWizardFullIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// 2. Initialize dependencies (same as Start does)
-	gitHandler, err := devflow.NewGit()
+	// 2. Initialize dependencies (same as app.Start does)
+	GitHandler, err := devflow.NewGit()
 	if err != nil {
-		t.Fatalf("Failed to create git handler: %v", err)
+		t.Fatalf("Failed to create git app.Handler: %v", err)
 	}
-	gitHandler.SetRootDir(parentDir)
+	GitHandler.SetRootDir(parentDir)
 
-	goHandler, err := devflow.NewGo(gitHandler)
+	GoHandler, err := devflow.NewGo(GitHandler)
 	if err != nil {
-		t.Fatalf("Failed to create go handler: %v", err)
+		t.Fatalf("Failed to create go app.Handler: %v", err)
 	}
-	goHandler.SetRootDir(parentDir)
+	GoHandler.SetRootDir(parentDir)
 
-	// GitHub handler for cleanup
+	// GitHub app.Handler for cleanup
 	logs := &SafeBuffer{}
 	gh, err := devflow.NewGitHub(logs.Log)
 	if err != nil {
@@ -77,8 +77,8 @@ func TestWizardFullIntegration(t *testing.T) {
 	// Use a pre-resolved Future to avoid race with SetLog
 	githubFuture := devflow.NewResolvedFuture(gh)
 
-	goNew := devflow.NewGoNew(gitHandler, githubFuture, goHandler)
-	goNew.SetLog(logs.Log)
+	GoNew := devflow.NewGoNew(GitHandler, githubFuture, GoHandler)
+	GoNew.SetLog(logs.Log)
 
 	// 3. Create wizard with real GoNew module
 	var wizardCompleted bool
@@ -96,18 +96,18 @@ func TestWizardFullIntegration(t *testing.T) {
 			os.Chdir(ctx.Value("project_dir"))
 		}
 
-		// Simulate onProjectReady's client generation
+		// Simulate app.OnProjectReady's client generation
 		// This confirms that if called (as it is in prod), it generates the file
 		c := client.New(&client.Config{
 			SourceDir: func() string { return "web" },
 			OutputDir: func() string { return "public" },
 		})
 		c.SetAppRootDir(ctx.Value("project_dir"))
-		// In prod, this is set by h.canGenerateDefaultWasmClient, which we just fixed to return true
+		// In prod, this is set by h.app.CanGenerateDefaultWasmClient, which we just fixed to return true
 		c.SetShouldGenerateDefaultFile(func() bool { return true })
 		c.CreateDefaultWasmFileClientIfNotExist()
 
-	}, goNew)
+	}, GoNew)
 
 	// Provide a mock logger
 	w.SetLog(logs.Log)
@@ -147,7 +147,7 @@ func TestWizardFullIntegration(t *testing.T) {
 		"go.mod",
 		"README.md",
 		"LICENSE",
-		projectName + ".go", // handler file
+		projectName + ".go", // app.Handler file
 		"web/client.go",     // WASM client file
 	}
 
@@ -185,14 +185,14 @@ func TestWizardLocalOnlyIntegration(t *testing.T) {
 	os.Chdir(parentDir)
 
 	// Create GoNew with nil GitHub (forces LocalOnly)
-	gitHandler, _ := devflow.NewGit()
-	gitHandler.SetRootDir(parentDir)
-	goHandler, _ := devflow.NewGo(gitHandler)
+	GitHandler, _ := devflow.NewGit()
+	GitHandler.SetRootDir(parentDir)
+	GoHandler, _ := devflow.NewGo(GitHandler)
 
-	goNew := devflow.NewGoNew(gitHandler, nil, goHandler)
+	GoNew := devflow.NewGoNew(GitHandler, nil, GoHandler)
 
 	logs := &SafeBuffer{}
-	goNew.SetLog(logs.Log)
+	GoNew.SetLog(logs.Log)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -202,7 +202,7 @@ func TestWizardLocalOnlyIntegration(t *testing.T) {
 	w := wizard.New(func(ctx *context.Context) {
 		wizardCompleted = true
 		defer wg.Done()
-	}, goNew)
+	}, GoNew)
 
 	w.SetLog(logs.Log)
 

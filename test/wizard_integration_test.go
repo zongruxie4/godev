@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"strings"
@@ -20,10 +20,10 @@ func (m *MockModule) GetSteps() []*wizard.Step {
 
 func TestWizardLogsIntegration(t *testing.T) {
 	// 1. Setup TUI with wizard tab
-	tui := devtui.NewTUI(&devtui.TuiConfig{
+	Tui := devtui.NewTUI(&devtui.TuiConfig{
 		AppName: "WizardTest",
 	})
-	sectionWizard := tui.NewTabSection("WIZARD", "Project Initialization")
+	sectionWizard := Tui.NewTabSection("WIZARD", "Project Initialization")
 
 	// 2. Create real wizard steps
 	steps := []*wizard.Step{
@@ -55,7 +55,7 @@ func TestWizardLogsIntegration(t *testing.T) {
 	}, mockModule)
 
 	// 4. Register with TUI
-	tui.AddHandler(w, 0, "#00ADD8", sectionWizard)
+	Tui.AddHandler(w, 0, "#00ADD8", sectionWizard)
 
 	// 5. Simulate Step 1 completion
 	w.Change("myapp")
@@ -70,7 +70,7 @@ func TestWizardLogsIntegration(t *testing.T) {
 
 	// 8. Verify Logs are preserved and correctly formatted
 	// Note: index 1 because NewTUI adds SHORTCUTS as tab 0
-	content := tui.ContentViewPlain(1)
+	content := Tui.ContentViewPlain(1)
 
 	expectedLogs := []string{
 		"✓ Project Name: myapp",

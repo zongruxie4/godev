@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"os"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinywasm/app"
 )
 
 // TestServerEventDetectionIntegration verifies server file events trigger reloads. Skipped in -short.
@@ -20,7 +21,7 @@ func TestServerEventDetectionIntegration(t *testing.T) {
 	tmp := t.TempDir()
 
 	// Create proper directory structure using Config methods (type-safe)
-	cfg := NewConfig(tmp, func(message ...any) {})
+	cfg := app.NewConfig(tmp, func(message ...any) {})
 	appServerDir := filepath.Join(tmp, cfg.CmdAppServerDir())
 	webPublicDir := filepath.Join(tmp, cfg.WebPublicDir())
 	require.NoError(t, os.MkdirAll(appServerDir, 0755))
@@ -58,26 +59,26 @@ func main() {
 
 	var reloadCount int64
 
-	// Set up browser reload tracking
-	SetInitialBrowserReloadFunc(func() error {
+	// Set up Browser reload tracking
+	app.SetInitialBrowserReloadFunc(func() error {
 		atomic.AddInt64(&reloadCount, 1)
 		return nil
 	})
-	defer SetInitialBrowserReloadFunc(nil)
+	defer app.SetInitialBrowserReloadFunc(nil)
 
-	exitChan := make(chan bool)
-	go Start(tmp, logger, newUiMockTest(logger), exitChan)
+	ExitChan := make(chan bool)
+	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
 
 	time.Sleep(200 * time.Millisecond)
 
 	// Wait for initialization
-	h := WaitForActiveHandler(8 * time.Second)
+	h := app.WaitForActiveHandler(8 * time.Second)
 	require.NotNil(t, h)
 	// Enable External Server Mode to support reloading on file changes
-	require.NoError(t, h.serverHandler.SetExternalServerMode(true))
+	require.NoError(t, h.ServerHandler.SetExternalServerMode(true))
 
-	watcher := WaitWatcherReady(8 * time.Second)
-	require.NotNil(t, watcher)
+	Watcher := app.WaitWatcherReady(8 * time.Second)
+	require.NotNil(t, Watcher)
 
 	time.Sleep(500 * time.Millisecond)
 
@@ -99,8 +100,8 @@ func main() {
 	finalReloadCount := atomic.LoadInt64(&reloadCount)
 	reloadDiff := finalReloadCount - initialReloadCount
 
-	close(exitChan)
-	SetActiveHandler(nil)
+	close(ExitChan)
+	app.SetActiveHandler(nil)
 
 	if reloadDiff == 0 {
 		t.Logf("No reloads detected; logs: %v", logs.Lines())

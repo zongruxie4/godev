@@ -1,4 +1,6 @@
-package app
+package test
+
+import "github.com/tinywasm/app"
 
 import (
 	"fmt"
@@ -100,14 +102,14 @@ func waitForServerContains(port, substr string, timeout time.Duration) error {
 	return fmt.Errorf("timeout waiting for %q on %s (last status: %s)", substr, url, lastErr)
 }
 
-// startTestApp starts the app for testing and disables browser auto-start.
-// Returns the handler and a cleanup function that should be deferred.
+// startTestApp starts the app for testing and disables Browser auto-start.
+// Returns the app.Handler and a cleanup function that should be deferred.
 // Usage:
 //
 //	h, cleanup := startTestApp(t, tmpDir)
 //	defer cleanup()
-func startTestApp(t *testing.T, rootDir string) (*handler, func()) {
-	exitChan := make(chan bool)
+func startTestApp(t *testing.T, RootDir string) (*app.Handler, func()) {
+	ExitChan := make(chan bool)
 
 	logger := func(messages ...any) {
 		var msg string
@@ -120,18 +122,18 @@ func startTestApp(t *testing.T, rootDir string) (*handler, func()) {
 		logIfVerbose(t, "LOG: %s", msg)
 	}
 
-	// Start tinywasm
-	go Start(rootDir, logger, newUiMockTest(logger), exitChan)
+	// app.Start tinywasm
+	go app.Start(RootDir, logger, newUiMockTest(logger), ExitChan)
 
-	// Wait for handler initialization
-	h := WaitForActiveHandler(5 * time.Second)
+	// Wait for app.Handler initialization
+	h := app.WaitForActiveHandler(5 * time.Second)
 	if h == nil {
-		t.Fatal("Failed to get active handler")
+		t.Fatal("Failed to get active app.Handler")
 	}
 
 	cleanup := func() {
-		close(exitChan)
-		SetActiveHandler(nil)
+		close(ExitChan)
+		app.SetActiveHandler(nil)
 	}
 
 	return h, cleanup

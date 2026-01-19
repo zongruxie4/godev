@@ -1,4 +1,4 @@
-package app
+package test
 
 import (
 	"os"
@@ -14,8 +14,8 @@ func TestIsInitializedProject(t *testing.T) {
 		}
 		h := NewTestHandler(tmp)
 
-		if !h.isInitializedProject() {
-			t.Error("expected isInitializedProject to return true when go.mod exists in current")
+		if !h.IsInitializedProject() {
+			t.Error("expected app.IsInitializedProject to return true when go.mod exists in current")
 		}
 	})
 
@@ -23,8 +23,8 @@ func TestIsInitializedProject(t *testing.T) {
 		tmp := t.TempDir()
 		h := NewTestHandler(tmp)
 
-		if h.isInitializedProject() {
-			t.Error("expected isInitializedProject to return false when go.mod does not exist")
+		if h.IsInitializedProject() {
+			t.Error("expected app.IsInitializedProject to return false when go.mod does not exist")
 		}
 	})
 
@@ -36,9 +36,9 @@ func TestIsInitializedProject(t *testing.T) {
 
 		h := NewTestHandler(child)
 
-		// isInitializedProject should return FALSE because go.mod is not in current dir
-		if h.isInitializedProject() {
-			t.Error("expected isInitializedProject to return false when go.mod only in parent")
+		// app.IsInitializedProject should return FALSE because go.mod is not in current dir
+		if h.IsInitializedProject() {
+			t.Error("expected app.IsInitializedProject to return false when go.mod only in parent")
 		}
 	})
 }
@@ -49,8 +49,8 @@ func TestIsPartOfProject(t *testing.T) {
 		os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644)
 		h := NewTestHandler(tmp)
 
-		if !h.isPartOfProject() {
-			t.Error("expected isPartOfProject to return true when go.mod in current")
+		if !h.IsPartOfProject() {
+			t.Error("expected app.IsPartOfProject to return true when go.mod in current")
 		}
 	})
 
@@ -62,8 +62,8 @@ func TestIsPartOfProject(t *testing.T) {
 
 		h := NewTestHandler(child)
 
-		if !h.isPartOfProject() {
-			t.Error("expected isPartOfProject to return true when go.mod in parent")
+		if !h.IsPartOfProject() {
+			t.Error("expected app.IsPartOfProject to return true when go.mod in parent")
 		}
 	})
 
@@ -71,8 +71,8 @@ func TestIsPartOfProject(t *testing.T) {
 		tmp := t.TempDir()
 		h := NewTestHandler(tmp)
 
-		if h.isPartOfProject() {
-			t.Error("expected isPartOfProject to return false when no go.mod")
+		if h.IsPartOfProject() {
+			t.Error("expected app.IsPartOfProject to return false when no go.mod")
 		}
 	})
 }
@@ -82,8 +82,8 @@ func TestIsDirectoryEmpty(t *testing.T) {
 		tmp := t.TempDir()
 		h := NewTestHandler(tmp)
 
-		if !h.isDirectoryEmpty() {
-			t.Error("expected isDirectoryEmpty to return true for empty dir")
+		if !h.IsDirectoryEmpty() {
+			t.Error("expected app.IsDirectoryEmpty to return true for empty dir")
 		}
 	})
 
@@ -94,8 +94,8 @@ func TestIsDirectoryEmpty(t *testing.T) {
 		}
 		h := NewTestHandler(tmp)
 
-		if h.isDirectoryEmpty() {
-			t.Error("expected isDirectoryEmpty to return false for non-empty dir")
+		if h.IsDirectoryEmpty() {
+			t.Error("expected app.IsDirectoryEmpty to return false for non-empty dir")
 		}
 	})
 }
@@ -110,7 +110,7 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 
 		h := NewTestHandler(current)
 
-		if h.canGenerateDefaultWasmClient() {
+		if h.CanGenerateDefaultWasmClient() {
 			t.Error("expected false because dir is not empty")
 		}
 	})
@@ -119,7 +119,7 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 		tmp := t.TempDir()
 		h := NewTestHandler(tmp)
 
-		if h.canGenerateDefaultWasmClient() {
+		if h.CanGenerateDefaultWasmClient() {
 			t.Error("expected false because no go.mod in current or parent")
 		}
 	})
@@ -130,7 +130,7 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 		os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644)
 		h := NewTestHandler(tmp)
 
-		if !h.canGenerateDefaultWasmClient() {
+		if !h.CanGenerateDefaultWasmClient() {
 			t.Error("expected true because project is initialized")
 		}
 	})
@@ -143,7 +143,7 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 
 		h := NewTestHandler(current)
 
-		if !h.canGenerateDefaultWasmClient() {
+		if !h.CanGenerateDefaultWasmClient() {
 			t.Error("expected true because empty and go.mod in parent")
 		}
 	})
