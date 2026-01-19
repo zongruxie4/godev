@@ -2,7 +2,6 @@ package test
 
 import (
 	"github.com/tinywasm/app"
-	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/server"
 )
 
@@ -13,5 +12,4 @@ func init() {
 	app.TestMode = true
 	// SAFETY: Centralized static configuration for tests
 	server.TestMode = true
-	devbrowser.TestMode = true
 }

@@ -117,16 +117,9 @@ func main() {
 	ExitChan := make(chan bool)
 
 	// Spy on Browser reload calls
-	reloadChan := make(chan struct{}, 10)
-	app.SetInitialBrowserReloadFunc(func() error {
-		atomic.AddInt32(&browserReloads, 1)
-		select {
-		case reloadChan <- struct{}{}:
-		default:
-		}
-		return nil
-	})
-	defer app.SetInitialBrowserReloadFunc(nil)
+	mockBrowser := &MockBrowser{}
+	app.SetInitialBrowser(mockBrowser)
+	defer app.SetInitialBrowser(nil)
 
 	// app.Start tinywasm
 	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
@@ -142,7 +135,7 @@ func main() {
 
 	t.Log("=== Initial state ready ===")
 	initialCompilations := atomic.LoadInt32(&wasmCompilations)
-	initialReloads := atomic.LoadInt32(&browserReloads)
+	initialReloads := int32(mockBrowser.GetReloadCalls())
 	t.Logf("Initial compilations: %d, reloads: %d", initialCompilations, initialReloads)
 
 	// Clear logs for cleaner output
@@ -167,7 +160,7 @@ func Greet(target string) string {
 
 	// Check results
 	finalCompilations := atomic.LoadInt32(&wasmCompilations)
-	finalReloads := atomic.LoadInt32(&browserReloads)
+	finalReloads := int32(mockBrowser.GetReloadCalls())
 
 	compilationsDelta := finalCompilations - initialCompilations
 	reloadsDelta := finalReloads - initialReloads

@@ -12,3 +12,11 @@ type TuiInterface interface {
 	ReturnFocus() error       // returns focus to main UI
 	SetActiveTab(section any) // sets the active tab section
 }
+
+// BrowserInterface defines the browser operations needed by the app.
+// Implementations: devbrowser.DevBrowser (production), MockBrowser (tests)
+type BrowserInterface interface {
+	Reload() error
+	AutoStart()
+	SetLog(f func(message ...any))
+}

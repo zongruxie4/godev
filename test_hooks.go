@@ -11,22 +11,24 @@ import (
 var ActiveHandler *Handler
 var ActiveHandlerMu sync.RWMutex
 
-// SetInitialBrowserReloadFunc sets the Browser reload test hook thread-safely
-func SetInitialBrowserReloadFunc(f func() error) {
-	initialBrowserReloadMu.Lock()
-	defer initialBrowserReloadMu.Unlock()
-	initialBrowserReloadFunc = f
-}
-
-// GetInitialBrowserReloadFunc gets the Browser reload test hook thread-safely
-func GetInitialBrowserReloadFunc() func() error {
-	initialBrowserReloadMu.RLock()
-	defer initialBrowserReloadMu.RUnlock()
-	return initialBrowserReloadFunc
-}
-
-var initialBrowserReloadFunc func() error
 var initialBrowserReloadMu sync.RWMutex
+
+// SetInitialBrowser sets the Browser test hook thread-safely
+func SetInitialBrowser(b BrowserInterface) {
+	initialBrowserMu.Lock()
+	defer initialBrowserMu.Unlock()
+	initialBrowser = b
+}
+
+// GetInitialBrowser gets the Browser test hook thread-safely
+func GetInitialBrowser() BrowserInterface {
+	initialBrowserMu.RLock()
+	defer initialBrowserMu.RUnlock()
+	return initialBrowser
+}
+
+var initialBrowser BrowserInterface
+var initialBrowserMu sync.RWMutex
 
 // SetActiveHandler sets the global Handler instance thread-safely
 func SetActiveHandler(h *Handler) {
@@ -66,21 +68,4 @@ func WaitWatcherReady(timeout time.Duration) *devwatch.DevWatch {
 		time.Sleep(10 * time.Millisecond)
 	}
 	return nil
-}
-
-// SetWatcherBrowserReload sets the function that DevWatch will call to reload
-// the Browser. If the Watcher is already created it updates it immediately,
-// otherwise it stores it in the Handler so AddSectionBUILD can apply it.
-func SetWatcherBrowserReload(f func() error) {
-	ActiveHandlerMu.Lock()
-	defer ActiveHandlerMu.Unlock()
-
-	if ActiveHandler == nil {
-		return
-	}
-	if ActiveHandler.Watcher != nil {
-		ActiveHandler.Watcher.BrowserReload = f
-		return
-	}
-	ActiveHandler.PendingBrowserReload = f
 }

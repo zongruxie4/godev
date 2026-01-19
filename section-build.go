@@ -71,15 +71,10 @@ func (h *Handler) InitBuildHandlers() {
 	})
 
 	// 4. BROWSER
-	h.Browser = devbrowser.New(h.Config, h.Tui, h.DB, h.ExitChan)
-	h.Browser.SetTestMode(TestMode)
-
-	// Create Browser reload wrapper that supports test hooks
-	browserReloadFunc := func() error {
-		if f := GetInitialBrowserReloadFunc(); f != nil {
-			return f()
-		}
-		return h.Browser.Reload()
+	if h.Browser == nil {
+		browser := devbrowser.New(h.Config, h.Tui, h.DB, h.ExitChan)
+		browser.SetTestMode(TestMode)
+		h.Browser = browser
 	}
 
 	// 5. WATCHER
@@ -87,7 +82,7 @@ func (h *Handler) InitBuildHandlers() {
 		AppRootDir:         h.Config.RootDir,
 		FilesEventHandlers: []devwatch.FilesEventHandlers{h.WasmClient, h.ServerHandler, h.AssetsHandler},
 		FolderEvents:       nil,
-		BrowserReload:      browserReloadFunc,
+		BrowserReload:      func() error { return h.Browser.Reload() },
 		ExitChan:           h.ExitChan,
 		UnobservedFiles: func() []string {
 			uf := []string{

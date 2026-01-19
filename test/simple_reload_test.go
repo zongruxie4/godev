@@ -1,24 +1,20 @@
 package test
 
-import "github.com/tinywasm/app"
-
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinywasm/app"
 )
 
 // TestSimpleBrowserReload creates a single file, waits long enough for timer to expire
 func TestSimpleBrowserReload(t *testing.T) {
 	tmp := t.TempDir()
-
-	var reloadCount int64
 
 	var mu sync.Mutex
 	logger := func(messages ...any) {
@@ -35,13 +31,10 @@ func TestSimpleBrowserReload(t *testing.T) {
 	}
 
 	ExitChan := make(chan bool)
-	// Set up Browser reload tracking
-	app.SetInitialBrowserReloadFunc(func() error {
-		count := atomic.AddInt64(&reloadCount, 1)
-		logIfVerbose(t, "*** BROWSER RELOAD CALLED! Count: %d ***", count)
-		return nil
-	})
-	defer app.SetInitialBrowserReloadFunc(nil)
+	// Set up Mock Browser injection
+	mockBrowser := &MockBrowser{}
+	app.SetInitialBrowser(mockBrowser)
+	defer app.SetInitialBrowser(nil)
 
 	// Create go.mod to pass the guard
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644))
@@ -62,7 +55,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 	logIfVerbose(t, "=== File created, waiting for initial processing ===")
 	time.Sleep(500 * time.Millisecond)
 
-	initialCount := atomic.LoadInt64(&reloadCount)
+	initialCount := mockBrowser.GetReloadCalls()
 	logIfVerbose(t, "Reload count after initial creation: %d", initialCount)
 
 	// Modify the file ONCE
@@ -73,7 +66,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 	logIfVerbose(t, "=== Waiting 1 second for timer to expire ===")
 	time.Sleep(1 * time.Second)
 
-	finalCount := atomic.LoadInt64(&reloadCount)
+	finalCount := mockBrowser.GetReloadCalls()
 	logIfVerbose(t, "Final reload count: %d", finalCount)
 
 	close(ExitChan)

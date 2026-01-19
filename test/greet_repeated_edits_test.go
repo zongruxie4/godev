@@ -103,12 +103,9 @@ func main() {
 	}
 
 	// Spy on Browser reload calls
-	var browserReloads int32
-	app.SetInitialBrowserReloadFunc(func() error {
-		atomic.AddInt32(&browserReloads, 1)
-		return nil
-	})
-	defer app.SetInitialBrowserReloadFunc(nil)
+	mockBrowser := &MockBrowser{}
+	app.SetInitialBrowser(mockBrowser)
+	defer app.SetInitialBrowser(nil)
 
 	ExitChan := make(chan bool)
 	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)

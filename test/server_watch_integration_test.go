@@ -3,7 +3,6 @@ package test
 import (
 	"os"
 	"path/filepath"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -73,13 +72,10 @@ func main() {
 	logs := &SafeBuffer{}
 	logger := logs.Log
 
-	// Set up Browser reload tracking
-	var reloadCount int64
-	app.SetInitialBrowserReloadFunc(func() error {
-		atomic.AddInt64(&reloadCount, 1)
-		return nil
-	})
-	defer app.SetInitialBrowserReloadFunc(nil)
+	// Set up Mock Browser injection
+	mockBrowser := &MockBrowser{}
+	app.SetInitialBrowser(mockBrowser)
+	defer app.SetInitialBrowser(nil)
 
 	// app.Start tinywasm
 	ExitChan := make(chan bool)
@@ -98,7 +94,7 @@ func main() {
 
 	time.Sleep(500 * time.Millisecond)
 
-	initialReloadCount := atomic.LoadInt64(&reloadCount)
+	initialReloadCount := int64(mockBrowser.GetReloadCalls())
 
 	modifiedServerContent := `package main
 
@@ -139,13 +135,13 @@ func main() {
 	// Wait for event with timeout
 	deadline := time.Now().Add(3 * time.Second)
 	for time.Now().Before(deadline) {
-		if atomic.LoadInt64(&reloadCount) > initialReloadCount {
+		if int64(mockBrowser.GetReloadCalls()) > initialReloadCount {
 			break
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
 
-	finalReloadCount := atomic.LoadInt64(&reloadCount)
+	finalReloadCount := int64(mockBrowser.GetReloadCalls())
 	reloadDiff := finalReloadCount - initialReloadCount
 
 	close(ExitChan)

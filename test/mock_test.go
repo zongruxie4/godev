@@ -73,3 +73,39 @@ func (m *mockTUI) ReturnFocus() error {
 func (m *mockTUI) SetActiveTab(section any) {
 	// no-op
 }
+
+type MockBrowser struct {
+	reloadCalls    int
+	autoStartCalls int
+	ReloadErr      error
+	mu             sync.Mutex
+}
+
+func (m *MockBrowser) GetReloadCalls() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.reloadCalls
+}
+
+func (m *MockBrowser) GetAutoStartCalls() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.autoStartCalls
+}
+
+func (m *MockBrowser) Reload() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.reloadCalls++
+	return m.ReloadErr
+}
+
+func (m *MockBrowser) AutoStart() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.autoStartCalls++
+}
+
+func (m *MockBrowser) SetLog(f func(message ...any)) {
+	// no-op for tests
+}

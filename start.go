@@ -7,7 +7,6 @@ import (
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
-	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/goflare"
@@ -43,7 +42,7 @@ type Handler struct {
 	GoNew         *devflow.GoNew
 	WasmClient    *client.WasmClient
 	Watcher       *devwatch.DevWatch
-	Browser       *devbrowser.DevBrowser
+	Browser       BrowserInterface
 
 	// Deploy dependencies
 	DeployCloudflare *goflare.Goflare
@@ -55,9 +54,10 @@ type Handler struct {
 
 	// MCP Handler for LLM integration
 	MCP *mcpserve.Handler
+}
 
-	// Test hooks
-	PendingBrowserReload func() error
+func (h *Handler) SetBrowser(b BrowserInterface) {
+	h.Browser = b
 }
 
 // Start is called from main.go with UI passed as parameter
@@ -100,11 +100,11 @@ func Start(RootDir string, logger func(messages ...any), ui TuiInterface, ExitCh
 		Tui:           ui, // UI passed from main.go
 		ExitChan:      ExitChan,
 
-		PendingBrowserReload: GetInitialBrowserReloadFunc(),
-		DB:                   DB,
-		GitHandler:           GitHandler,
-		GoHandler:            GoHandler,
-		GoNew:                GoNew,
+		DB:         DB,
+		GitHandler: GitHandler,
+		GoHandler:  GoHandler,
+		GoNew:      GoNew,
+		Browser:    GetInitialBrowser(),
 	}
 
 	// Wire FileStore guard and gitignore notification (only if not TestMode)

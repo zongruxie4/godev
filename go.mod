@@ -9,7 +9,7 @@ require (
 	github.com/tinywasm/devflow v0.0.59
 	github.com/tinywasm/devtui v0.2.45
 	github.com/tinywasm/goflare v0.0.48
-	github.com/tinywasm/kvdb v0.0.17
+	github.com/tinywasm/kvdb v0.0.18
 	github.com/tinywasm/wizard v0.0.13
 )
 
@@ -58,7 +58,7 @@ require (
 	github.com/tinywasm/depfind v0.0.19 // indirect
 	github.com/tinywasm/fmt v0.14.0 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
-	github.com/tinywasm/gorun v0.0.18 // indirect
+	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.0 // indirect
 	github.com/tinywasm/unixid v0.2.14 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
@@ -66,9 +66,9 @@ require (
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
 	golang.design/x/clipboard v0.7.1 // indirect
-	golang.org/x/exp/shiny v0.0.0-20251219203646-944ab1f22d93 // indirect
-	golang.org/x/image v0.34.0 // indirect
-	golang.org/x/mobile v0.0.0-20251209145715-2553ed8ce294 // indirect
+	golang.org/x/exp/shiny v0.0.0-20260112195511-716be5621a96 // indirect
+	golang.org/x/image v0.35.0 // indirect
+	golang.org/x/mobile v0.0.0-20260112195712-5b9ecdfb8721 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -78,20 +78,16 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
 	github.com/tinywasm/assetmin v0.0.74
-	github.com/tinywasm/devbrowser v0.2.7
+	github.com/tinywasm/devbrowser v0.2.9
 	github.com/tinywasm/devwatch v0.0.50
 	github.com/tinywasm/mcpserve v0.0.11
-	github.com/tinywasm/server v0.1.28
+	github.com/tinywasm/server v0.1.29
 	golang.org/x/sys v0.40.0 // indirect
 )
 
 replace github.com/tinywasm/devwatch => ../devwatch
 
-replace github.com/tinywasm/server => ../server
-
 replace github.com/tinywasm/assetmin => ../assetmin
-
-replace github.com/tinywasm/devbrowser => ../devbrowser
 
 replace github.com/tinywasm/mcpserve => ../mcpserve
 
@@ -101,8 +97,4 @@ replace github.com/tinywasm/context => ../context
 
 replace github.com/tinywasm/wizard => ../wizard
 
-replace github.com/tinywasm/gorun => ../gorun
-
 replace github.com/tinywasm/gobuild => ../gobuild
-
-replace github.com/tinywasm/kvdb => ../kvdb
