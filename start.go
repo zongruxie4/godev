@@ -36,7 +36,7 @@ type Handler struct {
 	// Build dependencies
 	ServerHandler *server.ServerHandler
 	AssetsHandler *assetmin.AssetMin
-	GitHandler    *devflow.Git
+	GitHandler    devflow.GitClient
 	GoHandler     *devflow.Go
 	GoNew         *devflow.GoNew
 	WasmClient    *client.WasmClient
@@ -63,25 +63,21 @@ func (h *Handler) SetBrowser(b BrowserInterface) {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(RootDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, mcpToolHandlers ...any) {
-
-	// Initialize Git Handler for gitignore management
-	GitHandler, _ := devflow.NewGit()
-	GitHandler.SetRootDir(RootDir)
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, gitHandler devflow.GitClient, mcpToolHandlers ...any) {
 
 	// Initialize Go Handler
-	GoHandler, _ := devflow.NewGo(GitHandler)
-	GoHandler.SetRootDir(RootDir)
+	GoHandler, _ := devflow.NewGo(gitHandler)
+	GoHandler.SetRootDir(startDir)
 
 	h := &Handler{
 		FrameworkName: "TINYWASM",
-		RootDir:       RootDir,
+		RootDir:       startDir,
 		Tui:           ui, // UI passed from main.go
 		ExitChan:      ExitChan,
 		Logger:        logger,
 
 		DB:         db,
-		GitHandler: GitHandler,
+		GitHandler: gitHandler,
 		GoHandler:  GoHandler,
 		Browser:    browser,
 		GitHubAuth: githubAuth,
@@ -89,12 +85,12 @@ func Start(RootDir string, logger func(messages ...any), ui TuiInterface, browse
 
 	// Wire gitignore notification
 	if !TestMode {
-		GitHandler.SetShouldWrite(h.IsInitializedProject)
+		gitHandler.SetShouldWrite(h.IsInitializedProject)
 	}
 
 	// Validate directory
 	homeDir, _ := os.UserHomeDir()
-	if RootDir == homeDir || RootDir == "/" {
+	if startDir == homeDir || startDir == "/" {
 		logger("Cannot run tinywasm in user root directory. Please run in a Go project directory")
 		return
 	}
@@ -125,7 +121,7 @@ func Start(RootDir string, logger func(messages ...any), ui TuiInterface, browse
 	})
 
 	// Initialize GoNew orchestrator with the future
-	GoNew := devflow.NewGoNew(GitHandler, githubFuture, GoHandler)
+	GoNew := devflow.NewGoNew(gitHandler, githubFuture, GoHandler)
 	GoNew.SetLog(logger)
 	h.GoNew = GoNew
 
@@ -156,7 +152,7 @@ func Start(RootDir string, logger func(messages ...any), ui TuiInterface, browse
 	toolHandlers = append(toolHandlers, mcpToolHandlers...)
 	h.MCP = mcpserve.NewHandler(mcpConfig, toolHandlers, h.Tui, h.ExitChan)
 	// Register MCP Handler in BUILD section for logging visibility
-	h.Tui.AddHandler(h.MCP, 0, "#FF9500", h.SectionBuild) // Orange color for MCP
+	h.Tui.AddHandler(h.MCP, 0, colorOrangeLight, h.SectionBuild) // Orange color for MCP
 
 	h.MCP.ConfigureIDEs()
 

@@ -109,7 +109,7 @@ func main() {
 
 	ExitChan := make(chan bool)
 	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for initialization
 	Watcher := app.WaitWatcherReady(6 * time.Second)

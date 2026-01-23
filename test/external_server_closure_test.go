@@ -58,7 +58,7 @@ func main() {
 	go func() {
 		mockBrowser := &MockBrowser{}
 		mockDB, _ := kvdb.New(filepath.Join(tmpDir, ".env"), logger, app.NewMemoryStore())
-		app.Start(tmpDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth()) // Corrected app.Start call
+		app.Start(tmpDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{}) // Corrected app.Start call
 		finished <- true
 	}()
 

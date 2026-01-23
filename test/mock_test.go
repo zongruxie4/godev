@@ -125,3 +125,61 @@ func (m *MockBrowser) SetLog(f func(message ...any)) {
 	defer m.mu.Unlock()
 	m.logFunc = f
 }
+
+type MockGitClient struct {
+	SetRootDirCalls int
+}
+
+func (m *MockGitClient) SetRootDir(path string) {
+	m.SetRootDirCalls++
+}
+
+func (m *MockGitClient) CheckRemoteAccess() error {
+	return nil
+}
+
+func (m *MockGitClient) Push(message, tag string) (string, error) {
+	return "", nil
+}
+
+func (m *MockGitClient) GetLatestTag() (string, error) {
+	return "v0.0.0", nil
+}
+
+func (m *MockGitClient) SetLog(fn func(...any)) {
+}
+
+func (m *MockGitClient) SetShouldWrite(fn func() bool) {
+}
+
+func (m *MockGitClient) GitIgnoreAdd(entry string) error {
+	return nil
+}
+
+func (m *MockGitClient) GetConfigUserName() (string, error) {
+	return "Mock User", nil
+}
+
+func (m *MockGitClient) GetConfigUserEmail() (string, error) {
+	return "mock@example.com", nil
+}
+
+func (m *MockGitClient) InitRepo(dir string) error {
+	return nil
+}
+
+func (m *MockGitClient) Add() error {
+	return nil
+}
+
+func (m *MockGitClient) Commit(message string) (bool, error) {
+	return true, nil
+}
+
+func (m *MockGitClient) CreateTag(tag string) (bool, error) {
+	return true, nil
+}
+
+func (m *MockGitClient) PushWithTags(tag string) error {
+	return nil
+}

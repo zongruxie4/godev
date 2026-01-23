@@ -16,8 +16,8 @@ import (
 func main() {
 	flag.Parse()
 
-	// Initialize root directory
-	rootDir, err := os.Getwd()
+	// Initialize start directory
+	startDir, err := os.Getwd()
 	if err != nil {
 		log.Fatal("Error getting current working directory:", err)
 		return
@@ -27,7 +27,17 @@ func main() {
 
 	// Create a Logger instance
 	logger := app.NewLogger()
-	logger.SetRootDir(rootDir) // Initialize logger to write to logs.log
+	// logger.SetRootDir initialized later after finding project root
+
+	// Initialize Git Handler
+	gitHandler, _ := devflow.NewGit()
+	if projectRoot, err := devflow.FindProjectRoot(startDir); err == nil {
+		gitHandler.SetRootDir(projectRoot)
+		logger.SetRootDir(projectRoot)
+	} else {
+		gitHandler.SetRootDir(startDir)
+		logger.SetRootDir(startDir)
+	}
 
 	// Create DevTUI instance
 	ui := devtui.NewTUI(&devtui.TuiConfig{
@@ -38,7 +48,7 @@ func main() {
 	})
 
 	// Initialize DB
-	db, err := kvdb.New(filepath.Join(rootDir, ".env"), logger.Logger, &app.FileStore{})
+	db, err := kvdb.New(filepath.Join(startDir, ".env"), logger.Logger, &app.FileStore{})
 	if err != nil {
 		logger.Logger("Failed to initialize database:", err)
 		return
@@ -54,5 +64,5 @@ func main() {
 	// Start TinyWasm - this will initialize handlers and start all goroutines
 	// The Start function will block until exit
 	// Pass ui and browser as interfaces
-	app.Start(rootDir, logger.Logger, ui, browser, db, exitChan, githubAuth, ui)
+	app.Start(startDir, logger.Logger, ui, browser, db, exitChan, githubAuth, gitHandler, ui)
 }

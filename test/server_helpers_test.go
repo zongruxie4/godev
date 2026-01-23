@@ -129,7 +129,7 @@ func startTestApp(t *testing.T, RootDir string) (*app.Handler, func()) {
 	mockDB, _ := kvdb.New(filepath.Join(RootDir, ".env"), logger, app.NewMemoryStore())
 
 	// app.Start tinywasm
-	go app.Start(RootDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(RootDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for app.Handler initialization
 	h := app.WaitForActiveHandler(5 * time.Second)

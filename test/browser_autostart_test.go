@@ -43,7 +43,7 @@ func TestBrowserAutoStartCalledOnce(t *testing.T) {
 	defer func() { app.TestMode = originalTestMode }()
 
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
@@ -85,7 +85,7 @@ func TestBrowserAutoStartNotCalledInWizard(t *testing.T) {
 
 	ExitChan := make(chan bool)
 	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait a bit for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
@@ -145,7 +145,7 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 
 	// 4. Start app pointing to the SUBDIRECTORY
 	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(subDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(subDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)

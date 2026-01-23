@@ -81,7 +81,7 @@ func main() {
 	exitChan := make(chan bool)
 
 	// Start app - should detect external server and switch to external mode
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, exitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, exitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for initialization
 	h := app.WaitForActiveHandler(10 * time.Second)
@@ -163,7 +163,7 @@ func main() {}
 
 	ExitChan := make(chan bool) // Changed to ExitChan
 	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth()) // Modified app.Start call
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{}) // Modified app.Start call
 
 	h := app.WaitForActiveHandler(10 * time.Second)
 	require.NotNil(t, h, "Handler should be initialized")

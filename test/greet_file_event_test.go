@@ -121,7 +121,7 @@ func main() {
 	// Spy on Browser reload calls
 	mockBrowser := &MockBrowser{}
 	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for initialization
 	time.Sleep(500 * time.Millisecond)

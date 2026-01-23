@@ -80,7 +80,7 @@ func main() {
 	// app.Start tinywasm
 	ExitChan := make(chan bool)
 	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	time.Sleep(200 * time.Millisecond)
 

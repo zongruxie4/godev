@@ -41,7 +41,7 @@ func TestSimpleBrowserReload(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644))
 
 	// app.Start tinywasm
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 	// Wait for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
 	require.NotNil(t, h)

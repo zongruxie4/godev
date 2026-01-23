@@ -90,7 +90,7 @@ export default {
 
 	// app.Start tinywasm with deploy section
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
 
 	// Wait for initialization
 	time.Sleep(100 * time.Millisecond)
