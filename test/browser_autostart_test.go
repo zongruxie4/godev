@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // TestBrowserAutoStartCalledOnce verifies that when starting the app in an
@@ -32,8 +34,7 @@ func TestBrowserAutoStartCalledOnce(t *testing.T) {
 
 	// Inject MockBrowser to track AutoStart calls
 	mockBrowser := &MockBrowser{}
-	app.SetInitialBrowser(mockBrowser)
-	defer app.SetInitialBrowser(nil)
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
 
 	// Temporarily disable TestMode to allow AutoStart to be called
 	// (TestMode normally prevents browser opening in tests)
@@ -42,7 +43,7 @@ func TestBrowserAutoStartCalledOnce(t *testing.T) {
 	defer func() { app.TestMode = originalTestMode }()
 
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	// Wait for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
@@ -52,7 +53,7 @@ func TestBrowserAutoStartCalledOnce(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Check AutoStart was called exactly once
-	autoStartCalls := mockBrowser.GetAutoStartCalls()
+	autoStartCalls := mockBrowser.GetOpenCalls()
 
 	// Cleanup
 	close(ExitChan)
@@ -81,11 +82,10 @@ func TestBrowserAutoStartNotCalledInWizard(t *testing.T) {
 
 	// Inject MockBrowser to track AutoStart calls
 	mockBrowser := &MockBrowser{}
-	app.SetInitialBrowser(mockBrowser)
-	defer app.SetInitialBrowser(nil)
 
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	// Wait a bit for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
@@ -95,7 +95,7 @@ func TestBrowserAutoStartNotCalledInWizard(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// In wizard mode, AutoStart should NOT be called (project not ready yet)
-	autoStartCalls := mockBrowser.GetAutoStartCalls()
+	autoStartCalls := mockBrowser.GetOpenCalls()
 
 	// Cleanup
 	close(ExitChan)
@@ -103,10 +103,10 @@ func TestBrowserAutoStartNotCalledInWizard(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	if autoStartCalls != 0 {
-		t.Errorf("In wizard mode (empty dir), Browser.AutoStart() was called %d times, expected 0", autoStartCalls)
+		t.Errorf("In wizard mode (empty dir), Browser.OpenBrowser() was called %d times, expected 0", autoStartCalls)
 		t.Log("Browser should only start after project is created")
 	} else {
-		t.Logf("✅ Browser.AutoStart() not called in wizard mode (correct)")
+		t.Logf("✅ Browser.OpenBrowser() not called in wizard mode (correct)")
 	}
 }
 
@@ -135,8 +135,6 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 
 	// Inject MockBrowser
 	mockBrowser := &MockBrowser{}
-	app.SetInitialBrowser(mockBrowser)
-	defer app.SetInitialBrowser(nil)
 
 	// Temporarily disable TestMode to allow AutoStart
 	originalTestMode := app.TestMode
@@ -146,7 +144,8 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 	ExitChan := make(chan bool)
 
 	// 4. Start app pointing to the SUBDIRECTORY
-	go app.Start(subDir, logger, newUiMockTest(logger), ExitChan)
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
+	go app.Start(subDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	// Wait for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
@@ -156,10 +155,10 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 	time.Sleep(1000 * time.Millisecond) // generous time
 
 	// Check calls
-	autoStartCalls := mockBrowser.GetAutoStartCalls()
+	autoStartCalls := mockBrowser.GetOpenCalls()
 	// Note: since IsPartOfProject returns true (due to parent go.mod),
 	// logic skips Wizard and calls OnProjectReady directly.
-	// We expect exactly 1 AutoStart call.
+	// We expect exactly 1 OpenBrowser call.
 
 	// Cleanup
 	close(ExitChan)
@@ -167,9 +166,9 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	if autoStartCalls != 1 {
-		t.Errorf("In Subdirectory, Browser.AutoStart() was called %d times, expected exactly 1", autoStartCalls)
+		t.Errorf("In Subdirectory, Browser.OpenBrowser() was called %d times, expected exactly 1", autoStartCalls)
 		t.Logf("Logs:\n%s", logs.String())
 	} else {
-		t.Logf("✅ In Subdirectory, Browser.AutoStart() called exactly once")
+		t.Logf("✅ In Subdirectory, Browser.OpenBrowser() called exactly once")
 	}
 }

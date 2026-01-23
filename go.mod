@@ -5,12 +5,12 @@ go 1.25.2
 require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.7
-	github.com/tinywasm/context v0.0.10
-	github.com/tinywasm/devflow v0.0.59
-	github.com/tinywasm/devtui v0.2.45
-	github.com/tinywasm/goflare v0.0.48
-	github.com/tinywasm/kvdb v0.0.18
-	github.com/tinywasm/wizard v0.0.13
+	github.com/tinywasm/context v0.0.11
+	github.com/tinywasm/devflow v0.0.70
+	github.com/tinywasm/devtui v0.2.47
+	github.com/tinywasm/goflare v0.0.51
+	github.com/tinywasm/kvdb v0.0.19
+	github.com/tinywasm/wizard v0.0.14
 )
 
 require (
@@ -56,11 +56,11 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.19 // indirect
-	github.com/tinywasm/fmt v0.14.0 // indirect
+	github.com/tinywasm/fmt v0.16.1 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
-	github.com/tinywasm/time v0.3.0 // indirect
-	github.com/tinywasm/unixid v0.2.14 // indirect
+	github.com/tinywasm/time v0.3.1 // indirect
+	github.com/tinywasm/unixid v0.2.15 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
@@ -81,7 +81,7 @@ require (
 	github.com/tinywasm/devbrowser v0.2.9
 	github.com/tinywasm/devwatch v0.0.50
 	github.com/tinywasm/mcpserve v0.0.11
-	github.com/tinywasm/server v0.1.29
+	github.com/tinywasm/server v0.1.34
 	golang.org/x/sys v0.40.0 // indirect
 )
 
@@ -91,10 +91,6 @@ replace github.com/tinywasm/assetmin => ../assetmin
 
 replace github.com/tinywasm/mcpserve => ../mcpserve
 
-replace github.com/tinywasm/devtui => ../devtui
-
-replace github.com/tinywasm/context => ../context
-
-replace github.com/tinywasm/wizard => ../wizard
+replace github.com/tinywasm/devbrowser => ../devbrowser
 
 replace github.com/tinywasm/gobuild => ../gobuild

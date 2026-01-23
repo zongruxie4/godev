@@ -2,7 +2,6 @@ package app
 
 import (
 	"sync"
-	"time"
 )
 
 const StoreKeyBuildModeOnDisk = "build_mode_ondisk"
@@ -61,12 +60,5 @@ func (h *Handler) StartBackgroundServices(wg *sync.WaitGroup) {
 		// Start file Watcher (blocking, so run in goroutine)
 		go h.Watcher.FileWatcherStart(wg)
 
-		// Auto-open Browser (run in separate goroutine to not block main flow)
-		if !TestMode {
-			go func() {
-				time.Sleep(100 * time.Millisecond)
-				h.Browser.AutoStart()
-			}()
-		}
 	})
 }

@@ -11,25 +11,6 @@ import (
 var ActiveHandler *Handler
 var ActiveHandlerMu sync.RWMutex
 
-var initialBrowserReloadMu sync.RWMutex
-
-// SetInitialBrowser sets the Browser test hook thread-safely
-func SetInitialBrowser(b BrowserInterface) {
-	initialBrowserMu.Lock()
-	defer initialBrowserMu.Unlock()
-	initialBrowser = b
-}
-
-// GetInitialBrowser gets the Browser test hook thread-safely
-func GetInitialBrowser() BrowserInterface {
-	initialBrowserMu.RLock()
-	defer initialBrowserMu.RUnlock()
-	return initialBrowser
-}
-
-var initialBrowser BrowserInterface
-var initialBrowserMu sync.RWMutex
-
 // SetActiveHandler sets the global Handler instance thread-safely
 func SetActiveHandler(h *Handler) {
 	ActiveHandlerMu.Lock()

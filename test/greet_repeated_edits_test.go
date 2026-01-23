@@ -12,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // TestGreetFileRepeatedEdits simulates the EXACT user scenario:
@@ -50,7 +52,7 @@ require github.com/tinywasm/fmt v0.12.3
 import . "github.com/tinywasm/fmt"
 
 func Greet(target string) string {
-	return Fmt("Hello, %s 👋", target, "from Go!!")
+	return Sprintf("Hello, %s 👋", target, "from Go!!")
 }
 `
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
@@ -104,11 +106,10 @@ func main() {
 
 	// Spy on Browser reload calls
 	mockBrowser := &MockBrowser{}
-	app.SetInitialBrowser(mockBrowser)
-	defer app.SetInitialBrowser(nil)
 
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	// Wait for initialization
 	Watcher := app.WaitWatcherReady(6 * time.Second)
@@ -139,7 +140,7 @@ func main() {
 import . "github.com/tinywasm/fmt"
 
 func Greet(target string) string {
-	return Fmt("%s, %%s 👋", target, "from Go!!")
+	return Sprintf("%s, %%s 👋", target, "from Go!!")
 }
 `, msg)
 

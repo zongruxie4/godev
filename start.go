@@ -2,7 +2,6 @@ package app
 
 import (
 	"os"
-	"path/filepath"
 	"sync"
 
 	"github.com/tinywasm/assetmin"
@@ -15,9 +14,16 @@ import (
 	"github.com/tinywasm/server"
 )
 
-type Store interface {
-	Get(key string) (string, error)
-	Set(key, value string) error
+type DB interface {
+	kvdb.KVStore
+}
+
+var Fmt = struct {
+	Printf  func(format string, a ...interface{}) (n int, err error)
+	Sprintf func(format string, a ...interface{}) string
+}{
+	Printf:  func(format string, a ...interface{}) (n int, err error) { return 0, nil },
+	Sprintf: func(format string, a ...interface{}) string { return "" },
 }
 
 // TestMode disables browser auto-start when running tests
@@ -31,8 +37,9 @@ type Handler struct {
 	Config        *Config
 	Tui           TuiInterface // Interface defined in TINYWASM, not DevTUI
 	ExitChan      chan bool
+	Logger        func(messages ...any) // Main logger for passing to components
 
-	DB Store // Key-value store interface
+	DB DB // Key-value store interface
 
 	// Build dependencies
 	ServerHandler *server.ServerHandler
@@ -43,6 +50,7 @@ type Handler struct {
 	WasmClient    *client.WasmClient
 	Watcher       *devwatch.DevWatch
 	Browser       BrowserInterface
+	GitHubAuth    any
 
 	// Deploy dependencies
 	DeployCloudflare *goflare.Goflare
@@ -60,10 +68,10 @@ func (h *Handler) SetBrowser(b BrowserInterface) {
 	h.Browser = b
 }
 
-// Start is called from main.go with UI passed as parameter
-// CRITICAL: UI instance created in main.go, passed here as interface
+// Start is called from main.go with UI, Browser and DB passed as parameters
+// CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(RootDir string, logger func(messages ...any), ui TuiInterface, ExitChan chan bool, mcpToolHandlers ...any) {
+func Start(RootDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, mcpToolHandlers ...any) {
 
 	// Initialize Git Handler for gitignore management
 	GitHandler, _ := devflow.NewGit()
@@ -73,49 +81,23 @@ func Start(RootDir string, logger func(messages ...any), ui TuiInterface, ExitCh
 	GoHandler, _ := devflow.NewGo(GitHandler)
 	GoHandler.SetRootDir(RootDir)
 
-	fileStore := &FileStore{}
-	var storeToUse kvdb.Store = fileStore
-	if TestMode {
-		storeToUse = NewMemoryStore()
-	}
-
-	DB, err := kvdb.New(".env", logger, storeToUse)
-	if err != nil {
-		logger("Failed to initialize database:", err)
-		return
-	}
-
-	// Start GitHub auth in background (non-blocking)
-	githubFuture := devflow.NewFuture(func() (any, error) {
-		return devflow.NewGitHub(logger)
-	})
-
-	// Initialize GoNew orchestrator with the future
-	GoNew := devflow.NewGoNew(GitHandler, githubFuture, GoHandler)
-	GoNew.SetLog(logger)
-
 	h := &Handler{
 		FrameworkName: "TINYWASM",
 		RootDir:       RootDir,
 		Tui:           ui, // UI passed from main.go
 		ExitChan:      ExitChan,
+		Logger:        logger,
 
-		DB:         DB,
+		DB:         db,
 		GitHandler: GitHandler,
 		GoHandler:  GoHandler,
-		GoNew:      GoNew,
-		Browser:    GetInitialBrowser(),
+		Browser:    browser,
+		GitHubAuth: githubAuth,
 	}
 
-	// Wire FileStore guard and gitignore notification (only if not TestMode)
+	// Wire gitignore notification
 	if !TestMode {
-		fileStore.SetShouldWrite(h.IsInitializedProject)
 		GitHandler.SetShouldWrite(h.IsInitializedProject)
-		fileStore.SetOnFileCreated(func(path string) {
-			if filepath.Base(path) == ".env" {
-				GitHandler.GitIgnoreAdd(".env")
-			}
-		})
 	}
 
 	// Validate directory
@@ -132,6 +114,28 @@ func Start(RootDir string, logger func(messages ...any), ui TuiInterface, ExitCh
 	// CRITICAL: Initialize sections BEFORE starting lifecycle
 	h.SectionBuild = h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
+
+	// Register GitHubAuth in TUI FIRST (so it gets the TUI logger)
+	// This must happen BEFORE starting the auth Future
+	if h.GitHubAuth != nil {
+		h.Tui.AddHandler(h.GitHubAuth, 0, "#6e40c9", h.SectionBuild) // Purple for GitHub
+	}
+
+	// NOW start GitHub auth in background (after TUI registration)
+	// This ensures the TUI logger is set before auth messages are sent
+	githubFuture := devflow.NewFuture(func() (any, error) {
+		if githubAuth != nil {
+			if auth, ok := githubAuth.(devflow.GitHubAuthenticator); ok {
+				return devflow.NewGitHub(logger, auth)
+			}
+		}
+		return devflow.NewGitHub(logger)
+	})
+
+	// Initialize GoNew orchestrator with the future
+	GoNew := devflow.NewGoNew(GitHandler, githubFuture, GoHandler)
+	GoNew.SetLog(logger)
+	h.GoNew = GoNew
 
 	if !h.IsPartOfProject() {
 		sectionWizard := h.AddSectionWIZARD(func() {

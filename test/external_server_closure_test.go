@@ -1,12 +1,14 @@
 package test
 
-import "github.com/tinywasm/app"
-
 import (
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 func TestExternalServerClosure(t *testing.T) {
@@ -51,11 +53,12 @@ func main() {
 	}
 
 	ExitChan := make(chan bool)
-	ui := newUiMockTest(logger)
 
 	finished := make(chan bool)
 	go func() {
-		app.Start(tmpDir, logger, ui, ExitChan)
+		mockBrowser := &MockBrowser{}
+		mockDB, _ := kvdb.New(filepath.Join(tmpDir, ".env"), logger, app.NewMemoryStore())
+		app.Start(tmpDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth()) // Corrected app.Start call
 		finished <- true
 	}()
 

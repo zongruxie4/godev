@@ -6,7 +6,6 @@ import (
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
-	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/server"
 )
@@ -68,14 +67,21 @@ func (h *Handler) InitBuildHandlers() {
 		ExitChan:             h.ExitChan,
 		Store:                h.DB,
 		UI:                   h.Tui,
+		OpenBrowser:          h.Browser.OpenBrowser, // Inject browser open callback
+		OnExternalModeExecution: func(isExternal bool) {
+			// Orchestrate client and assetmin to disk mode when using external server
+			if h.WasmClient != nil {
+				h.WasmClient.SetBuildOnDisk(isExternal, true)
+			}
+			if h.AssetsHandler != nil {
+				h.AssetsHandler.SetBuildOnDisk(isExternal)
+			}
+		},
+		GitIgnoreAdd: h.GitHandler.GitIgnoreAdd,
 	})
 
 	// 4. BROWSER
-	if h.Browser == nil {
-		browser := devbrowser.New(h.Config, h.Tui, h.DB, h.ExitChan)
-		browser.SetTestMode(TestMode)
-		h.Browser = browser
-	}
+	// Browser is already injected in Start()
 
 	// 5. WATCHER
 	h.Watcher = devwatch.New(&devwatch.WatchConfig{
@@ -108,6 +114,9 @@ func (h *Handler) InitBuildHandlers() {
 	h.Tui.AddHandler(h.Watcher, 0, colorYellowMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Config, 0, colorTealMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Browser, 0, colorPinkMedium, h.SectionBuild)
+
+	// NOTE: GitHubAuth is registered in Start() BEFORE auth begins
+	// to ensure it uses the TUI logger instead of file logger
 
 	// 7. Wire up TinyWasm to AssetMin
 	h.WasmClient.OnWasmExecChange = func() {

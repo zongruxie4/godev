@@ -55,7 +55,8 @@ func TestWizardFullIntegration(t *testing.T) {
 
 	// GitHub app.Handler for cleanup
 	logs := &SafeBuffer{}
-	gh, err := devflow.NewGitHub(logs.Log)
+	mockAuth := devflow.NewMockGitHubAuth()
+	gh, err := devflow.NewGitHub(logs.Log, mockAuth)
 	if err != nil {
 		t.Fatalf("GitHub unavailable (expected for CI): %v", err)
 	}

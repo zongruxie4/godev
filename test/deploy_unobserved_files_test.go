@@ -1,7 +1,5 @@
 package test
 
-import "github.com/tinywasm/app"
-
 import (
 	"bytes"
 	"os"
@@ -11,6 +9,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // TestDeployUnobservedFilesNotProcessedByAssetmin replicates the exact bug scenario:
@@ -84,9 +85,12 @@ export default {
 	logs := &SafeBuffer{}
 	logger := logs.Log
 
+	mockBrowser := &MockBrowser{}
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
+
 	// app.Start tinywasm with deploy section
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	// Wait for initialization
 	time.Sleep(100 * time.Millisecond)

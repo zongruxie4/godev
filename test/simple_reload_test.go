@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // TestSimpleBrowserReload creates a single file, waits long enough for timer to expire
@@ -33,14 +35,13 @@ func TestSimpleBrowserReload(t *testing.T) {
 	ExitChan := make(chan bool)
 	// Set up Mock Browser injection
 	mockBrowser := &MockBrowser{}
-	app.SetInitialBrowser(mockBrowser)
-	defer app.SetInitialBrowser(nil)
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
 
 	// Create go.mod to pass the guard
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module test"), 0644))
 
 	// app.Start tinywasm
-	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 	// Wait for initialization
 	h := app.WaitForActiveHandler(5 * time.Second)
 	require.NotNil(t, h)

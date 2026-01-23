@@ -1,7 +1,5 @@
 package test
 
-import "github.com/tinywasm/app"
-
 import (
 	"fmt"
 	"io"
@@ -9,9 +7,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // logIfVerbose prints test logs only when GOLITE_TEST_VERBOSE is set.
@@ -122,8 +125,11 @@ func startTestApp(t *testing.T, RootDir string) (*app.Handler, func()) {
 		logIfVerbose(t, "LOG: %s", msg)
 	}
 
+	mockBrowser := &MockBrowser{}
+	mockDB, _ := kvdb.New(filepath.Join(RootDir, ".env"), logger, app.NewMemoryStore())
+
 	// app.Start tinywasm
-	go app.Start(RootDir, logger, newUiMockTest(logger), ExitChan)
+	go app.Start(RootDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	// Wait for app.Handler initialization
 	h := app.WaitForActiveHandler(5 * time.Second)

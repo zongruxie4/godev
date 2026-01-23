@@ -75,10 +75,13 @@ func (m *mockTUI) SetActiveTab(section any) {
 }
 
 type MockBrowser struct {
-	reloadCalls    int
-	autoStartCalls int
-	ReloadErr      error
-	mu             sync.Mutex
+	reloadCalls   int
+	openCalls     int    // Track actual browser open attempts
+	lastOpenPort  string // Track last port used for open
+	lastOpenHttps bool   // Track last https flag used for open
+	ReloadErr     error
+	mu            sync.Mutex
+	logFunc       func(message ...any)
 }
 
 func (m *MockBrowser) GetReloadCalls() int {
@@ -87,10 +90,16 @@ func (m *MockBrowser) GetReloadCalls() int {
 	return m.reloadCalls
 }
 
-func (m *MockBrowser) GetAutoStartCalls() int {
+func (m *MockBrowser) GetOpenCalls() int {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.autoStartCalls
+	return m.openCalls
+}
+
+func (m *MockBrowser) GetLastOpenPort() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.lastOpenPort
 }
 
 func (m *MockBrowser) Reload() error {
@@ -100,12 +109,19 @@ func (m *MockBrowser) Reload() error {
 	return m.ReloadErr
 }
 
-func (m *MockBrowser) AutoStart() {
+func (m *MockBrowser) OpenBrowser(port string, https bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.autoStartCalls++
+	m.openCalls++
+	m.lastOpenPort = port
+	m.lastOpenHttps = https
+	if m.logFunc != nil {
+		m.logFunc("MockBrowser: OpenBrowser called with port", port, "https", https)
+	}
 }
 
 func (m *MockBrowser) SetLog(f func(message ...any)) {
-	// no-op for tests
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.logFunc = f
 }

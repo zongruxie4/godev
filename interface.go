@@ -17,6 +17,6 @@ type TuiInterface interface {
 // Implementations: devbrowser.DevBrowser (production), MockBrowser (tests)
 type BrowserInterface interface {
 	Reload() error
-	AutoStart()
+	OpenBrowser(port string, https bool)
 	SetLog(f func(message ...any))
 }

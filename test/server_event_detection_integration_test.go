@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // TestServerEventDetectionIntegration verifies server file events trigger reloads. Skipped in -short.
@@ -58,11 +60,10 @@ func main() {
 
 	// Set up Mock Browser injection
 	mockBrowser := &MockBrowser{}
-	app.SetInitialBrowser(mockBrowser)
-	defer app.SetInitialBrowser(nil)
 
 	ExitChan := make(chan bool)
-	go app.Start(tmp, logger, newUiMockTest(logger), ExitChan)
+	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
+	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth())
 
 	time.Sleep(200 * time.Millisecond)
 
