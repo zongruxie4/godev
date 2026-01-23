@@ -108,12 +108,12 @@ func (h *Handler) InitBuildHandlers() {
 	h.Watcher.SetShouldWatch(h.IsPartOfProject)
 
 	// 6. Register Handlers with TUI for logging
-	h.Tui.AddHandler(h.WasmClient, 0, colorPurpleMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.ServerHandler, 0, colorBlueMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.AssetsHandler, 0, colorGreenMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Watcher, 0, colorYellowMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Config, 0, colorTealMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Browser, 0, colorPinkMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.ServerHandler, colorBlueMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Watcher, colorYellowMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)
 
 	// NOTE: GitHubAuth is registered in Start() BEFORE auth begins
 	// to ensure it uses the TUI logger instead of file logger

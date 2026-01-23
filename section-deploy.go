@@ -1,8 +1,6 @@
 package app
 
 import (
-	"time"
-
 	"github.com/tinywasm/goflare"
 )
 
@@ -28,6 +26,6 @@ func (h *Handler) InitDeployHandlers() {
 		OutputWasmFileName:      "app.wasm",
 	})
 
-	h.Tui.AddHandler(h.DeployCloudflare, time.Millisecond*500, colorYellowLight, h.SectionDeploy)
+	h.Tui.AddHandler(h.DeployCloudflare, colorYellowLight, h.SectionDeploy)
 	h.Watcher.AddFilesEventHandlers(h.DeployCloudflare)
 }

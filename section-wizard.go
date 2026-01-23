@@ -30,7 +30,7 @@ func (h *Handler) AddSectionWIZARD(onSuccess func()) any {
 		onSuccess()
 	}, h.GoNew) // Passing it directly (transparent casting)
 
-	h.Tui.AddHandler(w, 0, "#00ADD8", sectionWizard) // Cyan color
+	h.Tui.AddHandler(w, "#00ADD8", sectionWizard) // Cyan color
 
 	return sectionWizard
 }

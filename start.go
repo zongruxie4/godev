@@ -106,7 +106,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	// Register GitHubAuth in TUI FIRST (so it gets the TUI logger)
 	// This must happen BEFORE starting the auth Future
 	if h.GitHubAuth != nil {
-		h.Tui.AddHandler(h.GitHubAuth, 0, "#6e40c9", h.SectionBuild) // Purple for GitHub
+		h.Tui.AddHandler(h.GitHubAuth, "#6e40c9", h.SectionBuild) // Purple for GitHub
 	}
 
 	// NOW start GitHub auth in background (after TUI registration)
@@ -152,7 +152,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	toolHandlers = append(toolHandlers, mcpToolHandlers...)
 	h.MCP = mcpserve.NewHandler(mcpConfig, toolHandlers, h.Tui, h.ExitChan)
 	// Register MCP Handler in BUILD section for logging visibility
-	h.Tui.AddHandler(h.MCP, 0, colorOrangeLight, h.SectionBuild) // Orange color for MCP
+	h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild) // Orange color for MCP
 
 	h.MCP.ConfigureIDEs()
 

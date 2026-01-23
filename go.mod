@@ -7,7 +7,7 @@ require (
 	github.com/tinywasm/client v0.4.7
 	github.com/tinywasm/context v0.0.11
 	github.com/tinywasm/devflow v0.0.73
-	github.com/tinywasm/devtui v0.2.47
+	github.com/tinywasm/devtui v0.2.49
 	github.com/tinywasm/goflare v0.0.51
 	github.com/tinywasm/kvdb v0.0.19
 	github.com/tinywasm/wizard v0.0.14

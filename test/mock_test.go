@@ -2,7 +2,6 @@ package test
 
 import (
 	"sync"
-	"time"
 )
 
 type mockTUI struct {
@@ -23,7 +22,7 @@ func (m *mockTUI) NewTabSection(title, description string) any {
 	return nil
 }
 
-func (m *mockTUI) AddHandler(handler any, timeout time.Duration, color string, tabSection any) {
+func (m *mockTUI) AddHandler(handler any, color string, tabSection any) {
 	// Mimic DevTUI's behavior: call SetLog if app.Handler implements Loggable
 	type Loggable interface {
 		Name() string

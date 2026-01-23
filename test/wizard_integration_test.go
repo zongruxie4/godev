@@ -55,7 +55,7 @@ func TestWizardLogsIntegration(t *testing.T) {
 	}, mockModule)
 
 	// 4. Register with TUI
-	Tui.AddHandler(w, 0, "#00ADD8", sectionWizard)
+	Tui.AddHandler(w, "#00ADD8", sectionWizard)
 
 	// 5. Simulate Step 1 completion
 	w.Change("myapp")
