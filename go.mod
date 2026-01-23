@@ -81,7 +81,7 @@ require (
 	github.com/tinywasm/devbrowser v0.2.9
 	github.com/tinywasm/devwatch v0.0.50
 	github.com/tinywasm/mcpserve v0.0.11
-	github.com/tinywasm/server v0.1.34
+	github.com/tinywasm/server v0.1.35
 	golang.org/x/sys v0.40.0 // indirect
 )
 

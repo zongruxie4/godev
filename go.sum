@@ -125,8 +125,8 @@ github.com/tinywasm/gorun v0.0.19 h1:pXPsX8JqbppcQ7n7WDXVYJea0962Eh7AKvRHIZ1TgHs
 github.com/tinywasm/gorun v0.0.19/go.mod h1:9pApF2ZoaH/km6kGBVxL5WlStOoLwEZiV1uG4R4qeKo=
 github.com/tinywasm/kvdb v0.0.19 h1:/NJNvTT0NFcryTraccaFn/NmQO4dFXClRCEgmGIO+j8=
 github.com/tinywasm/kvdb v0.0.19/go.mod h1:r4Ed0M+RAGq5DoR23MgB9PDwtJUHTA5fkKJwElQJ0sY=
-github.com/tinywasm/server v0.1.34 h1:HlAsXMDGasc4DSrAU1RywQh5Lt0OJiA5ZuQziGmiydo=
-github.com/tinywasm/server v0.1.34/go.mod h1:8i/B4BHbv42zOS/i7NWkCMAoGKi2RH5+j960hpyK7+E=
+github.com/tinywasm/server v0.1.35 h1:bqAPf7Wke/5lfvbdKdk5OPT0dck+lSqg1jRo3+ColCc=
+github.com/tinywasm/server v0.1.35/go.mod h1:8i/B4BHbv42zOS/i7NWkCMAoGKi2RH5+j960hpyK7+E=
 github.com/tinywasm/time v0.3.1 h1:TM1XdXyxK5o2A7SLabNo37QUrzXRbyIkSseyKZBJCTo=
 github.com/tinywasm/time v0.3.1/go.mod h1:e/WhM6SRuko8xdm92wjyVZsv/ds6SikpaZG6jnzhwFc=
 github.com/tinywasm/unixid v0.2.15 h1:UPSIrrHla9ppyHt/7JoKfceeW0payFWpev4CPaIjK9M=
