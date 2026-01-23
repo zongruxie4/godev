@@ -18,14 +18,6 @@ type DB interface {
 	kvdb.KVStore
 }
 
-var Fmt = struct {
-	Printf  func(format string, a ...interface{}) (n int, err error)
-	Sprintf func(format string, a ...interface{}) string
-}{
-	Printf:  func(format string, a ...interface{}) (n int, err error) { return 0, nil },
-	Sprintf: func(format string, a ...interface{}) string { return "" },
-}
-
 // TestMode disables browser auto-start when running tests
 var TestMode bool
 
