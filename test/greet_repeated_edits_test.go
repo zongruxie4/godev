@@ -12,13 +12,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
-	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/kvdb"
 )
 
 // TestGreetFileRepeatedEdits simulates the EXACT user scenario:
 // Edit greet.go -> compiles -> Edit again -> should compile again
-// This test reproduces the "sometimes works, sometimes doesn't" bug
 func TestGreetFileRepeatedEdits(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
@@ -58,8 +55,6 @@ func Greet(target string) string {
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
 	require.NoError(t, err)
 	// Create web/client.go (tinywasm's expected WASM entry point)
-	// This file MUST exist before starting tinywasm, otherwise tinywasm creates a default one
-	// without the greet import
 	clientGoFile := filepath.Join(tmp, Config.WebDir(), Config.ClientFileName())
 	clientGoContent := `//go:build wasm
 
@@ -82,7 +77,6 @@ func main() {
 	require.NoError(t, err)
 
 	// Run go mod tidy
-	// t.Log("Running go mod tidy...")
 	tidyCmd := exec.Command("go", "mod", "tidy")
 	tidyCmd.Dir = tmp
 	if output, err := tidyCmd.CombinedOutput(); err != nil {
@@ -92,32 +86,26 @@ func main() {
 
 	// Track compilations
 	var compilationCount int32
-	logs := &SafeBuffer{}
-
-	logger := func(messages ...any) {
-		logs.Log(messages...)
-		msg := logs.LastLog()
+	tracker := func(messages ...any) {
+		msg := strings.Join(func() []string {
+			s := make([]string, len(messages))
+			for i, m := range messages {
+				s[i] = fmt.Sprint(m)
+			}
+			return s
+		}(), " ")
 
 		if strings.Contains(msg, "Compiling WASM") {
 			atomic.AddInt32(&compilationCount, 1)
-			// t.Logf("[COMPILE %d] %s", count, msg)
 		}
 	}
 
-	// Spy on Browser reload calls
-	mockBrowser := &MockBrowser{}
-
-	ExitChan := make(chan bool)
-	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
+	ctx := startTestApp(t, tmp, tracker)
+	defer ctx.Cleanup()
 
 	// Wait for initialization
 	Watcher := app.WaitWatcherReady(6 * time.Second)
 	require.NotNil(t, Watcher)
-	h := app.GetActiveHandler()
-	require.NotNil(t, h)
-
-	// t.Log("\n=== TEST: Repeated edits to greet.go ===")
 
 	// Perform 5 edits with realistic timing
 	editMessages := []string{
@@ -129,8 +117,6 @@ func main() {
 	}
 
 	for i, msg := range editMessages {
-		// t.Logf("\n--- Edit %d: Changing greeting to '%s' ---", i+1, msg)
-
 		// Reset counter before edit
 		beforeCount := atomic.LoadInt32(&compilationCount)
 
@@ -153,9 +139,7 @@ func Greet(target string) string {
 		afterCount := atomic.LoadInt32(&compilationCount)
 		compiled := afterCount > beforeCount
 
-		if compiled {
-			// t.Logf("✅ Edit %d: Compilation triggered (total: %d)", i+1, afterCount)
-		} else {
+		if !compiled {
 			t.Errorf("❌ Edit %d: NO compilation triggered! (total still: %d)", i+1, afterCount)
 			t.Errorf("   Expected: Each edit should trigger compilation")
 			t.Errorf("   Actual: Edit was ignored by the Watcher")
@@ -168,21 +152,14 @@ func Greet(target string) string {
 	}
 
 	// Cleanup
-	close(ExitChan)
-	app.SetActiveHandler(nil)
 	time.Sleep(200 * time.Millisecond)
 
 	finalCount := atomic.LoadInt32(&compilationCount)
-	// t.Logf("\n=== FINAL RESULTS ===")
-	// t.Logf("Total edits: %d", len(editMessages))
-	// t.Logf("Total compilations: %d", finalCount)
 
 	if finalCount < int32(len(editMessages)) {
 		t.Errorf("❌ BUG REPRODUCED: Only %d/%d edits triggered compilation!", finalCount, len(editMessages))
 		t.Error("   This is the 'sometimes compiles, sometimes doesn't' bug!")
 		t.Log("\n=== Full Logs ===")
-		t.Log(logs.String())
-	} else {
-		// t.Logf("✅ SUCCESS: All %d edits triggered compilation consistently", len(editMessages))
+		t.Log(ctx.Logs.String())
 	}
 }

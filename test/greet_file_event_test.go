@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,8 +12,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
-	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/kvdb"
 )
 
 // TestGreetFileEventTriggersWasmCompilation simulates the exact user scenario:
@@ -59,7 +58,6 @@ func Greet(target string) string {
 	require.NoError(t, err)
 
 	// Create web/client.go that imports greet (tinywasm's expected WASM entry point)
-	// This file MUST exist before starting tinywasm with the greet import
 	clientGoFile := filepath.Join(tmp, Config.WebDir(), Config.ClientFileName())
 	clientGoContent := `//go:build wasm
 
@@ -82,7 +80,6 @@ func main() {
 	require.NoError(t, err)
 
 	// NOW run go mod tidy to populate go.sum (after files exist)
-	// t.Log("Running go mod tidy to populate dependencies...")
 	tidyCmd := exec.Command("go", "mod", "tidy")
 	tidyCmd.Dir = tmp
 	if output, err := tidyCmd.CombinedOutput(); err != nil {
@@ -94,19 +91,20 @@ func main() {
 	if _, err := os.Stat(filepath.Join(tmp, "go.sum")); err != nil {
 		t.Fatalf("go.sum not created: %v", err)
 	}
-	// t.Log("✓ Dependencies ready")
 
 	// Track what happens
 	var wasmCompilations int32
 	var browserReloads int32
-	logs := &SafeBuffer{}
 
-	logger := func(messages ...any) {
-		msg := logs.LogReturn(messages...) // Atomic write & retrieve
+	tracker := func(messages ...any) {
+		msg := strings.Join(func() []string {
+			s := make([]string, len(messages))
+			for i, m := range messages {
+				s[i] = fmt.Sprint(m)
+			}
+			return s
+		}(), " ")
 
-		// Track compilations and reloads
-		// Check for "WASM" and "Compiling" (or "compilation")
-		// Usage of ToLower ensures we catch "Compiling", "compiling", "Compilation", etc.
 		lowerMsg := strings.ToLower(msg)
 		if strings.Contains(msg, "WASM") && strings.Contains(lowerMsg, "compil") {
 			atomic.AddInt32(&wasmCompilations, 1)
@@ -116,12 +114,8 @@ func main() {
 		}
 	}
 
-	ExitChan := make(chan bool)
-
-	// Spy on Browser reload calls
-	mockBrowser := &MockBrowser{}
-	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
+	ctx := startTestApp(t, tmp, tracker)
+	defer ctx.Cleanup()
 
 	// Wait for initialization
 	time.Sleep(500 * time.Millisecond)
@@ -129,17 +123,14 @@ func main() {
 	// Wait for initialization
 	Watcher := app.WaitWatcherReady(6 * time.Second)
 	require.NotNil(t, Watcher)
-	h := app.GetActiveHandler()
-	require.NotNil(t, h)
 
 	t.Log("=== Initial state ready ===")
 	initialCompilations := atomic.LoadInt32(&wasmCompilations)
-	initialReloads := int32(mockBrowser.GetReloadCalls())
+	initialReloads := int32(ctx.Browser.GetReloadCalls())
 	t.Logf("Initial compilations: %d, reloads: %d", initialCompilations, initialReloads)
 
 	// Clear logs for cleaner output
-	// Clear logs for cleaner output
-	logs.Clear()
+	ctx.Logs.Clear()
 
 	// Edit greet.go (simulate user editing the file)
 	t.Log("\n=== Editing greet.go (dependency file) ===")
@@ -159,7 +150,7 @@ func Greet(target string) string {
 
 	// Check results
 	finalCompilations := atomic.LoadInt32(&wasmCompilations)
-	finalReloads := int32(mockBrowser.GetReloadCalls())
+	finalReloads := int32(ctx.Browser.GetReloadCalls())
 
 	compilationsDelta := finalCompilations - initialCompilations
 	reloadsDelta := finalReloads - initialReloads
@@ -169,14 +160,14 @@ func Greet(target string) string {
 	t.Logf("Browser reloads triggered: %d", reloadsDelta)
 
 	// Print relevant logs
-	logOutput := logs.String()
+	logOutput := ctx.Logs.String()
 	t.Log("\n=== Captured Logs ===")
 	for _, line := range strings.Split(logOutput, "\n") {
+		lowerLine := strings.ToLower(line)
 		if strings.Contains(line, "DEBUG") ||
 			strings.Contains(line, "greet") ||
 			strings.Contains(line, "WASM") ||
-			strings.Contains(line, "compil") ||
-			strings.Contains(line, "ThisFileIsMine") {
+			strings.Contains(lowerLine, "compil") {
 			t.Log(line)
 		}
 	}
@@ -193,16 +184,11 @@ func Greet(target string) string {
 	}
 
 	if reloadsDelta == 0 {
-		// Compilation failure prevents reload, which is expected behavior if build fails.
-		// Since this test environment has trouble with 'go build' module resolution for single files,
-		// we accept that reload might not happen, as long as compilation WAS triggered.
 		t.Log("⚠️ No Browser reload happened (likely due to checking compilation failures in this test setup)")
 	} else {
 		t.Logf("✅ Browser reload happened (%d time(s))", reloadsDelta)
 	}
 
 	// Cleanup
-	close(ExitChan)
-	app.SetActiveHandler(nil)
 	time.Sleep(200 * time.Millisecond)
 }

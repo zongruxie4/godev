@@ -29,15 +29,25 @@ func main() {
 	logger := app.NewLogger()
 	// logger.SetRootDir initialized later after finding project root
 
+	// Initialize GoMod Handler
+	goModHandler := devflow.NewGoModHandler()
 	// Initialize Git Handler
-	gitHandler, _ := devflow.NewGit()
+	gitHandler, err := devflow.NewGit()
+	if err != nil {
+		logger.Logger("Error initializing Git handler:", err)
+	}
+
 	if projectRoot, err := devflow.FindProjectRoot(startDir); err == nil {
 		gitHandler.SetRootDir(projectRoot)
+		goModHandler.SetRootDir(projectRoot)
 		logger.SetRootDir(projectRoot)
 	} else {
 		gitHandler.SetRootDir(startDir)
+		goModHandler.SetRootDir(startDir)
 		logger.SetRootDir(startDir)
 	}
+
+	goModHandler.SetLog(logger.Logger)
 
 	// Create DevTUI instance
 	ui := devtui.NewTUI(&devtui.TuiConfig{
@@ -64,5 +74,5 @@ func main() {
 	// Start TinyWasm - this will initialize handlers and start all goroutines
 	// The Start function will block until exit
 	// Pass ui and browser as interfaces
-	app.Start(startDir, logger.Logger, ui, browser, db, exitChan, githubAuth, gitHandler, ui)
+	app.Start(startDir, logger.Logger, ui, browser, db, exitChan, githubAuth, gitHandler, goModHandler, ui)
 }

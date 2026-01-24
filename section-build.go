@@ -85,11 +85,16 @@ func (h *Handler) InitBuildHandlers() {
 
 	// 5. WATCHER
 	h.Watcher = devwatch.New(&devwatch.WatchConfig{
-		AppRootDir:         h.Config.RootDir,
-		FilesEventHandlers: []devwatch.FilesEventHandlers{h.WasmClient, h.ServerHandler, h.AssetsHandler},
-		FolderEvents:       nil,
-		BrowserReload:      func() error { return h.Browser.Reload() },
-		ExitChan:           h.ExitChan,
+		//AppRootDir: h.Config.RootDir, (Removed in favor of AddDirectoriesToWatch)
+		FilesEventHandlers: []devwatch.FilesEventHandlers{
+			h.GoModHandler,
+			h.WasmClient,
+			h.ServerHandler,
+			h.AssetsHandler,
+		},
+		FolderEvents:  nil,
+		BrowserReload: func() error { return h.Browser.Reload() },
+		ExitChan:      h.ExitChan,
 		UnobservedFiles: func() []string {
 			uf := []string{
 				".git",
@@ -105,6 +110,30 @@ func (h *Handler) InitBuildHandlers() {
 			return uf
 		},
 	})
+
+	// 6. GO.MOD HANDLER
+	// Use injected handler
+	h.GoModHandler.SetLog(h.Watcher.Logger)
+	h.GoModHandler.SetFolderWatcher(h.Watcher)
+
+	// Add main project root to watcher
+	h.Watcher.AddDirectoriesToWatch(h.Config.RootDir)
+
+	// Add local replace modules to watcher automatically
+	replaceEntries, err := h.GoModHandler.GetReplacePaths()
+	if err == nil {
+		var paths []string
+		for _, entry := range replaceEntries {
+			paths = append(paths, entry.LocalPath)
+		}
+		if len(paths) > 0 {
+			h.Watcher.Logger("WATCH", "Watching local replacement modules:", paths)
+			h.Watcher.AddDirectoriesToWatch(paths...)
+		}
+	} else {
+		h.Watcher.Logger("Warning: failed to get replace paths:", err)
+	}
+
 	h.Watcher.SetShouldWatch(h.IsPartOfProject)
 
 	// 6. Register Handlers with TUI for logging

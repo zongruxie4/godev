@@ -48,12 +48,16 @@ type Handler struct {
 	DeployCloudflare *goflare.Goflare
 
 	// Lifecycle management
+	// Lifecycle management
 	startOnce     sync.Once
 	SectionBuild  any // Store reference to build tab
 	SectionDeploy any // Store reference to deploy tab
 
 	// MCP Handler for LLM integration
 	MCP *mcpserve.Handler
+
+	// GoMod Handler
+	GoModHandler devflow.GoModInterface
 }
 
 func (h *Handler) SetBrowser(b BrowserInterface) {
@@ -63,7 +67,7 @@ func (h *Handler) SetBrowser(b BrowserInterface) {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, gitHandler devflow.GitClient, mcpToolHandlers ...any) {
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...any) {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -76,11 +80,12 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		ExitChan:      ExitChan,
 		Logger:        logger,
 
-		DB:         db,
-		GitHandler: gitHandler,
-		GoHandler:  GoHandler,
-		Browser:    browser,
-		GitHubAuth: githubAuth,
+		DB:           db,
+		GitHandler:   gitHandler,
+		GoHandler:    GoHandler,
+		Browser:      browser,
+		GitHubAuth:   githubAuth,
+		GoModHandler: goModHandler,
 	}
 
 	// Wire gitignore notification

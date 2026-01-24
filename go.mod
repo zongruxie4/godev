@@ -6,7 +6,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.4.7
 	github.com/tinywasm/context v0.0.11
-	github.com/tinywasm/devflow v0.0.73
+	github.com/tinywasm/devflow v0.0.77
 	github.com/tinywasm/devtui v0.2.49
 	github.com/tinywasm/goflare v0.0.51
 	github.com/tinywasm/kvdb v0.0.19
@@ -55,7 +55,7 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
-	github.com/tinywasm/depfind v0.0.19 // indirect
+	github.com/tinywasm/depfind v0.0.21 // indirect
 	github.com/tinywasm/fmt v0.16.1 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
@@ -79,13 +79,11 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
 	github.com/tinywasm/assetmin v0.0.74
 	github.com/tinywasm/devbrowser v0.2.10
-	github.com/tinywasm/devwatch v0.0.50
+	github.com/tinywasm/devwatch v0.0.53
 	github.com/tinywasm/mcpserve v0.0.11
 	github.com/tinywasm/server v0.1.36
 	golang.org/x/sys v0.40.0 // indirect
 )
-
-replace github.com/tinywasm/devwatch => ../devwatch
 
 replace github.com/tinywasm/assetmin => ../assetmin
 

@@ -105,42 +105,93 @@ func waitForServerContains(port, substr string, timeout time.Duration) error {
 	return fmt.Errorf("timeout waiting for %q on %s (last status: %s)", substr, url, lastErr)
 }
 
-// startTestApp starts the app for testing and disables Browser auto-start.
-// Returns the app.Handler and a cleanup function that should be deferred.
-// Usage:
-//
-//	h, cleanup := startTestApp(t, tmpDir)
-//	defer cleanup()
-func startTestApp(t *testing.T, RootDir string) (*app.Handler, func()) {
-	ExitChan := make(chan bool)
+type TestContext struct {
+	Handler    *app.Handler
+	Browser    *MockBrowser
+	GitHandler *MockGitClient
+	Logs       *SafeBuffer
+	DB         app.DB
+	UI         app.TuiInterface
+	Cleanup    func()
+}
 
-	logger := func(messages ...any) {
-		var msg string
-		for i, m := range messages {
-			if i > 0 {
-				msg += " "
-			}
-			msg += fmt.Sprint(m)
+// startTestApp starts the app for testing and disables Browser auto-start.
+// Returns a TestContext containing the handler, mocks, and a cleanup function.
+// Accepts optional overrides for Browser, GitClient, GoModHandler, DB, or TuiInterface.
+func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
+	ExitChan := make(chan bool)
+	logs := &SafeBuffer{}
+
+	// 1. Establish the logger (merging logs.Log with any custom logger passed)
+	var customLogger func(messages ...any)
+	for _, o := range opts {
+		if l, ok := o.(func(messages ...any)); ok {
+			customLogger = l
+			break
 		}
-		logIfVerbose(t, "LOG: %s", msg)
+	}
+	logger := logs.Log
+	if customLogger != nil {
+		logger = func(messages ...any) {
+			logs.Log(messages...)
+			customLogger(messages...)
+		}
 	}
 
-	mockBrowser := &MockBrowser{}
-	mockDB, _ := kvdb.New(filepath.Join(RootDir, ".env"), logger, app.NewMemoryStore())
+	// 2. Initialize ctx with ALL defaults using the logger
+	ctx := &TestContext{
+		Logs:       logs,
+		Browser:    &MockBrowser{},
+		GitHandler: &MockGitClient{},
+		UI:         newUiMockTest(logger),
+	}
+	ctx.DB, _ = kvdb.New(filepath.Join(RootDir, ".env"), logger, app.NewMemoryStore())
 
-	// app.Start tinywasm
-	go app.Start(RootDir, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
+	// 3. Apply overrides from variadic arguments
+	var goModH devflow.GoModInterface
+	for _, o := range opts {
+		switch v := o.(type) {
+		case *MockBrowser:
+			ctx.Browser = v
+		case *MockGitClient:
+			ctx.GitHandler = v
+		case app.DB:
+			ctx.DB = v
+		case app.TuiInterface:
+			ctx.UI = v
+		case devflow.GoModInterface:
+			goModH = v
+		case app.BrowserInterface:
+			if mb, ok := v.(*MockBrowser); ok {
+				ctx.Browser = mb
+			}
+		case devflow.GitClient:
+			if mg, ok := v.(*MockGitClient); ok {
+				ctx.GitHandler = mg
+			}
+		}
+	}
 
-	// Wait for app.Handler initialization
-	h := app.WaitForActiveHandler(5 * time.Second)
+	// Default GoMod if not provided
+	if goModH == nil {
+		goModH = devflow.NewGoModHandler()
+	}
+
+	// 4. Start the application
+	go app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
+
+	// Wait for handler registration
+	h := app.WaitForActiveHandler(8 * time.Second)
 	if h == nil {
 		t.Fatal("Failed to get active app.Handler")
 	}
+	ctx.Handler = h
 
-	cleanup := func() {
+	ctx.Cleanup = func() {
 		close(ExitChan)
 		app.SetActiveHandler(nil)
+		time.Sleep(100 * time.Millisecond) // Give it time to shut down
 	}
 
-	return h, cleanup
+	return ctx
 }

@@ -8,8 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
-	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/kvdb"
 )
 
 // TestServerWatchIntegration reproduces server watch behavior; skipped in -short.
@@ -71,22 +69,13 @@ func main() {
 	require.NoError(t, os.WriteFile(serverFilePath, []byte(initialServerContent), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
 
-	logs := &SafeBuffer{}
-	logger := logs.Log
+	ctx := startTestApp(t, tmp)
+	defer ctx.Cleanup()
 
-	// Set up Mock Browser injection
-	mockBrowser := &MockBrowser{}
-
-	// app.Start tinywasm
-	ExitChan := make(chan bool)
-	mockDB, _ := kvdb.New(filepath.Join(tmp, ".env"), logger, app.NewMemoryStore())
-	go app.Start(tmp, logger, newUiMockTest(logger), mockBrowser, mockDB, ExitChan, devflow.NewMockGitHubAuth(), &MockGitClient{})
+	h := ctx.Handler
 
 	time.Sleep(200 * time.Millisecond)
 
-	// Wait for initialization
-	h := app.WaitForActiveHandler(8 * time.Second)
-	require.NotNil(t, h)
 	// Enable External Server Mode to support reloading on file changes
 	require.NoError(t, h.ServerHandler.SetExternalServerMode(true))
 
@@ -95,7 +84,7 @@ func main() {
 
 	time.Sleep(500 * time.Millisecond)
 
-	initialReloadCount := int64(mockBrowser.GetReloadCalls())
+	initialReloadCount := int64(ctx.Browser.GetReloadCalls())
 
 	modifiedServerContent := `package main
 
@@ -136,17 +125,14 @@ func main() {
 	// Wait for event with timeout
 	deadline := time.Now().Add(3 * time.Second)
 	for time.Now().Before(deadline) {
-		if int64(mockBrowser.GetReloadCalls()) > initialReloadCount {
+		if int64(ctx.Browser.GetReloadCalls()) > initialReloadCount {
 			break
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
 
-	finalReloadCount := int64(mockBrowser.GetReloadCalls())
+	finalReloadCount := int64(ctx.Browser.GetReloadCalls())
 	reloadDiff := finalReloadCount - initialReloadCount
-
-	close(ExitChan)
-	app.SetActiveHandler(nil)
 
 	if reloadDiff == 0 {
 		t.Fatalf("PROBLEM: Server file modifications did not trigger any reloads")
