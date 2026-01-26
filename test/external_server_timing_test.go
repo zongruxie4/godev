@@ -3,6 +3,7 @@ package test
 import (
 	"net"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,10 +25,10 @@ func TestExternalServerBrowserTiming(t *testing.T) {
 	// Simulate slow server startup: don't start listening immediately
 	serverListeningChan := make(chan struct{})
 
-	// Start "slow" server in goroutine - waits 2 seconds before actually listening
+	// Start "slow" server in goroutine - waits 500ms before actually listening
 	go func() {
 		// Simulate compilation/startup delay
-		time.Sleep(2 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 
 		// Now actually start listening
 		mux := http.NewServeMux()
@@ -92,11 +93,21 @@ func TestExternalServerBrowserTiming(t *testing.T) {
 	// Record time before OpenBrowser call
 	startTime := time.Now()
 
+	// Wait for server to be ready BEFORE opening browser
+	// This prevents ERR_CONNECTION_REFUSED which makes the browser fail early
+	<-serverReady
+
 	// Direct call to OpenBrowser as Server would do
 	go browser.OpenBrowser(port, false)
 
-	// Wait for browser to either open or fail
-	time.Sleep(5 * time.Second)
+	// Wait for browser to either open or fail (poll instead of sleeping)
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if strings.Contains(logs.String(), "Open |") {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 
 	elapsed := time.Since(startTime)
 

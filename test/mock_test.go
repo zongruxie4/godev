@@ -182,3 +182,46 @@ func (m *MockGitClient) CreateTag(tag string) (bool, error) {
 func (m *MockGitClient) PushWithTags(tag string) error {
 	return nil
 }
+
+type MockGitHubClient struct {
+	log func(...any)
+}
+
+func (m *MockGitHubClient) SetLog(fn func(...any)) {
+	if fn != nil {
+		m.log = fn
+	}
+}
+
+func (m *MockGitHubClient) GetCurrentUser() (string, error) {
+	return "mockuser", nil
+}
+
+func (m *MockGitHubClient) RepoExists(owner, name string) (bool, error) {
+	return false, nil
+}
+
+func (m *MockGitHubClient) CreateRepo(owner, name, description, visibility string) error {
+	if m.log != nil {
+		m.log("MockGitHub: Created repo", owner+"/"+name)
+	}
+	return nil
+}
+
+func (m *MockGitHubClient) DeleteRepo(owner, name string) error {
+	if m.log != nil {
+		m.log("MockGitHub: Deleted repo", owner+"/"+name)
+	}
+	return nil
+}
+
+func (m *MockGitHubClient) IsNetworkError(err error) bool {
+	return false
+}
+
+func (m *MockGitHubClient) GetHelpfulErrorMessage(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}

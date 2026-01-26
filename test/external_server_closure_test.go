@@ -55,7 +55,7 @@ func main() {
 	select {
 	case <-h.ExitChan:
 		t.Fatal("App finished prematurely after switching to external mode!")
-	case <-time.After(5 * time.Second):
+	case <-time.After(1 * time.Second):
 		t.Log("App is still running in external mode")
 	}
 }

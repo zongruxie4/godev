@@ -74,7 +74,7 @@ func (h *Handler) InitBuildHandlers() {
 				h.WasmClient.SetBuildOnDisk(isExternal, true)
 			}
 			if h.AssetsHandler != nil {
-				h.AssetsHandler.SetBuildOnDisk(isExternal)
+				h.AssetsHandler.SetExternalSSRCompiler(func() error { return nil }, isExternal)
 			}
 		},
 		GitIgnoreAdd: h.GitHandler.GitIgnoreAdd,

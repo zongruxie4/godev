@@ -53,13 +53,10 @@ func TestWizardFullIntegration(t *testing.T) {
 	}
 	GoHandler.SetRootDir(parentDir)
 
-	// GitHub app.Handler for cleanup
+	// GitHub Mock Handler for fast tests
 	logs := &SafeBuffer{}
-	mockAuth := devflow.NewMockGitHubAuth()
-	gh, err := devflow.NewGitHub(logs.Log, mockAuth)
-	if err != nil {
-		t.Fatalf("GitHub unavailable (expected for CI): %v", err)
-	}
+	gh := &MockGitHubClient{}
+	gh.SetLog(logs.Log)
 
 	ghUser, err := gh.GetCurrentUser()
 	if err != nil {

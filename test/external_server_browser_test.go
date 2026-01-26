@@ -72,8 +72,14 @@ func main() {
 	defer ctx.Cleanup()
 
 	// Wait for external server to compile and start + browser to open
-	// Give it enough time for compilation (~5-10 seconds)
-	time.Sleep(15 * time.Second)
+	// Give it enough time for compilation (~5-10 seconds), but stop early if ready
+	deadline := time.Now().Add(15 * time.Second)
+	for time.Now().Before(deadline) {
+		if ctx.Browser.GetOpenCalls() > 0 {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 
 	// Check results
 	autoStartCalls := ctx.Browser.GetOpenCalls()

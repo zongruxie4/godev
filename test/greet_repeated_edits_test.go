@@ -120,6 +120,9 @@ func main() {
 		// Reset counter before edit
 		beforeCount := atomic.LoadInt32(&compilationCount)
 
+		// Small delay BEFORE edit to ensure stability (events from init or previous edits settled)
+		time.Sleep(100 * time.Millisecond)
+
 		// Edit the file
 		newContent := fmt.Sprintf(`package greet
 
@@ -133,26 +136,24 @@ func Greet(target string) string {
 		err = os.WriteFile(greetFile, []byte(newContent), 0644)
 		require.NoError(t, err)
 
-		// Wait for compilation and reload
-		time.Sleep(800 * time.Millisecond)
-
-		afterCount := atomic.LoadInt32(&compilationCount)
-		compiled := afterCount > beforeCount
+		// Wait for compilation and reload (poll instead of fixed sleep)
+		// Increased deadline to 2s to handle slow CI/parallel runs
+		deadline := time.Now().Add(2000 * time.Millisecond)
+		var compiled bool
+		for time.Now().Before(deadline) {
+			if atomic.LoadInt32(&compilationCount) > beforeCount {
+				compiled = true
+				break
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
 
 		if !compiled {
-			t.Errorf("❌ Edit %d: NO compilation triggered! (total still: %d)", i+1, afterCount)
-			t.Errorf("   Expected: Each edit should trigger compilation")
-			t.Errorf("   Actual: Edit was ignored by the Watcher")
-		}
-
-		// Small delay between edits (realistic user behavior)
-		if i < len(editMessages)-1 {
-			time.Sleep(300 * time.Millisecond)
+			t.Errorf("❌ Edit %d (%s): NO compilation triggered! (current total: %d)", i+1, msg, atomic.LoadInt32(&compilationCount))
+			t.Errorf("   Expected: Each edit should trigger exactly ONE compilation")
+			t.Errorf("   Log snippet:\n%s", ctx.Logs.String())
 		}
 	}
-
-	// Cleanup
-	time.Sleep(200 * time.Millisecond)
 
 	finalCount := atomic.LoadInt32(&compilationCount)
 

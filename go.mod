@@ -55,7 +55,7 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
-	github.com/tinywasm/depfind v0.0.21 // indirect
+	github.com/tinywasm/depfind v0.0.23 // indirect
 	github.com/tinywasm/fmt v0.16.1 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
@@ -77,16 +77,10 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
-	github.com/tinywasm/assetmin v0.0.74
+	github.com/tinywasm/assetmin v0.0.76
 	github.com/tinywasm/devbrowser v0.2.10
 	github.com/tinywasm/devwatch v0.0.53
 	github.com/tinywasm/mcpserve v0.0.11
 	github.com/tinywasm/server v0.1.36
 	golang.org/x/sys v0.40.0 // indirect
 )
-
-replace github.com/tinywasm/assetmin => ../assetmin
-
-replace github.com/tinywasm/mcpserve => ../mcpserve
-
-replace github.com/tinywasm/gobuild => ../gobuild

@@ -23,29 +23,8 @@ func (h *Handler) OnProjectReady(wg *sync.WaitGroup) {
 	// DevWatch needs to know it should start watching files
 	h.Watcher.SetShouldWatch(h.IsPartOfProject)
 
-	// 2. Apply persisted work modes (Build Mode, External Server)
-	h.ApplyPersistedWorkModes()
-
-	// 3. Trigger background services sequence
+	// 2. Trigger background services sequence
 	h.StartBackgroundServices(wg)
-}
-
-// ApplyPersistedWorkModes reads work modes from the database and applies them to Handlers.
-func (h *Handler) ApplyPersistedWorkModes() {
-	if h.DB == nil {
-		return
-	}
-
-	// BUILD MODE (In-Memory vs On-Disk)
-	if val, err := h.DB.Get(StoreKeyBuildModeOnDisk); err == nil && val != "" {
-		isDisk := (val == "true")
-		h.WasmClient.SetBuildOnDisk(isDisk, true)
-		h.AssetsHandler.SetBuildOnDisk(isDisk)
-	} else {
-		// Default to false (In-Memory) as requested
-		h.WasmClient.SetBuildOnDisk(false, true)
-		h.AssetsHandler.SetBuildOnDisk(false)
-	}
 }
 
 // StartBackgroundServices launches the server and Watcher in goroutines.
