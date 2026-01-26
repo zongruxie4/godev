@@ -39,10 +39,11 @@ func (h *Handler) InitBuildHandlers() {
 		Database:  h.DB,
 	})
 
-	// 2. ASSETS
+	// Configurar AssetMin
+	publicDir := filepath.Join(h.RootDir, h.Config.WebPublicDir())
 	h.AssetsHandler = assetmin.NewAssetMin(&assetmin.Config{
-		OutputDir: filepath.Join(h.RootDir, h.Config.WebPublicDir()),
-		GetRuntimeInitializerJS: func() (string, error) {
+		OutputDir: publicDir,
+		GetSSRClientInitJS: func() (string, error) {
 			return h.WasmClient.JavascriptForInitializing()
 		},
 		AppName: h.FrameworkName,
