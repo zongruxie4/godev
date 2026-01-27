@@ -56,7 +56,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/fmt v0.16.1 // indirect
+	github.com/tinywasm/fmt v0.16.2 // indirect
 	github.com/tinywasm/gobuild v0.0.22 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.1 // indirect
