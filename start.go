@@ -25,6 +25,7 @@ var TestMode bool
 // CRITICAL: This struct does NOT import DevTUI
 type Handler struct {
 	FrameworkName string // eg: "TINYWASM", "DEVGO", etc.
+	DevMode       bool   // True if running in development mode (read from DB)
 	RootDir       string
 	Config        *Config
 	Tui           TuiInterface // Interface defined in TINYWASM, not DevTUI
@@ -64,6 +65,16 @@ func (h *Handler) SetBrowser(b BrowserInterface) {
 	h.Browser = b
 }
 
+// CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
+func (h *Handler) CheckDevMode() {
+	if h.DB != nil {
+		val, err := h.DB.Get("dev_mode")
+		if err == nil && val == "true" {
+			h.DevMode = true
+		}
+	}
+}
+
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
@@ -87,6 +98,9 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		GitHubAuth:   githubAuth,
 		GoModHandler: goModHandler,
 	}
+
+	// Check if we are in dev mode
+	h.CheckDevMode()
 
 	// Wire gitignore notification
 	if !TestMode {

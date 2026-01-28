@@ -62,6 +62,10 @@ func (h *Handler) InitBuildHandlers() {
 				"-public-dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
 				"-port=" + h.Config.ServerPort(),
 			}
+			// APPENDED: Check dev mode
+			if h.DevMode {
+				args = append(args, "-dev")
+			}
 			return append(args, h.WasmClient.ArgumentsForServer()...)
 		},
 		AppPort:              h.Config.ServerPort(),
