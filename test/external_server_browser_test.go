@@ -47,6 +47,7 @@ import (
 func main() {
 	port := flag.String("port", "6060", "server port")
 	publicDir := flag.String("public-dir", ".", "public directory")
+	_ = flag.Bool("usetinygo", false, "use TinyGo wasm_exec.js")
 	flag.Parse()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
