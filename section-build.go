@@ -58,10 +58,11 @@ func (h *Handler) InitBuildHandlers() {
 		Routes:                      []func(*http.ServeMux){h.AssetsHandler.RegisterRoutes, h.WasmClient.RegisterRoutes},
 		ArgumentsForCompilingServer: func() []string { return []string{} },
 		ArgumentsToRunServer: func() []string {
-			return []string{
+			args := []string{
 				"-public-dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
 				"-port=" + h.Config.ServerPort(),
 			}
+			return append(args, h.WasmClient.ArgumentsForServer()...)
 		},
 		AppPort:              h.Config.ServerPort(),
 		DisableGlobalCleanup: TestMode,
