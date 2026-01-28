@@ -44,7 +44,7 @@ func (h *Handler) InitBuildHandlers() {
 	h.AssetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: publicDir,
 		GetSSRClientInitJS: func() (string, error) {
-			return h.WasmClient.JavascriptForInitializing()
+			return h.WasmClient.GetSSRClientInitJS()
 		},
 		AppName: h.FrameworkName,
 	})
