@@ -66,11 +66,14 @@ func (h *Handler) SetBrowser(b BrowserInterface) {
 }
 
 // CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
+// CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
 func (h *Handler) CheckDevMode() {
 	if h.DB != nil {
 		val, err := h.DB.Get("dev_mode")
-		if err == nil && val == "true" {
+		// Default to true if not found (err != nil), empty, or explicitly "true"
+		if err != nil || val == "" || val == "true" {
 			h.DevMode = true
+			h.DB.Set("dev_mode", "true")
 		}
 	}
 }
