@@ -14,6 +14,8 @@ import (
 )
 
 func main() {
+	// NEW: Parse debug flag for unfiltered logging
+	debugFlag := flag.Bool("debug", false, "Enable debug mode for unfiltered logs")
 	flag.Parse()
 
 	// Initialize start directory
@@ -55,6 +57,7 @@ func main() {
 		ExitChan: exitChan,
 		Color:    devtui.DefaultPalette(),
 		Logger:   func(messages ...any) { logger.Logger(messages...) },
+		Debug:    *debugFlag,
 	})
 
 	// Initialize DB
