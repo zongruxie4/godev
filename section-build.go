@@ -156,6 +156,12 @@ func (h *Handler) InitBuildHandlers() {
 	// 7. Wire up TinyWasm to AssetMin
 	h.WasmClient.OnWasmExecChange = func() {
 		h.AssetsHandler.RefreshAsset(".js")
+
+		// Restart server to pick up new mode arguments
+		if err := h.ServerHandler.Restart(); err != nil {
+			h.WasmClient.Logger("Error restarting Server:", err)
+		}
+
 		if err := h.Browser.Reload(); err != nil {
 			h.WasmClient.Logger("Error reloading Browser:", err)
 		}

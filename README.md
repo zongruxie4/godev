@@ -289,7 +289,8 @@ Done. [10x faster, 5x fewer tokens]
 - [**Startup Flow**](docs/FLOW_DIAGRAM.md) - Application startup visualization
 - [**DevWatch Flow**](docs/DEVWATCH_FLOW.md) - File watcher and event processing details
 - [**MCP Integration**](docs/MCP.md) - LLM assistant setup and API reference
-- [**WASM Modes**](docs/WASM_MODES.md) - When to use L/M/S (coming soon)
+- [**WASM Modes**](docs/MODES.md) - Memory vs Disk Modes & Compilation Details
+- [**Architecture & Debugging**](docs/SKILL.md) - Internals & Troubleshooting Guide
 - [**Roadmap**](docs/ROADMAP.md) - Planned features
 
 ---

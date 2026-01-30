@@ -47,7 +47,7 @@ import (
 func main() {
 	port := flag.String("port", "6060", "server port")
 	publicDir := flag.String("public-dir", ".", "public directory")
-	_ = flag.Bool("usetinygo", false, "use TinyGo wasm_exec.js")
+	_ = flag.String("wasmsize_mode", "", "wasm size mode") // Updated flag
 	_ = flag.Bool("dev", false, "dev mode")
 	flag.Parse()
 
