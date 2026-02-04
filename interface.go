@@ -1,5 +1,9 @@
 package app
 
+import (
+	"github.com/tinywasm/mcpserve"
+)
+
 type TuiInterface interface {
 	NewTabSection(title, description string) any // returns *tabSection
 	AddHandler(Handler any, color string, tabSection any)
@@ -15,4 +19,5 @@ type BrowserInterface interface {
 	Reload() error
 	OpenBrowser(port string, https bool)
 	SetLog(f func(message ...any))
+	GetMCPToolsMetadata() []mcpserve.ToolMetadata
 }

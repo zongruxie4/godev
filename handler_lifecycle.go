@@ -20,6 +20,12 @@ func (h *Handler) OnProjectReady(wg *sync.WaitGroup) {
 	h.WasmClient.SetShouldGenerateDefaultFile(h.CanGenerateDefaultWasmClient)
 	h.WasmClient.CreateDefaultWasmFileClientIfNotExist()
 
+	// Ensure compilation happens (force recompile to load into memory)
+	// This prevents 503 errors on subsequent runs where generation is skipped
+	if err := h.WasmClient.RecompileMainWasm(); err != nil {
+		h.WasmClient.Logger("Initial compilation failed:", err)
+	}
+
 	// DevWatch needs to know it should start watching files
 	h.Watcher.SetShouldWatch(h.IsPartOfProject)
 

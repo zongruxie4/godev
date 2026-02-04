@@ -13,6 +13,8 @@ This mode is active when:
 - **Virtual File System**: It serves files from memory or directly from the source directory without an intermediate build step for the server backend.
 - **Limited Backend**: You cannot add custom backend logic (routes, handlers) easily in this mode, as it uses a default internal server.
 - **Fast Startup**: Ideal for frontend-only development or initial layout (maquetación).
+- **Auto-Initialization**: If verified as part of an initialized project (even if the current directory is empty), `tinywasm` will automatically generate a default `web/client.go` to facilitate immediate start.
+
 
 ## 2. External Server Mode (Disk Mode)
 

@@ -81,7 +81,7 @@ func (h *Handler) CheckDevMode() {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...any) {
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...mcpserve.ToolProvider) {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -157,13 +157,20 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	}
 
 	// Auto-configure IDE MCP integration (silent, non-blocking)
+	mcpPort := "3030"
+	if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
+		mcpPort = p
+	}
 	mcpConfig := mcpserve.Config{
-		Port:          "3030",
+		Port:          mcpPort,
 		ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
 		ServerVersion: "1.0.0",
 		AppName:       "tinywasm", // Used to generate MCP server ID (e.g., "tinywasm-MCP")
 	}
-	toolHandlers := []any{}
+	toolHandlers := []mcpserve.ToolProvider{}
+	// Add app handler itself (for app_rebuild)
+	toolHandlers = append(toolHandlers, h)
+
 	if h.WasmClient != nil {
 		toolHandlers = append(toolHandlers, h.WasmClient)
 	}

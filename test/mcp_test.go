@@ -11,15 +11,16 @@ import (
 	"github.com/tinywasm/mcpserve"
 )
 
-func setupMCPTest(t *testing.T) (*mcpserve.Handler, chan bool) {
+func setupMCPTest(t *testing.T) (*mcpserve.Handler, chan bool, string) {
 	ExitChan := make(chan bool)
+	port := freePort()
 	mcpConfig := mcpserve.Config{
-		Port:          "3030",
+		Port:          port,
 		ServerName:    "TINYWASM",
 		ServerVersion: "1.0.0",
 	}
 	m := mcpserve.NewHandler(mcpConfig, nil, nil, ExitChan)
-	return m, ExitChan
+	return m, ExitChan, port
 }
 
 func TestMCPServerInitialization(t *testing.T) {
@@ -27,7 +28,7 @@ func TestMCPServerInitialization(t *testing.T) {
 		t.Skip("Skipping MCP test in short mode")
 	}
 
-	m, ExitChan := setupMCPTest(t)
+	m, ExitChan, port := setupMCPTest(t)
 	startupErrors := make(chan error, 1)
 
 	// Test that Serve doesn't panic on initialization
@@ -56,7 +57,7 @@ func TestMCPServerInitialization(t *testing.T) {
 	}
 
 	// Try to connect to verify server is actually running
-	resp, err := http.Post("http://localhost:3030/mcp",
+	resp, err := http.Post("http://localhost:"+port+"/mcp",
 		"application/json",
 		strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`))
 
@@ -74,7 +75,7 @@ func TestMCPServerInitialization(t *testing.T) {
 }
 
 func TestMCPConfigureIDEs(t *testing.T) {
-	m, ExitChan := setupMCPTest(t)
+	m, ExitChan, _ := setupMCPTest(t)
 	defer close(ExitChan)
 
 	// Should not panic even if IDEs aren't installed

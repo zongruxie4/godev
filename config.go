@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"path/filepath"
 )
 
@@ -141,8 +142,11 @@ func (c *Config) DeployEdgeWorkerDir() string {
 
 // === CONFIGURATION ===
 
-// ServerPort returns the default server port
+// ServerPort returns the default server port or overrides from PORT env var
 func (c *Config) ServerPort() string {
+	if port := os.Getenv("PORT"); port != "" {
+		return port
+	}
 	return "6060" // Default HTTPS development port
 }
 

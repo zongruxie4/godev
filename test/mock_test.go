@@ -2,6 +2,8 @@ package test
 
 import (
 	"sync"
+
+	"github.com/tinywasm/mcpserve"
 )
 
 type mockTUI struct {
@@ -123,6 +125,10 @@ func (m *MockBrowser) SetLog(f func(message ...any)) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.logFunc = f
+}
+
+func (m *MockBrowser) GetMCPToolsMetadata() []mcpserve.ToolMetadata {
+	return []mcpserve.ToolMetadata{}
 }
 
 type MockGitClient struct {

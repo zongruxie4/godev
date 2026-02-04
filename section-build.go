@@ -56,7 +56,7 @@ func (h *Handler) InitBuildHandlers() {
 		OutputDir:                   h.Config.DeployAppServerDir(),
 		MainInputFile:               h.Config.ServerFileName(),
 		Routes:                      []func(*http.ServeMux){h.AssetsHandler.RegisterRoutes, h.WasmClient.RegisterRoutes},
-		ArgumentsForCompilingServer: func() []string { return []string{} },
+		ArgumentsForCompilingServer: func() []string { return []string{"-p", "1"} },
 		ArgumentsToRunServer: func() []string {
 			args := []string{
 				"-public-dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
@@ -156,6 +156,7 @@ func (h *Handler) InitBuildHandlers() {
 	// 7. Wire up TinyWasm to AssetMin
 	h.WasmClient.OnWasmExecChange = func() {
 		h.AssetsHandler.RefreshAsset(".js")
+		h.AssetsHandler.RefreshAsset(".html")
 
 		// Restart server to pick up new mode arguments
 		if err := h.ServerHandler.Restart(); err != nil {

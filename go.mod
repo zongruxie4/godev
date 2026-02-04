@@ -7,7 +7,7 @@ require (
 	github.com/tinywasm/client v0.0.80
 	github.com/tinywasm/context v0.0.11
 	github.com/tinywasm/devflow v0.0.77
-	github.com/tinywasm/devtui v0.2.51
+	github.com/tinywasm/devtui v0.2.53
 	github.com/tinywasm/goflare v0.0.64
 	github.com/tinywasm/kvdb v0.0.19
 	github.com/tinywasm/wizard v0.0.14
@@ -34,6 +34,7 @@ require (
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
+	github.com/gen2brain/shm v0.1.0 // indirect
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
@@ -41,7 +42,10 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
+	github.com/jezek/xgb v1.1.1 // indirect
+	github.com/kbinani/screenshot v0.0.0-20250624051815-089614a94018 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
+	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/mark3labs/mcp-go v0.43.2 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -77,10 +81,20 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
-	github.com/tinywasm/assetmin v0.0.81
-	github.com/tinywasm/devbrowser v0.2.12
+	github.com/tinywasm/assetmin v0.0.82
+	github.com/tinywasm/devbrowser v0.2.35
 	github.com/tinywasm/devwatch v0.0.56
-	github.com/tinywasm/mcpserve v0.0.11
+	github.com/tinywasm/mcpserve v0.0.18
 	github.com/tinywasm/server v0.1.46
 	golang.org/x/sys v0.40.0 // indirect
 )
+
+replace github.com/tinywasm/server => ../server
+
+replace github.com/tinywasm/gobuild => ../gobuild
+
+replace github.com/tinywasm/client => ../client
+
+replace github.com/tinywasm/devwatch => ../devwatch
+
+replace github.com/tinywasm/assetmin => ../assetmin

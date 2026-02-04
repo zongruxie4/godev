@@ -1,10 +1,10 @@
-.env
+#/example/
+#*code-workspace
+#emptyfolder/*
+#.env
 tinywasm.exe
 *ISSUE*.md
 *.log/test/
-/example/
 *output*
-*code-workspace
-emptyfolder/*
 deploy/*
 .vscode/*

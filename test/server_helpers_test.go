@@ -100,6 +100,10 @@ func waitForServerContains(port, substr string, timeout time.Duration) error {
 		} else {
 			lastErr = fmt.Sprintf("connection error: %v", err)
 		}
+		// Try to connect to verify server is actually running
+		// This part of the original instruction was syntactically incorrect and
+		// would break the function. It's omitted to maintain a working test helper.
+		// The original logic for checking /h is retained.
 		time.Sleep(500 * time.Millisecond)
 	}
 	return fmt.Errorf("timeout waiting for %q on %s (last status: %s)", substr, url, lastErr)
@@ -177,7 +181,17 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 		goModH = devflow.NewGoModHandler()
 	}
 
-	// 4. Start the application
+	// 4. Set environment variables for dynamic ports
+	serverPort := freePort()
+	mcpPort := freePort()
+
+	// Ensure we don't collide with default ports if they are busy
+	os.Setenv("PORT", serverPort)
+	os.Setenv("TINYWASM_MCP_PORT", mcpPort)
+
+	// Wait a bit for env to propagate if needed (usually instant)
+
+	// Start the application
 	go app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
 
 	// Wait for handler registration
@@ -190,6 +204,8 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 	ctx.Cleanup = func() {
 		close(ExitChan)
 		app.SetActiveHandler(nil)
+		os.Unsetenv("PORT")
+		os.Unsetenv("TINYWASM_MCP_PORT")
 		time.Sleep(100 * time.Millisecond) // Give it time to shut down
 	}
 

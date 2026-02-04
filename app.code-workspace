@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../depfind"
+		},
+		{
+			"path": "../devflow"
+		},
+		{
+			"path": "../devwatch"
+		},
+		{
+			"path": "../components"
+		},
+		{
+			"path": "../site"
+		}
+	]
+}
