@@ -39,7 +39,7 @@ func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
 
 go 1.25.2
 
-require github.com/tinywasm/fmt v0.12.3
+require github.com/tinywasm/fmt v0.17.1
 `
 	err = os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644)
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ func main() {
 		}(), " ")
 
 		lowerMsg := strings.ToLower(msg)
-		if strings.Contains(msg, "WASM") && strings.Contains(lowerMsg, "compil") {
+		if (strings.Contains(msg, "WASM") && strings.Contains(lowerMsg, "compil")) || strings.Contains(msg, "WASM In-Memory") {
 			atomic.AddInt32(&wasmCompilations, 1)
 		}
 		if strings.Contains(lowerMsg, "reload") {

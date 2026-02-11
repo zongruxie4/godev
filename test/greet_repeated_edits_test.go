@@ -37,7 +37,7 @@ func TestGreetFileRepeatedEdits(t *testing.T) {
 
 go 1.25.2
 
-require github.com/tinywasm/fmt v0.12.3
+require github.com/tinywasm/fmt v0.17.1
 `
 	err = os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644)
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func main() {
 			return s
 		}(), " ")
 
-		if strings.Contains(msg, "Compiling WASM") {
+		if strings.Contains(msg, "Compiling WASM") || strings.Contains(msg, "WASM In-Memory") {
 			atomic.AddInt32(&compilationCount, 1)
 		}
 	}

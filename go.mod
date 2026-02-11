@@ -8,6 +8,7 @@ require (
 	github.com/tinywasm/context v0.0.13
 	github.com/tinywasm/devflow v0.1.52
 	github.com/tinywasm/devtui v0.2.56
+	github.com/tinywasm/fmt v0.17.1
 	github.com/tinywasm/goflare v0.0.81
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.17
@@ -59,7 +60,6 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/fmt v0.17.1 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
