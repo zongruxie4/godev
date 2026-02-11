@@ -4,11 +4,11 @@ go 1.25.2
 
 require (
 	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.5.32
+	github.com/tinywasm/client v0.5.36
 	github.com/tinywasm/context v0.0.13
 	github.com/tinywasm/devflow v0.1.52
 	github.com/tinywasm/devtui v0.2.56
-	github.com/tinywasm/goflare v0.0.78
+	github.com/tinywasm/goflare v0.0.81
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.17
 )
@@ -60,7 +60,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
 	github.com/tinywasm/fmt v0.17.1 // indirect
-	github.com/tinywasm/gobuild v0.0.23 // indirect
+	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
 	github.com/tinywasm/unixid v0.2.18 // indirect
@@ -69,9 +69,9 @@ require (
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
 	golang.design/x/clipboard v0.7.1 // indirect
-	golang.org/x/exp/shiny v0.0.0-20260209203927-2842357ff358 // indirect
+	golang.org/x/exp/shiny v0.0.0-20260211191109-2735e65f0518 // indirect
 	golang.org/x/image v0.36.0 // indirect
-	golang.org/x/mobile v0.0.0-20260209203831-923679eb55af // indirect
+	golang.org/x/mobile v0.0.0-20260211191516-dcd2a3258864 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -82,8 +82,8 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
 	github.com/tinywasm/assetmin v0.2.0
 	github.com/tinywasm/devbrowser v0.2.40
-	github.com/tinywasm/devwatch v0.0.56
+	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/mcpserve v0.0.19
-	github.com/tinywasm/server v0.1.53
+	github.com/tinywasm/server v0.1.56
 	golang.org/x/sys v0.41.0 // indirect
 )
