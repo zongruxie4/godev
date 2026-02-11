@@ -13,6 +13,8 @@ import (
 	"github.com/tinywasm/kvdb"
 )
 
+var Version = "dev"
+
 func main() {
 	// NEW: Parse debug flag for unfiltered logging
 	debugFlag := flag.Bool("debug", false, "Enable debug mode for unfiltered logs")
@@ -53,11 +55,12 @@ func main() {
 
 	// Create DevTUI instance
 	ui := devtui.NewTUI(&devtui.TuiConfig{
-		AppName:  "TINYWASM",
-		ExitChan: exitChan,
-		Color:    devtui.DefaultPalette(),
-		Logger:   func(messages ...any) { logger.Logger(messages...) },
-		Debug:    *debugFlag,
+		AppName:    "TINYWASM",
+		AppVersion: Version,
+		ExitChan:   exitChan,
+		Color:      devtui.DefaultPalette(),
+		Logger:     func(messages ...any) { logger.Logger(messages...) },
+		Debug:      *debugFlag,
 	})
 
 	// Initialize DB
@@ -68,6 +71,7 @@ func main() {
 	}
 
 	// Create DevBrowser instance
+	// Cache disabled by default, but we can explicitly set it or use flags if needed
 	browser := devbrowser.New(ui, db, exitChan)
 	browser.SetLog(func(messages ...any) { logger.Logger(messages...) })
 

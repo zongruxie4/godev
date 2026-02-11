@@ -40,7 +40,9 @@ func (h *Handler) StartBackgroundServices(wg *sync.WaitGroup) {
 		h.Tui.SetActiveTab(h.SectionBuild)
 
 		// Start server (blocking, so run in goroutine)
-		go h.ServerHandler.StartServer(wg)
+		go func() {
+			h.ServerHandler.StartServer(wg)
+		}()
 
 		// Start file Watcher (blocking, so run in goroutine)
 		go h.Watcher.FileWatcherStart(wg)

@@ -113,6 +113,5 @@ func EnableDebugWatchEvents() {
 	h := app.GetActiveHandler()
 	if h != nil && h.Watcher != nil {
 		// We can't easily switch the running watchEvents, but we can log more
-		fmt.Println("Debug watch events requested (limited implementation)")
 	}
 }

@@ -3,6 +3,7 @@ package test
 import (
 	"sync"
 
+	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/mcpserve"
 )
 
@@ -143,8 +144,8 @@ func (m *MockGitClient) CheckRemoteAccess() error {
 	return nil
 }
 
-func (m *MockGitClient) Push(message, tag string) (string, error) {
-	return "", nil
+func (m *MockGitClient) Push(message, tag string) (devflow.PushResult, error) {
+	return devflow.PushResult{}, nil
 }
 
 func (m *MockGitClient) GetLatestTag() (string, error) {

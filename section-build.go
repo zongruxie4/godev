@@ -47,6 +47,7 @@ func (h *Handler) InitBuildHandlers() {
 			return h.WasmClient.GetSSRClientInitJS()
 		},
 		AppName: h.FrameworkName,
+		DevMode: h.DevMode, // Pass DevMode explicitly to prevent caching in development
 	})
 
 	// 3. SERVER
@@ -73,6 +74,7 @@ func (h *Handler) InitBuildHandlers() {
 		ExitChan:             h.ExitChan,
 		Store:                h.DB,
 		UI:                   h.Tui,
+		Logger:               h.Logger,
 		OpenBrowser:          h.Browser.OpenBrowser, // Inject browser open callback
 		OnExternalModeExecution: func(isExternal bool) {
 			// Orchestrate client and assetmin to disk mode when using external server
