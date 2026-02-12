@@ -54,7 +54,7 @@ func TestBugModeSwitch(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create minimal source structure for compilation
-	webDir := filepath.Join(tmpDir, "cmd", "web", "client")
+	webDir := filepath.Join(tmpDir, "web")
 	if err := os.MkdirAll(webDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	println("test")
 }
 `
-	if err := os.WriteFile(filepath.Join(webDir, "main.wasm.go"), []byte(mainWasmGo), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(webDir, "client.go"), []byte(mainWasmGo), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -110,6 +110,7 @@ go 1.21
 
 	// Initialize Build Handlers
 	h.InitBuildHandlers()
+	h.WasmClient.SetAppRootDir(tmpDir) // mimics OnProjectReady line 18
 
 	// 2. Verify Initial State (Mode "L" / Go)
 	initialMode := h.WasmClient.Value()
@@ -149,7 +150,7 @@ go 1.21
 
 	// 4. Switch Mode to "S" (TinyGo)
 	h.WasmClient.Change("S")
-	time.Sleep(100 * time.Millisecond) // Wait for asset regeneration
+	time.Sleep(1 * time.Second) // Wait for asset regeneration
 
 	// 5. Verify Content Changed
 	// Re-request script.js

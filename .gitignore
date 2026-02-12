@@ -1,7 +1,9 @@
 #/example/
-#*code-workspace
-#emptyfolder/*
-#.env
+*code-workspace
+*.log
+main
+emptyfolder/*
+.env
 tinywasm.exe
 *ISSUE*.md
 *.log/test/

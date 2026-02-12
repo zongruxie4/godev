@@ -110,8 +110,6 @@ func main() {
 
 	// Wait for watchers and startup
 	_ = app.WaitWatcherReady(8 * time.Second)
-	// Wait for External Server to prevent race on first request
-	time.Sleep(2 * time.Second)
 
 	// Helper to get JS content
 	getJS := func() string {
@@ -123,6 +121,15 @@ func main() {
 		defer resp.Body.Close()
 		body, _ := io.ReadAll(resp.Body)
 		return string(body)
+	}
+
+	// Wait for External Server to prevent race on first request using polling
+	deadlinePolling := time.Now().Add(8 * time.Second)
+	for time.Now().Before(deadlinePolling) {
+		if getJS() != "" {
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
 	}
 
 	// 7. Test Mode L (Default, Go)

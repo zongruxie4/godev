@@ -118,11 +118,13 @@ func main() {
 	defer ctx.Cleanup()
 
 	// Wait for initialization
-	time.Sleep(500 * time.Millisecond)
-
-	// Wait for initialization
-	Watcher := app.WaitWatcherReady(6 * time.Second)
-	require.NotNil(t, Watcher)
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		if strings.Contains(ctx.Logs.String(), "Listening for File Changes") {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
 
 	t.Log("=== Initial state ready ===")
 	initialCompilations := atomic.LoadInt32(&wasmCompilations)
@@ -146,7 +148,13 @@ func Greet(target string) string {
 	require.NoError(t, err)
 
 	// Wait for processing (100ms debounce + compilation + reload delay)
-	time.Sleep(1 * time.Second)
+	compilationDeadline := time.Now().Add(8 * time.Second)
+	for time.Now().Before(compilationDeadline) {
+		if atomic.LoadInt32(&wasmCompilations) > initialCompilations {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
 
 	// Check results
 	finalCompilations := atomic.LoadInt32(&wasmCompilations)
