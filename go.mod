@@ -6,7 +6,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tinywasm/client v0.5.36
 	github.com/tinywasm/context v0.0.13
-	github.com/tinywasm/devflow v0.1.53
+	github.com/tinywasm/devflow v0.1.54
 	github.com/tinywasm/devtui v0.2.56
 	github.com/tinywasm/goflare v0.0.81
 	github.com/tinywasm/kvdb v0.0.21
@@ -80,7 +80,7 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
-	github.com/tinywasm/assetmin v0.2.0
+	github.com/tinywasm/assetmin v0.2.1
 	github.com/tinywasm/devbrowser v0.2.41
 	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/mcpserve v0.0.19

@@ -113,8 +113,8 @@ github.com/tdewolff/parse/v2 v2.8.5 h1:ZmBiA/8Do5Rpk7bDye0jbbDUpXXbCdc3iah4VeUvw
 github.com/tdewolff/parse/v2 v2.8.5/go.mod h1:Hwlni2tiVNKyzR1o6nUs4FOF07URA+JLBLd6dlIXYqo=
 github.com/tdewolff/test v1.0.11 h1:FdLbwQVHxqG16SlkGveC0JVyrJN62COWTRyUFzfbtBE=
 github.com/tdewolff/test v1.0.11/go.mod h1:XPuWBzvdUzhCuxWO1ojpXsyzsA5bFoS3tO/Q3kFuTG8=
-github.com/tinywasm/assetmin v0.2.0 h1:UMenHTNwbpIMD3tFOEeKp3wkXMMtXxOF8+p2N3+AhK0=
-github.com/tinywasm/assetmin v0.2.0/go.mod h1:SWZNMq/LNLY3u2+s8dhAyiGjZ8+OxtgzRmSMpajnHOw=
+github.com/tinywasm/assetmin v0.2.1 h1:PhwzSmF4rGsAYh2bbVx2G8qUNCCjQh5rLGZ3Y0lpVto=
+github.com/tinywasm/assetmin v0.2.1/go.mod h1:SWZNMq/LNLY3u2+s8dhAyiGjZ8+OxtgzRmSMpajnHOw=
 github.com/tinywasm/client v0.5.36 h1:R/tFowEUPXMjmkdTTJckm9dNJFA1Gc3dwFU8w9Fhwvk=
 github.com/tinywasm/client v0.5.36/go.mod h1:mctdlJjVWKB1uq4b9D/27fOoxzBV0lHu5xHxCQ/1KaI=
 github.com/tinywasm/context v0.0.13 h1:9JE3BpoSIisKwim+0E4q3gmy/VGVqjFRIoDK2PORKW8=
@@ -123,8 +123,8 @@ github.com/tinywasm/depfind v0.0.23 h1:jK/lU29UL3vd1AUS4jkMeteKfwT8c6hWCM6lKWgKJ
 github.com/tinywasm/depfind v0.0.23/go.mod h1:3P2YNLsNS4BxTya/dSXqR1KFK5DpWDdUBWc7EGUS8LY=
 github.com/tinywasm/devbrowser v0.2.41 h1:kHWMvTf3RlPHOWrKU+XbkJBDak2msgx0rTXhxM+rxWU=
 github.com/tinywasm/devbrowser v0.2.41/go.mod h1:pOw8W1fpxkZ4zRUR8mzQuvSn/f4I4x5p3asy37LBb1k=
-github.com/tinywasm/devflow v0.1.53 h1:4DAjRLZhw8znOUXm1UPaf43kVWcMUZqlH1yKJMVrlJg=
-github.com/tinywasm/devflow v0.1.53/go.mod h1:fZpuInPpoWyRf/jUMKcLQtA1Xqh+2+9x/6XvCDfAP5Q=
+github.com/tinywasm/devflow v0.1.54 h1:czu3gLdgFd3dbtLkdzcbrTSj1tS1bSP1Wj9mGdw5zC0=
+github.com/tinywasm/devflow v0.1.54/go.mod h1:fZpuInPpoWyRf/jUMKcLQtA1Xqh+2+9x/6XvCDfAP5Q=
 github.com/tinywasm/devtui v0.2.56 h1:lzvwlmEP7kXrtUzeuIDk2fQD3suOMNXKr7y2ZZpjTso=
 github.com/tinywasm/devtui v0.2.56/go.mod h1:u4NJegVUWnKE84djkGEpgxnPJh9/kSBEjHxZ07rYKs0=
 github.com/tinywasm/devwatch v0.0.57 h1:yMZ9IH9aUrQhwSvflaIA9r4bXfDhUa0BTn2a5fz8/Q0=
