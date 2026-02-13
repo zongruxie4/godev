@@ -132,20 +132,16 @@ func TestOpenBrowserCallbackSignaledCorrectly(t *testing.T) {
 	logs := &SafeBuffer{}
 
 	openCalled := make(chan string, 1)
+	exitChan := make(chan bool)
 
-	// Create server config with our callback
-	cfg := &server.Config{
-		AppRootDir: t.TempDir(),
-		AppPort:    port,
-		OpenBrowser: func(p string, https bool) {
+	sh := server.New().
+		SetAppRootDir(t.TempDir()).
+		SetPort(port).
+		SetOpenBrowser(func(p string, https bool) {
 			openCalled <- p
-		},
-		Logger:   logs.Log,
-		ExitChan: make(chan bool),
-		Routes:   []func(*http.ServeMux){},
-	}
-
-	sh := server.New(cfg)
+		}).
+		SetLogger(logs.Log).
+		SetExitChan(exitChan)
 
 	// Start server in goroutine
 	go sh.StartServer(nil)
@@ -172,6 +168,6 @@ func TestOpenBrowserCallbackSignaledCorrectly(t *testing.T) {
 	}
 
 	// Cleanup
-	close(cfg.ExitChan)
+	close(exitChan)
 	time.Sleep(100 * time.Millisecond)
 }

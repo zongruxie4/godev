@@ -1,13 +1,11 @@
 package app
 
 import (
-	"net/http"
 	"path/filepath"
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/devwatch"
-	"github.com/tinywasm/server"
 )
 
 func (h *Handler) AddSectionBUILD() any {
@@ -51,32 +49,18 @@ func (h *Handler) InitBuildHandlers() {
 	})
 
 	// 3. SERVER
-	h.ServerHandler = server.New(&server.Config{
-		AppRootDir:                  h.RootDir,
-		SourceDir:                   h.Config.CmdAppServerDir(),
-		OutputDir:                   h.Config.DeployAppServerDir(),
-		MainInputFile:               h.Config.ServerFileName(),
-		Routes:                      []func(*http.ServeMux){h.AssetsHandler.RegisterRoutes, h.WasmClient.RegisterRoutes},
-		ArgumentsForCompilingServer: func() []string { return []string{"-p", "1"} },
-		ArgumentsToRunServer: func() []string {
-			args := []string{
-				"-public-dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
-				"-port=" + h.Config.ServerPort(),
-			}
-			// APPENDED: Check dev mode
-			if h.DevMode {
-				args = append(args, "-dev")
-			}
-			return append(args, h.WasmClient.ArgumentsForServer()...)
-		},
-		AppPort:              h.Config.ServerPort(),
-		DisableGlobalCleanup: TestMode,
-		ExitChan:             h.ExitChan,
-		Store:                h.DB,
-		UI:                   h.Tui,
-		Logger:               h.Logger,
-		OpenBrowser:          h.Browser.OpenBrowser, // Inject browser open callback
-		OnExternalModeExecution: func(isExternal bool) {
+	h.Server = h.serverFactory()
+
+	// Register routes directly
+	h.Server.RegisterRoutes(h.AssetsHandler.RegisterRoutes)
+	h.Server.RegisterRoutes(h.WasmClient.RegisterRoutes)
+
+	// Wire server-specific callbacks via type assertion
+	type externalModeSupport interface {
+		SetOnExternalModeExecution(fn func(bool))
+	}
+	if srv, ok := h.Server.(externalModeSupport); ok {
+		srv.SetOnExternalModeExecution(func(isExternal bool) {
 			// Orchestrate client and assetmin to disk mode when using external server
 			if h.WasmClient != nil {
 				h.WasmClient.SetBuildOnDisk(isExternal, true)
@@ -84,9 +68,41 @@ func (h *Handler) InitBuildHandlers() {
 			if h.AssetsHandler != nil {
 				h.AssetsHandler.SetExternalSSRCompiler(func() error { return nil }, isExternal)
 			}
-		},
-		GitIgnoreAdd: h.GitHandler.GitIgnoreAdd,
-	})
+		})
+	}
+
+	// Configure server specific arguments
+	type serverConfigurator interface {
+		SetRunArgs(func() []string)
+		SetCompileArgs(func() []string)
+		SetAppRootDir(string)
+		SetSourceDir(string)
+		SetOutputDir(string)
+		SetMainInputFile(string)
+		SetPort(string)
+		SetDisableGlobalCleanup(bool)
+	}
+
+	if srv, ok := h.Server.(serverConfigurator); ok {
+		srv.SetAppRootDir(h.RootDir)
+		srv.SetSourceDir(h.Config.CmdAppServerDir())
+		srv.SetOutputDir(h.Config.DeployAppServerDir())
+		srv.SetMainInputFile(h.Config.ServerFileName())
+		srv.SetPort(h.Config.ServerPort())
+		srv.SetDisableGlobalCleanup(TestMode)
+		srv.SetCompileArgs(func() []string { return []string{"-p", "1"} })
+		srv.SetRunArgs(func() []string {
+			args := []string{
+				"-public-dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
+				"-port=" + h.Config.ServerPort(),
+			}
+			// Check dev mode
+			if h.DevMode {
+				args = append(args, "-dev")
+			}
+			return append(args, h.WasmClient.ArgumentsForServer()...)
+		})
+	}
 
 	// 4. BROWSER
 	// Browser is already injected in Start()
@@ -97,7 +113,7 @@ func (h *Handler) InitBuildHandlers() {
 		FilesEventHandlers: []devwatch.FilesEventHandlers{
 			h.GoModHandler,
 			h.WasmClient,
-			h.ServerHandler,
+			h.Server,
 			h.AssetsHandler,
 		},
 		FolderEvents:  nil,
@@ -114,7 +130,7 @@ func (h *Handler) InitBuildHandlers() {
 			}
 			uf = append(uf, h.AssetsHandler.UnobservedFiles()...)
 			uf = append(uf, h.WasmClient.UnobservedFiles()...)
-			uf = append(uf, h.ServerHandler.UnobservedFiles()...)
+			uf = append(uf, h.Server.UnobservedFiles()...)
 			return uf
 		},
 	})
@@ -146,7 +162,7 @@ func (h *Handler) InitBuildHandlers() {
 
 	// 6. Register Handlers with TUI for logging
 	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.ServerHandler, colorBlueMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Server, colorBlueMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Watcher, colorYellowMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
@@ -161,7 +177,7 @@ func (h *Handler) InitBuildHandlers() {
 		h.AssetsHandler.RefreshAsset(".html")
 
 		// Restart server to pick up new mode arguments
-		if err := h.ServerHandler.Restart(); err != nil {
+		if err := h.Server.RestartServer(); err != nil {
 			h.WasmClient.Logger("Error restarting Server:", err)
 		}
 

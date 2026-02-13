@@ -15,6 +15,7 @@ import (
 	"github.com/tinywasm/app"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/kvdb"
+	"github.com/tinywasm/server"
 )
 
 // logIfVerbose prints test logs only when GOLITE_TEST_VERBOSE is set.
@@ -192,7 +193,18 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 	// Wait a bit for env to propagate if needed (usually instant)
 
 	// Start the application
-	go app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
+	factory := func() app.ServerInterface {
+		s := server.New().
+			SetLogger(logger).
+			SetExitChan(ExitChan).
+			SetStore(ctx.DB).
+			SetUI(ctx.UI).
+			SetOpenBrowser(ctx.Browser.OpenBrowser).
+			SetGitIgnoreAdd(ctx.GitHandler.GitIgnoreAdd)
+		return &TestServerWrapper{s}
+	}
+
+	go app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
 
 	// Wait for handler registration
 	h := app.WaitForActiveHandler(8 * time.Second)

@@ -19,10 +19,16 @@ func NewTestHandler(RootDir string) *app.Handler {
 	gh.SetRootDir(RootDir)
 	git.SetRootDir(RootDir)
 
-	return &app.Handler{
+	h := &app.Handler{
 		Config:    app.NewConfig(RootDir, func(...any) {}),
 		GoHandler: gh,
 	}
+
+	h.SetServerFactory(func() app.ServerInterface {
+		return &MockServer{}
+	})
+
+	return h
 }
 
 // SafeBuffer is a thread-safe buffer for capturing logs in tests

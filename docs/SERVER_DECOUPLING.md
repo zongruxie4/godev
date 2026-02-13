@@ -1,5 +1,7 @@
 # Base A: tinywasm/app — Server Decoupling
 
+> **Status**: Implemented in `docs/SERVER_ARCHITECTURE.md`.
+
 > **Goal**: Remove the hard dependency on `*server.ServerHandler`. Replace it with
 > `ServerInterface` + `ServerFactory` so `main.go` decides which concrete server to
 > inject. `tinywasm/app` itself does NOT import `tinywasm/server` or `tinywasm/wasi`.

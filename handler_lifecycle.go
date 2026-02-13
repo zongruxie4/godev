@@ -41,7 +41,7 @@ func (h *Handler) StartBackgroundServices(wg *sync.WaitGroup) {
 
 		// Start server (blocking, so run in goroutine)
 		go func() {
-			h.ServerHandler.StartServer(wg)
+			h.Server.StartServer(wg)
 		}()
 
 		// Start file Watcher (blocking, so run in goroutine)
