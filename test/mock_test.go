@@ -270,6 +270,10 @@ func (m *MockServer) SupportedExtensions() []string {
 	return []string{}
 }
 
+func (m *MockServer) MainInputFileRelativePath() string {
+	return "main.go"
+}
+
 func (m *MockServer) Name() string {
 	return "mock-server"
 }

@@ -106,7 +106,7 @@ func main() {
 	time.Sleep(500 * time.Millisecond)
 
 	// 6. Enable External Server Mode
-	require.NoError(t, h.ServerHandler.SetExternalServerMode(true))
+	require.NoError(t, h.Server.(*TestServerWrapper).SetExternalServerMode(true))
 
 	// Wait for watchers and startup
 	_ = app.WaitWatcherReady(8 * time.Second)

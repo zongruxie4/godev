@@ -77,7 +77,7 @@ func main() {
 	time.Sleep(200 * time.Millisecond)
 
 	// Enable External Server Mode to support reloading on file changes
-	require.NoError(t, h.ServerHandler.SetExternalServerMode(true))
+	require.NoError(t, h.Server.(*TestServerWrapper).SetExternalServerMode(true))
 
 	Watcher := app.WaitWatcherReady(8 * time.Second)
 	require.NotNil(t, Watcher)

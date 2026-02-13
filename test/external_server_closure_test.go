@@ -46,7 +46,7 @@ func main() {
 
 	// Switch to External Mode
 	t.Log("Switching to External Server Mode...")
-	err = h.ServerHandler.SetExternalServerMode(true)
+	err = h.Server.(*TestServerWrapper).SetExternalServerMode(true)
 	if err != nil {
 		t.Fatalf("Failed to switch to external mode: %v", err)
 	}

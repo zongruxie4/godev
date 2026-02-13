@@ -11,7 +11,6 @@ import (
 	"github.com/tinywasm/goflare"
 	"github.com/tinywasm/kvdb"
 	"github.com/tinywasm/mcpserve"
-	"github.com/tinywasm/server"
 )
 
 type DB interface {
@@ -35,7 +34,9 @@ type Handler struct {
 	DB DB // Key-value store interface
 
 	// Build dependencies
-	ServerHandler *server.ServerHandler
+	Server        ServerInterface
+	serverFactory ServerFactory
+
 	AssetsHandler *assetmin.AssetMin
 	GitHandler    devflow.GitClient
 	GoHandler     *devflow.Go
@@ -65,6 +66,10 @@ func (h *Handler) SetBrowser(b BrowserInterface) {
 	h.Browser = b
 }
 
+func (h *Handler) SetServerFactory(f ServerFactory) {
+	h.serverFactory = f
+}
+
 // CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
 // CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
 func (h *Handler) CheckDevMode() {
@@ -81,7 +86,7 @@ func (h *Handler) CheckDevMode() {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...mcpserve.ToolProvider) {
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...mcpserve.ToolProvider) {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -94,12 +99,13 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		ExitChan:      ExitChan,
 		Logger:        logger,
 
-		DB:           db,
-		GitHandler:   gitHandler,
-		GoHandler:    GoHandler,
-		Browser:      browser,
-		GitHubAuth:   githubAuth,
-		GoModHandler: goModHandler,
+		DB:            db,
+		serverFactory: serverFactory,
+		GitHandler:    gitHandler,
+		GoHandler:     GoHandler,
+		Browser:       browser,
+		GitHubAuth:    githubAuth,
+		GoModHandler:  goModHandler,
 	}
 
 	// Check if we are in dev mode
