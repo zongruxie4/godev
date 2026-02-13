@@ -1,6 +1,7 @@
 package test
 
 import (
+	"net/http"
 	"sync"
 
 	"github.com/tinywasm/devflow"
@@ -231,4 +232,63 @@ func (m *MockGitHubClient) GetHelpfulErrorMessage(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+type MockServer struct {
+	StartServerCalls   int
+	StopServerCalls    int
+	RestartServerCalls int
+	RegisteredRoutes   int
+}
+
+func (m *MockServer) StartServer(wg *sync.WaitGroup) {
+	m.StartServerCalls++
+	if wg != nil {
+		defer wg.Done()
+	}
+}
+
+func (m *MockServer) StopServer() error {
+	m.StopServerCalls++
+	return nil
+}
+
+func (m *MockServer) RestartServer() error {
+	m.RestartServerCalls++
+	return nil
+}
+
+func (m *MockServer) NewFileEvent(fileName, extension, filePath, event string) error {
+	return nil
+}
+
+func (m *MockServer) UnobservedFiles() []string {
+	return []string{}
+}
+
+func (m *MockServer) SupportedExtensions() []string {
+	return []string{}
+}
+
+func (m *MockServer) Name() string {
+	return "mock-server"
+}
+
+func (m *MockServer) Label() string {
+	return "Mock Server"
+}
+
+func (m *MockServer) Value() string {
+	return ""
+}
+
+func (m *MockServer) Change(v string) error {
+	return nil
+}
+
+func (m *MockServer) RefreshUI() {
+}
+
+func (m *MockServer) RegisterRoutes(fn func(*http.ServeMux)) {
+	m.RegisteredRoutes++
 }
