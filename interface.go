@@ -4,8 +4,13 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/tinywasm/kvdb"
 	"github.com/tinywasm/mcpserve"
 )
+
+type DB interface {
+	kvdb.KVStore
+}
 
 type TuiInterface interface {
 	NewTabSection(title, description string) any // returns *tabSection

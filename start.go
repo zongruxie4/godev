@@ -9,13 +9,8 @@ import (
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/goflare"
-	"github.com/tinywasm/kvdb"
 	"github.com/tinywasm/mcpserve"
 )
-
-type DB interface {
-	kvdb.KVStore
-}
 
 // TestMode disables browser auto-start when running tests
 var TestMode bool

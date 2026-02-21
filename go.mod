@@ -8,7 +8,7 @@ require (
 	github.com/tinywasm/deploy v0.0.3
 	github.com/tinywasm/devflow v0.2.9
 	github.com/tinywasm/devtui v0.2.61
-	github.com/tinywasm/goflare v0.0.97
+	github.com/tinywasm/goflare v0.0.98
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.21
 )
