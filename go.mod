@@ -5,6 +5,7 @@ go 1.25.2
 require (
 	github.com/tinywasm/client v0.5.51
 	github.com/tinywasm/context v0.0.17
+	github.com/tinywasm/deploy v0.0.3
 	github.com/tinywasm/devflow v0.2.9
 	github.com/tinywasm/devtui v0.2.61
 	github.com/tinywasm/goflare v0.0.97

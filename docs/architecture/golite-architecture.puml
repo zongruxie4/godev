@@ -12,6 +12,7 @@ package "Core Application" {
         - serverHandler: *ServerHandler
         - assetsHandler: *AssetMin
         - wasmClient: *TinyWasm
+        - DeployCloudflare: *Goflare
         - watcher: *DevWatch
         - browser: *DevBrowser
         - exitChan: chan bool
@@ -19,6 +20,7 @@ package "Core Application" {
         + GodevStart(rootDir, logger)
         + New()
         + AddSectionBUILD()
+        + AddSectionDEPLOY()
     }
 }
 
@@ -140,6 +142,14 @@ package "External Dependencies" {
         + NewFileEvent()
     }
     
+    RECTANGLE GoFlare <<tinywasm/goflare>> {
+        --
+        + GenerateWorkerFiles()
+        + GeneratePagesFiles()
+        + DeployPages()
+        + NewFileEvent()
+    }
+    
     RECTANGLE GoBuild <<cdvelop/gobuild>> {
         --
         + CompileProgram()
@@ -183,6 +193,7 @@ package "External Dependencies" {
 Handler ||--|| AutoConfig : uses
 Handler ||--|| ServerHandler : orchestrates
 Handler ||--|| TinyWasm : controls
+Handler ||--|| GoFlare : deploys
 Handler ||--|| AssetMin : handles
 Handler ||--|| DevWatch : coordinates
 Handler ||--|| DevBrowser : automates
@@ -204,6 +215,7 @@ DevBrowser ||--|| ChromeDP : uses
 
 ServerHandler --|> FileEvent : implements
 TinyWasm --|> FileEvent : implements
+GoFlare --|> FileEvent : implements
 AssetMin --|> FileEvent : implements
 AutoConfig --|> FolderEvent : implements
 

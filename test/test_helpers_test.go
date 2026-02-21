@@ -22,6 +22,7 @@ func NewTestHandler(RootDir string) *app.Handler {
 	h := &app.Handler{
 		Config:    app.NewConfig(RootDir, func(...any) {}),
 		GoHandler: gh,
+		Keys:      &mockSecretStore{},
 	}
 
 	h.SetServerFactory(func() app.ServerInterface {

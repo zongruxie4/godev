@@ -33,6 +33,8 @@ type Handler struct {
 
 	DB DB // Key-value store interface
 
+	Keys SecretStore // System keyring for credentials
+
 	// Build dependencies
 	Server        ServerInterface
 	serverFactory ServerFactory
@@ -86,7 +88,7 @@ func (h *Handler) CheckDevMode() {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...mcpserve.ToolProvider) {
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, keys SecretStore, mcpToolHandlers ...mcpserve.ToolProvider) {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -106,6 +108,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		Browser:       browser,
 		GitHubAuth:    githubAuth,
 		GoModHandler:  goModHandler,
+		Keys:          keys,
 	}
 
 	// Check if we are in dev mode
