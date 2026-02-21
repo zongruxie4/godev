@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
 )
 
@@ -28,9 +27,13 @@ func TestGreetFileRepeatedEdits(t *testing.T) {
 
 	// Create realistic project structure (tinywasm expects web/ directory)
 	err := os.MkdirAll(filepath.Join(tmp, Config.WebDir()), 0755)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create go.mod
 	goModContent := `module example
@@ -40,7 +43,9 @@ go 1.25.2
 require github.com/tinywasm/fmt v0.17.1
 `
 	err = os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create greet.go
 	greetFile := filepath.Join(tmp, "pkg/greet/greet.go")
@@ -53,7 +58,9 @@ func Greet(target string) string {
 }
 `
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// Create web/client.go (tinywasm's expected WASM entry point)
 	clientGoFile := filepath.Join(tmp, Config.WebDir(), Config.ClientFileName())
 	clientGoContent := `//go:build wasm
@@ -74,7 +81,9 @@ func main() {
 }
 `
 	err = os.WriteFile(clientGoFile, []byte(clientGoContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Run go mod tidy
 	tidyCmd := exec.Command("go", "mod", "tidy")
@@ -105,7 +114,9 @@ func main() {
 
 	// Wait for initialization
 	Watcher := app.WaitWatcherReady(6 * time.Second)
-	require.NotNil(t, Watcher)
+	if Watcher == nil {
+		t.Fatal("Watcher is nil")
+	}
 
 	// Perform 5 edits with realistic timing
 	editMessages := []string{
@@ -134,7 +145,9 @@ func Greet(target string) string {
 `, msg)
 
 		err = os.WriteFile(greetFile, []byte(newContent), 0644)
-		require.NoError(t, err)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		// Wait for compilation and reload (poll instead of fixed sleep)
 		// Increased deadline to 2s to handle slow CI/parallel runs

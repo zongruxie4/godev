@@ -194,18 +194,20 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 
 	// Start the application
 	factory := func() app.ServerInterface {
-		s := server.New().
+		return server.New().
 			SetLogger(logger).
 			SetExitChan(ExitChan).
 			SetStore(ctx.DB).
 			SetUI(ctx.UI).
 			SetOpenBrowser(ctx.Browser.OpenBrowser).
 			SetGitIgnoreAdd(ctx.GitHandler.GitIgnoreAdd)
-		return &TestServerWrapper{s}
 	}
 
-	go app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
-
+	appDone := make(chan struct{})
+	go func() {
+		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
+		close(appDone)
+	}()
 	// Wait for handler registration
 	h := app.WaitForActiveHandler(8 * time.Second)
 	if h == nil {
@@ -218,7 +220,11 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 		app.SetActiveHandler(nil)
 		os.Unsetenv("PORT")
 		os.Unsetenv("TINYWASM_MCP_PORT")
-		time.Sleep(100 * time.Millisecond) // Give it time to shut down
+		select {
+		case <-appDone:
+		case <-time.After(5 * time.Second):
+			// force-proceed after 5s even if goroutines are slow
+		}
 	}
 
 	return ctx

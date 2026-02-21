@@ -3,11 +3,10 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/stretchr/testify v1.11.1
-	github.com/tinywasm/client v0.5.36
+	github.com/tinywasm/client v0.5.51
 	github.com/tinywasm/context v0.0.13
-	github.com/tinywasm/devflow v0.2.2
-	github.com/tinywasm/devtui v0.2.56
+	github.com/tinywasm/devflow v0.2.9
+	github.com/tinywasm/devtui v0.2.61
 	github.com/tinywasm/goflare v0.0.81
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.17
@@ -31,7 +30,6 @@ require (
 	github.com/clipperhouse/displaywidth v0.10.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/gen2brain/shm v0.1.1 // indirect
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e // indirect
@@ -53,18 +51,16 @@ require (
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/fmt v0.17.3 // indirect
+	github.com/tinywasm/fmt v0.18.4 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
-	github.com/tinywasm/unixid v0.2.18 // indirect
-	github.com/tinywasm/wasi v0.0.1 // indirect
+	github.com/tinywasm/unixid v0.2.22 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
@@ -84,7 +80,7 @@ require (
 	github.com/tinywasm/assetmin v0.2.1
 	github.com/tinywasm/devbrowser v0.2.41
 	github.com/tinywasm/devwatch v0.0.57
-	github.com/tinywasm/mcpserve v0.0.19
-	github.com/tinywasm/server v0.2.0
+	github.com/tinywasm/mcpserve v0.0.20
+	github.com/tinywasm/server v0.2.7
 	golang.org/x/sys v0.41.0 // indirect
 )

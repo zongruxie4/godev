@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/tinywasm/server"
 )
 
 func TestExternalServerClosure(t *testing.T) {
@@ -46,7 +48,7 @@ func main() {
 
 	// Switch to External Mode
 	t.Log("Switching to External Server Mode...")
-	err = h.Server.(*TestServerWrapper).SetExternalServerMode(true)
+	err = h.Server.(*server.ServerHandler).SetExternalServerMode(true)
 	if err != nil {
 		t.Fatalf("Failed to switch to external mode: %v", err)
 	}

@@ -286,8 +286,7 @@ func (m *MockServer) Value() string {
 	return ""
 }
 
-func (m *MockServer) Change(v string) error {
-	return nil
+func (m *MockServer) Change(v string) {
 }
 
 func (m *MockServer) RefreshUI() {

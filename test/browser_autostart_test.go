@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
 )
 
@@ -16,14 +15,22 @@ func TestBrowserAutoStartCalledOnce(t *testing.T) {
 	tmp := t.TempDir()
 
 	// Create an initialized project (go.mod exists)
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testproject\n\ngo 1.20\n"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testproject\n\ngo 1.20\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create web directory structure like a real project
 	cfg := app.NewConfig(tmp, func(...any) {})
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, cfg.WebDir()), 0755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, cfg.WebPublicDir()), 0755))
+	if err := os.MkdirAll(filepath.Join(tmp, cfg.WebDir()), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmp, cfg.WebPublicDir()), 0755); err != nil {
+		t.Fatal(err)
+	}
 
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, cfg.WebPublicDir(), "index.html"), []byte("<html>Test</html>"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, cfg.WebPublicDir(), "index.html"), []byte("<html>Test</html>"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Temporarily disable TestMode to allow AutoStart to be called
 	originalTestMode := app.TestMode
@@ -80,14 +87,20 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 	tmp := t.TempDir()
 
 	// 1. Create root project with go.mod
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testproject\n\ngo 1.25\n"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testproject\n\ngo 1.25\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// 2. Create the subdirectory (reproduction of 'emptyfolder')
 	subDir := filepath.Join(tmp, "emptyfolder")
-	require.NoError(t, os.MkdirAll(subDir, 0755))
+	if err := os.MkdirAll(subDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// 3. Create web directory in root (because IsPartOfProject checks root)
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, "web"), 0755))
+	if err := os.MkdirAll(filepath.Join(tmp, "web"), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// Temporarily disable TestMode to allow AutoStart
 	originalTestMode := app.TestMode

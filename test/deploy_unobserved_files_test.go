@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/require"
 )
 
 // TestDeployUnobservedFilesNotProcessedByAssetmin replicates the exact bug scenario.
@@ -27,7 +25,9 @@ func TestDeployUnobservedFilesNotProcessedByAssetmin(t *testing.T) {
 	}
 
 	for _, dir := range directories {
-		require.NoError(t, os.MkdirAll(filepath.Join(tmp, dir), 0755))
+		if err := os.MkdirAll(filepath.Join(tmp, dir), 0755); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	// Create a simple edgeworker main.go
@@ -36,26 +36,32 @@ func TestDeployUnobservedFilesNotProcessedByAssetmin(t *testing.T) {
 func main() {
 	println("Edge Worker")
 }`
-	require.NoError(t, os.WriteFile(
+	if err := os.WriteFile(
 		filepath.Join(tmp, "cmd/edgeworker/main.go"),
 		[]byte(edgeWorkerMain),
 		0644,
-	))
+	); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create a simple JS file in web/ui that should be processed
 	themeJS := `console.log("Theme JS - should be in main.js");`
-	require.NoError(t, os.WriteFile(
+	if err := os.WriteFile(
 		filepath.Join(tmp, "web/ui/theme.js"),
 		[]byte(themeJS),
 		0644,
-	))
+	); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create go.mod
 	goMod := `module testproject
 
 go 1.21
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goMod), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goMod), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// ⚠️ CRITICAL: Create _worker.js BEFORE starting tinywasm
 	workerJsPath := filepath.Join(tmp, "deploy/edgeworker/_worker.js")
@@ -65,7 +71,9 @@ export default {
 		return new Response("Edge Worker Response");
 	}
 };`
-	require.NoError(t, os.WriteFile(workerJsPath, []byte(workerContent), 0644))
+	if err := os.WriteFile(workerJsPath, []byte(workerContent), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	ctx := startTestApp(t, tmp)
 	defer ctx.Cleanup()
@@ -76,8 +84,12 @@ export default {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify goflare app.Handler exists and has correct UnobservedFiles
-	require.NotNil(t, h, "ActiveHandler should be set")
-	require.NotNil(t, h.DeployCloudflare, "DeployCloudflare should be initialized")
+	if h == nil {
+		t.Fatal("ActiveHandler should be set")
+	}
+	if h.DeployCloudflare == nil {
+		t.Fatal("DeployCloudflare should be initialized")
+	}
 
 	unobservedFiles := h.DeployCloudflare.UnobservedFiles()
 
@@ -97,17 +109,22 @@ export default {
 				break
 			}
 		}
-		require.True(t, found, "UnobservedFiles should contain: %s", expectedFile)
+		if !found {
+			t.Fatalf("UnobservedFiles should contain: %s", expectedFile)
+		}
 	}
 
 	// Verify paths are relative (not absolute)
 	for _, path := range unobservedFiles {
-		require.False(t, filepath.IsAbs(path),
-			"UnobservedFiles should contain relative paths, got: %s", path)
+		if filepath.IsAbs(path) {
+			t.Fatalf("UnobservedFiles should contain relative paths, got: %s", path)
+		}
 	}
 
 	// File _worker.js was already created BEFORE starting tinywasm
-	require.FileExists(t, workerJsPath, "_worker.js should exist from pre-creation")
+	if _, err := os.Stat(workerJsPath); os.IsNotExist(err) {
+		t.Fatal("_worker.js should exist from pre-creation")
+	}
 
 	// Give time for initial registration to complete
 	time.Sleep(500 * time.Millisecond)
@@ -117,7 +134,9 @@ export default {
 
 	// Trigger a JS file modification to ensure main.js is written
 	themeJsPath := filepath.Join(tmp, "web/ui/theme.js")
-	require.NoError(t, os.WriteFile(themeJsPath, []byte(themeJS+"// modified"), 0644))
+	if err := os.WriteFile(themeJsPath, []byte(themeJS+"// modified"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Wait for processing
 	time.Sleep(300 * time.Millisecond)
@@ -126,7 +145,9 @@ export default {
 	var mainJsContent []byte
 	if _, err := os.Stat(mainJsPath); err == nil {
 		mainJsContent, err = os.ReadFile(mainJsPath)
-		require.NoError(t, err)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	// Parse logs to check if ASSETS app.Handler processed _worker.js

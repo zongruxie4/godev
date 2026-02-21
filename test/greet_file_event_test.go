@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
 )
 
@@ -30,9 +29,13 @@ func TestGreetFileEventTriggersWasmCompilation(t *testing.T) {
 
 	// Create realistic project structure (tinywasm expects web/ directory)
 	err := os.MkdirAll(filepath.Join(tmp, Config.WebDir()), 0755)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 	err = os.MkdirAll(filepath.Join(tmp, "pkg/greet"), 0755)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create go.mod
 	goModContent := `module example
@@ -42,7 +45,9 @@ go 1.25.2
 require github.com/tinywasm/fmt v0.17.1
 `
 	err = os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create greet.go (the dependency we'll edit)
 	greetFile := filepath.Join(tmp, "pkg/greet/greet.go")
@@ -55,7 +60,9 @@ func Greet(target string) string {
 }
 `
 	err = os.WriteFile(greetFile, []byte(greetContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create web/client.go that imports greet (tinywasm's expected WASM entry point)
 	clientGoFile := filepath.Join(tmp, Config.WebDir(), Config.ClientFileName())
@@ -77,7 +84,9 @@ func main() {
 }
 `
 	err = os.WriteFile(clientGoFile, []byte(clientGoContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// NOW run go mod tidy to populate go.sum (after files exist)
 	tidyCmd := exec.Command("go", "mod", "tidy")
@@ -145,7 +154,9 @@ func Greet(target string) string {
 }
 `
 	err = os.WriteFile(greetFile, []byte(updatedGreetContent), 0644)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Wait for processing (100ms debounce + compilation + reload delay)
 	compilationDeadline := time.Now().Add(8 * time.Second)

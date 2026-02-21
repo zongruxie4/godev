@@ -124,7 +124,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(4) // UI, server, Watcher, and MCP server
+	wg.Add(2) // UI and MCP server (always start)
 
 	// ADD SECTIONS using the passed UI interface
 	// CRITICAL: Initialize sections BEFORE starting lifecycle
@@ -152,6 +152,16 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	GoNew := devflow.NewGoNew(gitHandler, githubFuture, GoHandler)
 	GoNew.SetLog(logger)
 	h.GoNew = GoNew
+	// Prevents goroutine leak: drain future when app exits so the
+	// internal goroutine can proceed to close(f.done) and exit.
+	go func() {
+		select {
+		case <-ExitChan:
+			<-githubFuture.Ready() // unblock the future's sender goroutine
+		case <-githubFuture.Ready():
+			// already resolved, nothing to do
+		}
+	}()
 
 	if !h.IsPartOfProject() {
 		sectionWizard := h.AddSectionWIZARD(func() {

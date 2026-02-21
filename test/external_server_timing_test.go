@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/server"
 )
@@ -134,12 +133,12 @@ func TestOpenBrowserCallbackSignaledCorrectly(t *testing.T) {
 	openCalled := make(chan string, 1)
 	exitChan := make(chan bool)
 
-	sh := server.New().
-		SetAppRootDir(t.TempDir()).
-		SetPort(port).
-		SetOpenBrowser(func(p string, https bool) {
-			openCalled <- p
-		}).
+	sh := server.New()
+	sh.SetAppRootDir(t.TempDir())
+	sh.SetPort(port)
+	sh.SetOpenBrowser(func(p string, https bool) {
+		openCalled <- p
+	}).
 		SetLogger(logs.Log).
 		SetExitChan(exitChan)
 
@@ -150,7 +149,9 @@ func TestOpenBrowserCallbackSignaledCorrectly(t *testing.T) {
 	select {
 	case p := <-openCalled:
 		t.Logf("OpenBrowser callback received for port %s", p)
-		require.Equal(t, port, p)
+		if port != p {
+			t.Fatalf("expected %v, got %v", port, p)
+		}
 
 		// Immediately try to connect - should succeed
 		conn, err := net.DialTimeout("tcp", "localhost:"+port, 1*time.Second)

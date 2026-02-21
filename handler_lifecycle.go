@@ -37,6 +37,7 @@ func (h *Handler) OnProjectReady(wg *sync.WaitGroup) {
 // It uses h.startOnce to guarantee services only start once per process.
 func (h *Handler) StartBackgroundServices(wg *sync.WaitGroup) {
 	h.startOnce.Do(func() {
+		wg.Add(2) // Server and Watcher (only when project is ready)
 		h.Tui.SetActiveTab(h.SectionBuild)
 
 		// Start server (blocking, so run in goroutine)

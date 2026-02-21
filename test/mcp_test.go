@@ -1,13 +1,12 @@
 package test
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/mcpserve"
 )
 
@@ -32,18 +31,16 @@ func TestMCPServerInitialization(t *testing.T) {
 	startupErrors := make(chan error, 1)
 
 	// Test that Serve doesn't panic on initialization
-	require.NotPanics(t, func() {
-		go func() {
-			// Catch any panic during Serve
-			defer func() {
-				if r := recover(); r != nil {
-					startupErrors <- assert.AnError
-					t.Errorf("Serve panicked: %v", r)
-				}
-			}()
-			m.Serve()
+	go func() {
+		// Catch any panic during Serve
+		defer func() {
+			if r := recover(); r != nil {
+				startupErrors <- fmt.Errorf("Serve panicked: %v", r)
+				t.Errorf("Serve panicked: %v", r)
+			}
 		}()
-	})
+		m.Serve()
+	}()
 
 	// Give HTTP server time to start
 	time.Sleep(200 * time.Millisecond)
@@ -65,8 +62,9 @@ func TestMCPServerInitialization(t *testing.T) {
 		t.Errorf("Failed to connect to MCP server: %v", err)
 		t.Error("MCP server should be running and accepting connections")
 	} else {
-		defer resp.Body.Close()
-		assert.Equal(t, 200, resp.StatusCode, "MCP server should respond with 200")
+		if resp.StatusCode != 200 {
+			t.Errorf("MCP server should respond with 200, got %v", resp.StatusCode)
+		}
 	}
 
 	// Cleanup: close exit channel to stop server

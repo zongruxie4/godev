@@ -285,15 +285,7 @@ Done. [10x faster, 5x fewer tokens]
 
 ## 📚 **Documentation**
 
-- [**Project Structure Guide**](docs/PROJECT_STRUCTURE_EXAMPLE.md) - Detailed conventions
-- [**Startup Flow**](docs/FLOW_DIAGRAM.md) - Application startup visualization
-- [**DevWatch Flow**](docs/DEVWATCH_FLOW.md) - File watcher and event processing details
-- [**MCP Integration**](docs/MCP.md) - LLM assistant setup and API reference
-- [**WASM Modes**](docs/MODES.md) - Memory vs Disk Modes & Compilation Details
-- [**Server Architecture**](docs/SERVER_ARCHITECTURE.md) - Decoupled Server Architecture
-- [**Architecture & Debugging**](docs/SKILL.md) - Internals & Troubleshooting Guide
-- [**Roadmap**](docs/ROADMAP.md) - Planned features
-
+- [**Architecture & Developer Guide**](docs/ARCHITECTURE.md) - Comprehensive LLM-optimized guide covering project structure, execution modes, startup workflows, devwatch routing, MCP integration, and server decoupling.
 ---
 
 ## 🤝 **Contributing**

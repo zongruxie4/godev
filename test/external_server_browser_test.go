@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
 )
 
@@ -18,22 +17,32 @@ func TestExternalServerBrowserOpens(t *testing.T) {
 	tmp := t.TempDir()
 
 	// Create an initialized project with go.mod
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testexternalserver\n\ngo 1.21\n"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testexternalserver\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create web directory structure
 	cfg := app.NewConfig(tmp, func(...any) {})
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, cfg.WebDir()), 0755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, cfg.WebPublicDir()), 0755))
+	if err := os.MkdirAll(filepath.Join(tmp, cfg.WebDir()), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmp, cfg.WebPublicDir()), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create minimal client.go for WASM
 	clientCode := `package main
 
 func main() {}
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, cfg.WebDir(), "client.go"), []byte(clientCode), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, cfg.WebDir(), "client.go"), []byte(clientCode), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create index.html
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, cfg.WebPublicDir(), "index.html"), []byte("<html><body>Test</body></html>"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, cfg.WebPublicDir(), "index.html"), []byte("<html><body>Test</body></html>"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create EXTERNAL server file - this triggers external server mode
 	serverCode := `package main
@@ -61,8 +70,12 @@ func main() {
 `
 	// Create the server file in the location that triggers external mode
 	serverDir := filepath.Join(tmp, cfg.CmdAppServerDir())
-	require.NoError(t, os.MkdirAll(serverDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(serverDir, cfg.ServerFileName()), []byte(serverCode), 0644))
+	if err := os.MkdirAll(serverDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(serverDir, cfg.ServerFileName()), []byte(serverCode), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// IMPORTANT: Disable TestMode so AutoStart actually runs
 	originalTestMode := app.TestMode
@@ -120,19 +133,29 @@ func TestInternalServerBrowserOpens(t *testing.T) {
 	tmp := t.TempDir()
 
 	// Create initialized project WITHOUT external server file
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testinternalserver\n\ngo 1.21\n"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testinternalserver\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	cfg := app.NewConfig(tmp, func(...any) {})
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, cfg.WebDir()), 0755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, cfg.WebPublicDir()), 0755))
+	if err := os.MkdirAll(filepath.Join(tmp, cfg.WebDir()), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmp, cfg.WebPublicDir()), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// Minimal client.go
 	clientCode := `package main
 
 func main() {}
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, cfg.WebDir(), "client.go"), []byte(clientCode), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, cfg.WebPublicDir(), "index.html"), []byte("<html>Test</html>"), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, cfg.WebDir(), "client.go"), []byte(clientCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, cfg.WebPublicDir(), "index.html"), []byte("<html>Test</html>"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// NO server.go file = internal server mode
 
@@ -145,7 +168,9 @@ func main() {}
 
 	// Wait for browser to open
 	time.Sleep(1 * time.Second)
-	require.Equal(t, 1, ctx.Browser.GetOpenCalls())
+	if ctx.Browser.GetOpenCalls() != 1 {
+		t.Fatalf("expected 1 call, got %d", ctx.Browser.GetOpenCalls())
+	}
 	openCalls := ctx.Browser.GetOpenCalls()
 
 	logContent := ctx.Logs.String()

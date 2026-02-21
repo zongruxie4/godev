@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/server"
 )
 
 // TestServerWatchIntegration reproduces server watch behavior; skipped in -short.
@@ -22,14 +22,20 @@ func TestServerWatchIntegration(t *testing.T) {
 	cfg := app.NewConfig(tmp, func(message ...any) {})
 	appServerDir := filepath.Join(tmp, cfg.CmdAppServerDir())
 	webPublicDir := filepath.Join(tmp, cfg.WebPublicDir())
-	require.NoError(t, os.MkdirAll(appServerDir, 0755))
-	require.NoError(t, os.MkdirAll(webPublicDir, 0755))
+	if err := os.MkdirAll(appServerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(webPublicDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	goModContent := `module testproject
 
 go 1.20
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644))
+	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	serverFilePath := filepath.Join(appServerDir, "server.go")
 	initialServerContent := `package main
@@ -66,8 +72,12 @@ func main() {
 }
 `
 
-	require.NoError(t, os.WriteFile(serverFilePath, []byte(initialServerContent), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644))
+	if err := os.WriteFile(serverFilePath, []byte(initialServerContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(webPublicDir, "index.html"), []byte("<html>Test</html>"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	ctx := startTestApp(t, tmp)
 	defer ctx.Cleanup()
@@ -77,10 +87,14 @@ func main() {
 	time.Sleep(200 * time.Millisecond)
 
 	// Enable External Server Mode to support reloading on file changes
-	require.NoError(t, h.Server.(*TestServerWrapper).SetExternalServerMode(true))
+	if err := h.Server.(*server.ServerHandler).SetExternalServerMode(true); err != nil {
+		t.Fatal(err)
+	}
 
 	Watcher := app.WaitWatcherReady(8 * time.Second)
-	require.NotNil(t, Watcher)
+	if Watcher == nil {
+		t.Fatal("Watcher is nil")
+	}
 
 	time.Sleep(500 * time.Millisecond)
 
@@ -120,7 +134,9 @@ func main() {
 }
 `
 
-	require.NoError(t, os.WriteFile(serverFilePath, []byte(modifiedServerContent), 0644))
+	if err := os.WriteFile(serverFilePath, []byte(modifiedServerContent), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Wait for event with timeout
 	deadline := time.Now().Add(3 * time.Second)
