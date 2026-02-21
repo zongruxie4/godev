@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/tinywasm/app"
-	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devbrowser"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devtui"
@@ -103,8 +102,6 @@ func main() {
 		}
 	}
 
-	keys := deploy.NewSystemKeyManager()
-
 	// Start TinyWasm
-	app.Start(startDir, logger.Logger, ui, browser, db, exitChan, srvFactory, githubAuth, gitHandler, goModHandler, keys, ui)
+	app.Start(startDir, logger.Logger, ui, browser, db, exitChan, srvFactory, githubAuth, gitHandler, goModHandler, ui)
 }

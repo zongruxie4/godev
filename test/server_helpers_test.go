@@ -120,10 +120,6 @@ type TestContext struct {
 	Cleanup    func()
 }
 
-type mockSecretStore struct{}
-
-func (m *mockSecretStore) Get(s, u string) (string, error) { return "", nil }
-func (m *mockSecretStore) Set(s, u, p string) error        { return nil }
 
 // startTestApp starts the app for testing and disables Browser auto-start.
 // Returns a TestContext containing the handler, mocks, and a cleanup function.
@@ -210,7 +206,7 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 
 	appDone := make(chan struct{})
 	go func() {
-		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH, &mockSecretStore{})
+		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
 		close(appDone)
 	}()
 	// Wait for handler registration

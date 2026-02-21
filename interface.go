@@ -21,13 +21,6 @@ type TuiInterface interface {
 	SetActiveTab(section any) // sets the active tab section
 }
 
-// SecretStore manages credentials in the system keyring.
-// Implemented by: deploy.SystemKeyManager (production), MockKeyManager (tests)
-type SecretStore interface {
-	Get(service, user string) (string, error)
-	Set(service, user, password string) error
-}
-
 // BrowserInterface defines the browser operations needed by the app.
 // Implementations: devbrowser.DevBrowser (production), MockBrowser (tests)
 type BrowserInterface interface {
