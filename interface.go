@@ -41,7 +41,7 @@ type ServerInterface interface {
 	Name() string
 	Label() string
 	Value() string
-	Change(v string) error
+	Change(v string)
 	RefreshUI()
 	// Route Registration
 	RegisterRoutes(fn func(*http.ServeMux))
