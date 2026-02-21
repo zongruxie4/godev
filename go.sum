@@ -121,8 +121,8 @@ github.com/tinywasm/context v0.0.17 h1:3BMVOJksFTVka9rO2rEx9+kG4Xzn/IBpyktBQHhZJ
 github.com/tinywasm/context v0.0.17/go.mod h1:w49WVGNfikngl3S6UcUin1rY6CNAC6wlmfE78iVfL6Q=
 github.com/tinywasm/depfind v0.0.23 h1:jK/lU29UL3vd1AUS4jkMeteKfwT8c6hWCM6lKWgKJyw=
 github.com/tinywasm/depfind v0.0.23/go.mod h1:3P2YNLsNS4BxTya/dSXqR1KFK5DpWDdUBWc7EGUS8LY=
-github.com/tinywasm/deploy v0.0.3 h1:WD+2NNpiLrX2COPSP5uhwvVV83t8B6L62ADFyMHdAt0=
-github.com/tinywasm/deploy v0.0.3/go.mod h1:dAKbEFRnznBOamcEE9LG9hzetVu0PleQWhZmT/8kQek=
+github.com/tinywasm/deploy v0.0.4 h1:TCn7eY5UmGx1Ez/ogq1eEbqETZ5WhrIeRi3m5lXt1YY=
+github.com/tinywasm/deploy v0.0.4/go.mod h1:gYHDBbMCKIKNPkI+N8eQtJ7yWzOXEQ0TbJJH791NxdA=
 github.com/tinywasm/devbrowser v0.2.41 h1:kHWMvTf3RlPHOWrKU+XbkJBDak2msgx0rTXhxM+rxWU=
 github.com/tinywasm/devbrowser v0.2.41/go.mod h1:pOw8W1fpxkZ4zRUR8mzQuvSn/f4I4x5p3asy37LBb1k=
 github.com/tinywasm/devflow v0.2.9 h1:oRrZJLPUYvkLlJAQb+mRcw9I6xXCVJIpgBSWiCFNMcw=
@@ -131,8 +131,8 @@ github.com/tinywasm/devtui v0.2.61 h1:Q1pnmdyP8opUdtYs/dkzltXg+byVw8ICiPRp8+KhPi
 github.com/tinywasm/devtui v0.2.61/go.mod h1:J/hZ8JDrV91+Hl5ja5upWTwtUIFOTGG/TaHb/RhlfqU=
 github.com/tinywasm/devwatch v0.0.57 h1:yMZ9IH9aUrQhwSvflaIA9r4bXfDhUa0BTn2a5fz8/Q0=
 github.com/tinywasm/devwatch v0.0.57/go.mod h1:/q+VXyPhcaqKyEQt5Coxfx8jORKCDpqYxNKWI4Fba24=
-github.com/tinywasm/fmt v0.18.4 h1:rzc+IPMHXDRXLPY0LrQSQWZW9gQwu6W5ii4pIPSncqI=
-github.com/tinywasm/fmt v0.18.4/go.mod h1:L2GCAi6asgytPV6TVvGrRq5Ml+DkUt1Ijo5i/2J1jOY=
+github.com/tinywasm/fmt v0.18.5 h1:Tz2wsGieLbXBZgdPCUJEszdLaxKfWoNN+29YTZRXOHc=
+github.com/tinywasm/fmt v0.18.5/go.mod h1:L2GCAi6asgytPV6TVvGrRq5Ml+DkUt1Ijo5i/2J1jOY=
 github.com/tinywasm/gobuild v0.0.24 h1:3AijOMF72/h4LOly/EZfBSoLqEdS7FSH73c0vwfHXAg=
 github.com/tinywasm/gobuild v0.0.24/go.mod h1:48JVlXnOy8ZBiz/vz5rWMxv4ZrQvB5Fbw22kOx6RfZY=
 github.com/tinywasm/goflare v0.0.98 h1:0zttk29nflqD6wGTURsnYOffXP+rPV2JB2nDSfcRcRk=

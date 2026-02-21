@@ -5,7 +5,7 @@ go 1.25.2
 require (
 	github.com/tinywasm/client v0.5.51
 	github.com/tinywasm/context v0.0.17
-	github.com/tinywasm/deploy v0.0.3
+	github.com/tinywasm/deploy v0.0.4
 	github.com/tinywasm/devflow v0.2.9
 	github.com/tinywasm/devtui v0.2.61
 	github.com/tinywasm/goflare v0.0.98
@@ -57,7 +57,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/fmt v0.18.4 // indirect
+	github.com/tinywasm/fmt v0.18.5 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
