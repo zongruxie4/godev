@@ -55,4 +55,4 @@ type ServerInterface interface {
 // ServerFactory creates and configures the concrete server.
 // Routes and callbacks are NOT passed here — they are registered directly
 // on the returned ServerInterface after InitBuildHandlers creates them.
-type ServerFactory func() ServerInterface
+type ServerFactory func(exitChan chan bool, ui TuiInterface, browser BrowserInterface) ServerInterface

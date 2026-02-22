@@ -19,6 +19,7 @@ var Version = "dev"
 func main() {
 	// NEW: Parse debug flag for unfiltered logging
 	debugFlag := flag.Bool("debug", false, "Enable debug mode for unfiltered logs")
+    mcpFlag := flag.Bool("mcp", false, "Run as MCP Daemon")
 	flag.Parse()
 
 	// Initialize start directory
@@ -27,8 +28,6 @@ func main() {
 		log.Fatal("Error getting current working directory:", err)
 		return
 	}
-
-	exitChan := make(chan bool)
 
 	// Create a Logger instance
 	logger := app.NewLogger()
@@ -53,16 +52,6 @@ func main() {
 
 	goModHandler.SetLog(logger.Logger)
 
-	// Create DevTUI instance
-	ui := devtui.NewTUI(&devtui.TuiConfig{
-		AppName:    "TINYWASM",
-		AppVersion: Version,
-		ExitChan:   exitChan,
-		Color:      devtui.DefaultPalette(),
-		Logger:     func(messages ...any) { logger.Logger(messages...) },
-		Debug:      *debugFlag,
-	})
-
 	// Initialize DB
 	db, err := kvdb.New(filepath.Join(startDir, ".env"), logger.Logger, &app.FileStore{})
 	if err != nil {
@@ -70,38 +59,57 @@ func main() {
 		return
 	}
 
-	// Create DevBrowser instance
-	browser := devbrowser.New(ui, db, exitChan)
-	browser.SetLog(func(messages ...any) { logger.Logger(messages...) })
+    // Configure Bootstrap
+    cfg := app.BootstrapConfig{
+        StartDir: startDir,
+        McpMode: *mcpFlag,
+        Debug: *debugFlag,
+        Logger: logger.Logger,
+        DB: db,
+        GitHandler: gitHandler,
+        GoModHandler: goModHandler,
+        GitHubAuth: devflow.NewGitHubAuth(),
 
-	// Create GitHub Auth handler for TUI integration
-	githubAuth := devflow.NewGitHubAuth()
+        TuiFactory: func(exitChan chan bool) app.TuiInterface {
+            return devtui.NewTUI(&devtui.TuiConfig{
+				AppName:    "TINYWASM",
+				AppVersion: Version,
+				ExitChan:   exitChan,
+				Color:      devtui.DefaultPalette(),
+				Logger:     func(messages ...any) { logger.Logger(messages...) },
+				Debug:      *debugFlag,
+			})
+        },
 
-	// Configure Server Factory
-	// We use DB to decide which server implementation to use
-	serverType, err := db.Get("TINYWASM_SERVER")
-	if err != nil {
-		serverType = "server" // Default fallback
-	}
+        BrowserFactory: func(ui app.TuiInterface, exitChan chan bool) app.BrowserInterface {
+            browser := devbrowser.New(ui, db, exitChan)
+	        browser.SetLog(func(messages ...any) { logger.Logger(messages...) })
+            return browser
+        },
 
-	var srvFactory app.ServerFactory
+        ServerFactory: func(exitChan chan bool, ui app.TuiInterface, browser app.BrowserInterface) app.ServerInterface {
+            // We use DB to decide which server implementation to use
+            serverType, err := db.Get("TINYWASM_SERVER")
+            if err != nil {
+                serverType = "server" // Default fallback
+            }
 
-	switch serverType {
-	case "wasi":
+            switch serverType {
+            case "wasi":
+                 // Not implemented yet or just return nil/log
+                 return nil
+            default:
+                // Default Server implementation
+                return server.New().
+                    SetLogger(logger.Logger).
+                    SetExitChan(exitChan).
+                    SetStore(db).
+                    SetUI(ui).
+                    SetOpenBrowser(browser.OpenBrowser).
+                    SetGitIgnoreAdd(gitHandler.GitIgnoreAdd)
+            }
+        },
+    }
 
-	default:
-		// Default Server implementation
-		srvFactory = func() app.ServerInterface {
-			return server.New().
-				SetLogger(logger.Logger).
-				SetExitChan(exitChan).
-				SetStore(db).
-				SetUI(ui).
-				SetOpenBrowser(browser.OpenBrowser).
-				SetGitIgnoreAdd(gitHandler.GitIgnoreAdd)
-		}
-	}
-
-	// Start TinyWasm
-	app.Start(startDir, logger.Logger, ui, browser, db, exitChan, srvFactory, githubAuth, gitHandler, goModHandler, ui)
+    app.Bootstrap(cfg)
 }

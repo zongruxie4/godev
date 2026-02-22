@@ -3,10 +3,10 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.5.51
+	github.com/tinywasm/client v0.5.53
 	github.com/tinywasm/context v0.0.17
 	github.com/tinywasm/deploy v0.1.0
-	github.com/tinywasm/devflow v0.2.9
+	github.com/tinywasm/devflow v0.2.10
 	github.com/tinywasm/devtui v0.2.63
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.22
@@ -44,7 +44,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect
-	github.com/mark3labs/mcp-go v0.43.2 // indirect
+	github.com/mark3labs/mcp-go v0.44.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
@@ -58,8 +58,9 @@ require (
 	github.com/tinywasm/depfind v0.0.23 // indirect
 	github.com/tinywasm/fmt v0.18.5 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
-	github.com/tinywasm/goflare v0.0.98 // indirect
+	github.com/tinywasm/goflare v0.0.100 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
+	github.com/tinywasm/sse v0.0.10 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
 	github.com/tinywasm/unixid v0.2.22 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
@@ -81,9 +82,7 @@ require (
 	github.com/tinywasm/assetmin v0.2.1
 	github.com/tinywasm/devbrowser v0.2.41
 	github.com/tinywasm/devwatch v0.0.57
-	github.com/tinywasm/mcpserve v0.0.20
+	github.com/tinywasm/mcpserve v0.0.21
 	github.com/tinywasm/server v0.2.7
 	golang.org/x/sys v0.41.0 // indirect
 )
-
-replace github.com/tinywasm/goflare => ../goflare
