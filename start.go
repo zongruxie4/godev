@@ -6,9 +6,9 @@ import (
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/client"
+	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
-	"github.com/tinywasm/goflare"
 	"github.com/tinywasm/mcpserve"
 )
 
@@ -28,7 +28,6 @@ type Handler struct {
 
 	DB DB // Key-value store interface
 
-
 	// Build dependencies
 	Server        ServerInterface
 	serverFactory ServerFactory
@@ -43,9 +42,8 @@ type Handler struct {
 	GitHubAuth    any
 
 	// Deploy dependencies
-	DeployCloudflare *goflare.Goflare
+	DeployManager *deploy.Daemon
 
-	// Lifecycle management
 	// Lifecycle management
 	startOnce     sync.Once
 	SectionBuild  any // Store reference to build tab

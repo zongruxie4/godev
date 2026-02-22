@@ -5,12 +5,11 @@ go 1.25.2
 require (
 	github.com/tinywasm/client v0.5.51
 	github.com/tinywasm/context v0.0.17
-	github.com/tinywasm/deploy v0.0.4
+	github.com/tinywasm/deploy v0.1.0
 	github.com/tinywasm/devflow v0.2.9
-	github.com/tinywasm/devtui v0.2.61
-	github.com/tinywasm/goflare v0.0.98
+	github.com/tinywasm/devtui v0.2.62
 	github.com/tinywasm/kvdb v0.0.21
-	github.com/tinywasm/wizard v0.0.21
+	github.com/tinywasm/wizard v0.0.22
 )
 
 require (
@@ -59,6 +58,7 @@ require (
 	github.com/tinywasm/depfind v0.0.23 // indirect
 	github.com/tinywasm/fmt v0.18.5 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
+	github.com/tinywasm/goflare v0.0.98 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
 	github.com/tinywasm/unixid v0.2.22 // indirect
@@ -85,3 +85,5 @@ require (
 	github.com/tinywasm/server v0.2.7
 	golang.org/x/sys v0.41.0 // indirect
 )
+
+replace github.com/tinywasm/goflare => ../goflare

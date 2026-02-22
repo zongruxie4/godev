@@ -5,7 +5,6 @@ import (
 
 	"github.com/tinywasm/context"
 	"github.com/tinywasm/deploy"
-	"github.com/tinywasm/goflare"
 	"github.com/tinywasm/wizard"
 )
 
@@ -18,44 +17,32 @@ func (h *Handler) AddSectionDEPLOY() any {
 // InitDeployHandlers initializes deploy handlers after build handlers are ready.
 // Called from InitBuildHandlers to ensure Watcher exists.
 func (h *Handler) InitDeployHandlers() {
-	// goflare: pure WASM compiler for Cloudflare Workers/Pages
-	h.DeployCloudflare = goflare.New(&goflare.Config{
-		AppRootDir:              h.Config.RootDir,
-		RelativeInputDirectory:  h.Config.CmdEdgeWorkerDir,
-		RelativeOutputDirectory: h.Config.DeployEdgeWorkerDir,
-		MainInputFile:           "main.go",
-		CompilingArguments:      nil,
-		OutputWasmFileName:      "app.wasm",
+	d := deploy.NewDaemon(&deploy.DaemonConfig{
+		AppRootDir:          h.Config.RootDir,
+		CmdEdgeWorkerDir:    h.Config.CmdEdgeWorkerDir(),
+		DeployEdgeWorkerDir: h.Config.DeployEdgeWorkerDir(),
+		OutputWasmFileName:  "app.wasm",
+		DeployConfigPath:    filepath.Join(h.RootDir, "deploy.yaml"),
+		Store:               h.DB,
 	})
-	h.Tui.AddHandler(h.DeployCloudflare, colorYellowLight, h.SectionDeploy)
-	h.Watcher.AddFilesEventHandlers(h.DeployCloudflare)
-
-	// deploy: single orchestrator for all deploy methods (cloudflare/webhook/ssh)
-	// h.DB satisfies deploy.Store directly (kvdb.KVStore has Get/Set flat keys)
-	d := &deploy.Deploy{
-		Store:      h.DB,
-		Process:    deploy.NewProcessManager(),
-		Downloader: deploy.NewDownloader(),
-		Checker:    deploy.NewChecker(),
-		ConfigPath: filepath.Join(h.RootDir, "deploy.yaml"),
-	}
 	d.SetLog(h.Logger)
+	h.DeployManager = d
+
+	h.Tui.AddHandler(d.EdgeWorker(), colorYellowLight, h.SectionDeploy)
+	h.Watcher.AddFilesEventHandlers(d)
 
 	if d.IsConfigured() {
-		h.Tui.AddHandler(d, colorOrangeLight, h.SectionDeploy)
+		h.Tui.AddHandler(d.Puller(), colorOrangeLight, h.SectionDeploy)
 	} else {
 		h.initDeployWizard(d)
 	}
 }
 
-func (h *Handler) initDeployWizard(d *deploy.Deploy) {
-	sectionSetup := h.Tui.NewTabSection("DEPLOY SETUP", "Deployment Configuration")
-
+func (h *Handler) initDeployWizard(d *deploy.Daemon) {
 	w := wizard.New(func(ctx *context.Context) {
-		h.Tui.SetActiveTab(h.SectionDeploy)
-		h.Tui.AddHandler(d, colorOrangeLight, h.SectionDeploy)
+		h.Tui.AddHandler(d.Puller(), colorOrangeLight, h.SectionDeploy)
 	}, d)
 
-	h.Tui.AddHandler(w, colorOrangeLight, sectionSetup)
-	h.Tui.SetActiveTab(sectionSetup)
+	h.Tui.AddHandler(w, colorOrangeLight, h.SectionDeploy)
+	h.Tui.SetActiveTab(h.SectionDeploy)
 }

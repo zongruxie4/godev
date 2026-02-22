@@ -23,24 +23,6 @@ type mockUI struct{}
 func (m *mockUI) RefreshUI()         {}
 func (m *mockUI) ReturnFocus() error { return nil }
 
-// mockStore implements devbrowser's store interface
-type mockStore struct {
-	data map[string]string
-}
-
-func newMockStore() *mockStore {
-	return &mockStore{data: make(map[string]string)}
-}
-
-func (m *mockStore) Get(key string) (string, error) {
-	return m.data[key], nil
-}
-
-func (m *mockStore) Set(key, value string) error {
-	m.data[key] = value
-	return nil
-}
-
 // TestRealBrowserWaitsForServerReady verifies that the real devbrowser
 // waits for serverReady signal before opening. If this test fails, it indicates
 // the browser tried to open before server was ready (ERR_CONNECTION_REFUSED bug).
@@ -135,29 +117,4 @@ func TestRealBrowserOpensOnlyOnce(t *testing.T) {
 
 	// Cleanup
 	browser.CloseBrowser()
-}
-
-// Helper function to check if string contains substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
-}
-
-func containsHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}
-
-// Helper to count occurrences
-func countOccurrences(s, substr string) int {
-	count := 0
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			count++
-		}
-	}
-	return count
 }

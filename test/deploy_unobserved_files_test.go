@@ -87,11 +87,11 @@ export default {
 	if h == nil {
 		t.Fatal("ActiveHandler should be set")
 	}
-	if h.DeployCloudflare == nil {
-		t.Fatal("DeployCloudflare should be initialized")
+	if h.DeployManager == nil {
+		t.Fatal("DeployManager should be initialized")
 	}
 
-	unobservedFiles := h.DeployCloudflare.UnobservedFiles()
+	unobservedFiles := h.DeployManager.UnobservedFiles()
 
 	// Verify UnobservedFiles contains the expected files (both should be RELATIVE paths)
 	expectedFiles := []string{
