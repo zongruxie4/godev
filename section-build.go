@@ -49,7 +49,7 @@ func (h *Handler) InitBuildHandlers() {
 	})
 
 	// 3. SERVER
-	h.Server = h.serverFactory()
+	h.Server = h.serverFactory(h.ExitChan, h.Tui, h.Browser)
 
 	// Register routes directly
 	h.Server.RegisterRoutes(h.AssetsHandler.RegisterRoutes)

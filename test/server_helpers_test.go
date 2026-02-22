@@ -194,19 +194,19 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 	// Wait a bit for env to propagate if needed (usually instant)
 
 	// Start the application
-	factory := func() app.ServerInterface {
+	factory := func(exitChan chan bool, ui app.TuiInterface, browser app.BrowserInterface) app.ServerInterface {
 		return server.New().
 			SetLogger(logger).
-			SetExitChan(ExitChan).
+			SetExitChan(exitChan).
 			SetStore(ctx.DB).
-			SetUI(ctx.UI).
-			SetOpenBrowser(ctx.Browser.OpenBrowser).
+			SetUI(ui).
+			SetOpenBrowser(browser.OpenBrowser).
 			SetGitIgnoreAdd(ctx.GitHandler.GitIgnoreAdd)
 	}
 
 	appDone := make(chan struct{})
 	go func() {
-		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH)
+		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH, false)
 		close(appDone)
 	}()
 	// Wait for handler registration

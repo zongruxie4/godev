@@ -48,6 +48,7 @@ type Handler struct {
 	startOnce     sync.Once
 	SectionBuild  any // Store reference to build tab
 	SectionDeploy any // Store reference to deploy tab
+	RestartRequested bool
 
 	// MCP Handler for LLM integration
 	MCP *mcpserve.Handler
@@ -80,7 +81,7 @@ func (h *Handler) CheckDevMode() {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, mcpToolHandlers ...mcpserve.ToolProvider) {
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, mcpToolHandlers ...mcpserve.ToolProvider) bool {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -114,7 +115,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	homeDir, _ := os.UserHomeDir()
 	if startDir == homeDir || startDir == "/" {
 		logger("Cannot run tinywasm in user root directory. Please run in a Go project directory")
-		return
+		return false
 	}
 
 	var wg sync.WaitGroup
@@ -204,7 +205,12 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	}()
 
 	// Start the UI (passed from main.go)
-	go h.Tui.Start(&wg)
+	if !headless {
+		go h.Tui.Start(&wg)
+	} else {
+		wg.Done()
+	}
 
 	wg.Wait()
+	return h.RestartRequested
 }

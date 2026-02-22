@@ -24,7 +24,7 @@ func NewTestHandler(RootDir string) *app.Handler {
 		GoHandler: gh,
 	}
 
-	h.SetServerFactory(func() app.ServerInterface {
+	h.SetServerFactory(func(exitChan chan bool, ui app.TuiInterface, browser app.BrowserInterface) app.ServerInterface {
 		return &MockServer{}
 	})
 

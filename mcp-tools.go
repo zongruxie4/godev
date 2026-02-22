@@ -31,5 +31,19 @@ func (h *Handler) GetMCPToolsMetadata() []mcpserve.ToolMetadata {
 				}
 			},
 		},
+		{
+			Name:        "start_development",
+			Description: "Restart the application server and tools. Useful when configuration changes require a full restart.",
+			Parameters:  []mcpserve.ParameterMetadata{},
+			Execute: func(args map[string]any) {
+				h.Logger("Restart triggered via MCP...")
+				h.RestartRequested = true
+				// Signal exit to stop current loop
+				select {
+				case h.ExitChan <- true:
+				default:
+				}
+			},
+		},
 	}
 }
