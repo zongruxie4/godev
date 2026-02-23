@@ -42,11 +42,16 @@ The app operates in two primary modes based on the presence of user's `web/serve
 3. **WASI Builder (Optional)**:
    - Watches `modules/*/wasm/`, compiles generic `.wasm` via `tinygo -target wasi`, hot-swaps payloads.
 
-## 4. MCP vs TUI (STDIO Conflict)
+## 4. MCP Daemon & TUI Client Architecture
 **CRITICAL**: Bubble Tea (DevTUI) and MCP both require `stdio`, causing lockups if shared.
-**Solution**: MCP **MUST** run over HTTP via `StreamableHTTP`, natively on port `3100` (configurable via `--mcp-port`).
-- Standard startup: `tinywasm` (starts TUI on stdio, MCP on `:3100`).
-- Claude config: Transport `http`, URL `http://localhost:3100/mcp`.
+**Solution**: The project employs a Persistent Global Daemon architecture.
+- **Global Daemon (`tinywasm -mcp`)**: Runs persistently on port `3030` using `StreamableHTTP`. It registers global tools like `start_development` (via `daemonToolProvider`) and manages headless project execution, shielding the LLM from restarts.
+- **TUI Client (`tinywasm`)**: When a user types `tinywasm`, it detects the daemon on `3030`, runs `app.Start` in `clientMode` (to inject layout sections), and connects strictly as a viewer via Server-Sent Events (`/logs`).
+- **Keyboard Webhooks**: In Client Mode, keys like `q` (quit) and `r` (reload) are routed seamlessly via HTTP POST to `http://localhost:3030/action?key=...`.
+
+**IDE Configuration**: 
+- Transport: `http`
+- URL: `http://localhost:3030/mcp`
 
 ## 5. Startup Flow (`start.go`)
 1. Initialize KVDB -> Configure Modes (Local vs Server).

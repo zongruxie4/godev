@@ -1,22 +1,29 @@
 ```mermaid
 sequenceDiagram
     actor Dev as Developer
-    participant Cmd as cmd/tinywasm/main.go
-    participant MCP as mcpserve (Daemon 3030)
-    participant TUI as devtui (Client)
+    participant IDE as IDE / LLM
+    participant Cmd as TUI Client (tinywasm)
+    participant MCP as MCP Daemon (3030)
+    participant Provider as daemonToolProvider
     participant App as app.Start() (Backend)
 
-    Dev->>Cmd: Execute `tinywasm`
+    IDE->>MCP: Call tool `start_development`
+    MCP->>Provider: Execute tool logic
+    Provider->>App: Stop old & Start `app.Start(headless=true)`
+    
+    Dev->>Cmd: Execute `tinywasm` (No args)
     Cmd->>Cmd: tcp dial localhost:3030
-    alt Port 3030 Not Responding
-        Cmd->>MCP: Start `tinywasm -mcp` (Background)
-        MCP-->>Cmd: Port ready
+    alt Port 3030 Responding
+        Cmd->>Cmd: app.Start(clientMode=true)
+        Cmd->>MCP: Connect SSE `GET /logs`
+        App-->>MCP: Send Logs via sseHub
+        MCP-->>Cmd: Stream SSE logs to tabs
+        Cmd-->>Dev: Display Graphical Interface (Bubbletea)
     end
-    Cmd->>MCP: POST /attach {path: $PWD}
-    MCP->>App: Start `app.Start(headless=true)`
-    Cmd->>TUI: Start `devtui.NewTUI(ClientMode)`
-    TUI->>MCP: Connect SSE `GET /logs`
-    App-->>MCP: Send Logs
-    MCP-->>TUI: Stream SSE
-    TUI-->>Dev: Display Interface (Bubbletea)
+    
+    Dev->>Cmd: Press 'q'
+    Cmd->>MCP: HTTP POST `/action?key=q`
+    MCP->>Provider: OnUIAction("q")
+    Provider->>App: Cancel Context (Stop Backend)
+    Cmd-->>Dev: Exit to OS Shell
 ```
