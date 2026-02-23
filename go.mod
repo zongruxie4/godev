@@ -15,8 +15,6 @@ require (
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/bahlo/generic-list-go v0.2.0 // indirect
-	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/charmbracelet/bubbles v1.0.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.10 // indirect
 	github.com/charmbracelet/colorprofile v0.4.1 // indirect
@@ -37,14 +35,11 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/google/uuid v1.6.0 // indirect
-	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/jezek/xgb v1.3.0 // indirect
 	github.com/kbinani/screenshot v0.0.0-20250624051815-089614a94018 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
-	github.com/mailru/easyjson v0.9.1 // indirect
-	github.com/mark3labs/mcp-go v0.44.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
@@ -53,19 +48,17 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/spf13/cast v1.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
 	github.com/tinywasm/fmt v0.18.5 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/goflare v0.0.100 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
+	github.com/tinywasm/mcp v0.0.0-20260222182815-eed752284ce7 // indirect
 	github.com/tinywasm/sse v0.0.10 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
 	github.com/tinywasm/unixid v0.2.22 // indirect
-	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
 	golang.design/x/clipboard v0.7.1 // indirect
 	golang.org/x/exp/shiny v0.0.0-20260211191109-2735e65f0518 // indirect
@@ -86,3 +79,7 @@ require (
 	github.com/tinywasm/server v0.2.7
 	golang.org/x/sys v0.41.0 // indirect
 )
+
+replace github.com/tinywasm/mcpserve => ../mcpserve
+
+replace github.com/tinywasm/sse => ../sse

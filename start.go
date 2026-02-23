@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"sync"
 
@@ -45,9 +46,9 @@ type Handler struct {
 	DeployManager *deploy.Daemon
 
 	// Lifecycle management
-	startOnce     sync.Once
-	SectionBuild  any // Store reference to build tab
-	SectionDeploy any // Store reference to deploy tab
+	startOnce        sync.Once
+	SectionBuild     any // Store reference to build tab
+	SectionDeploy    any // Store reference to deploy tab
 	RestartRequested bool
 
 	// MCP Handler for LLM integration
@@ -81,7 +82,7 @@ func (h *Handler) CheckDevMode() {
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, mcpToolHandlers ...mcpserve.ToolProvider) bool {
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, mcpToolHandlers ...mcpserve.ToolProvider) bool {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -101,6 +102,15 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		Browser:       browser,
 		GitHubAuth:    githubAuth,
 		GoModHandler:  goModHandler,
+	}
+
+	// Wrap logger to also broadcast to MCP if initialized.
+	// This ensures that all components using h.Logger will broadcast to SSE.
+	h.Logger = func(messages ...any) {
+		logger(messages...)
+		if h.MCP != nil {
+			h.MCP.PublishLog(fmt.Sprint(messages...))
+		}
 	}
 
 	// Check if we are in dev mode
@@ -130,6 +140,16 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	// This must happen BEFORE starting the auth Future
 	if h.GitHubAuth != nil {
 		h.Tui.AddHandler(h.GitHubAuth, "#6e40c9", h.SectionBuild) // Purple for GitHub
+	}
+
+	// Early return for clientMode: we just needed to construct the TUI sections.
+	// We don't want to run Github auth, GoNew, watchers, or the local MCP server in the client.
+	if clientMode {
+		var clientWg sync.WaitGroup
+		clientWg.Add(1)
+		go h.Tui.Start(&clientWg)
+		clientWg.Wait()
+		return false
 	}
 
 	// NOW start GitHub auth in background (after TUI registration)
