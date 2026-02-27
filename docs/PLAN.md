@@ -1,332 +1,230 @@
-# PLAN: Fix Client TUI — BUILD & DEPLOY Tabs Not Showing Logs
+# Plan: Extend TuiInterface for State & Action Dispatch
 
-**Status**: Ready for execution
-**Project**: `tinywasm/app`
-**Related Docs**: [ARCHITECTURE](ARQUITECTURE.md) | [MCP Architecture Plan](MCP_ARCHITECTURE_PLAN.md) | [MCP Refactor Flow](diagrams/MCP_REFACTOR_FLOW.md)
+## Why Extend `TuiInterface`, Not Add a Separate Interface
 
----
+`TuiInterface` is already the contract between `bootstrap.go` and both TUI
+implementations. `bootstrap.go` holds a `ui TuiInterface` reference and calls
+`ui.AddHandler(...)` for every registered handler. The TUI already owns the handler
+knowledge the moment `AddHandler` is called.
 
-## Root Cause Summary
+Adding a separate `StateProvider` interface (checked via type assertion) is a design
+smell: it means the interface contract is incomplete. The correct answer is to make
+the contract complete by extending `TuiInterface` directly. The compiler then
+enforces that both `HeadlessTUI` and `DevTUI` implement the full contract — no
+runtime assertions, no optional duck-typing.
 
-After the MCP refactor, running `tinywasm` (client mode) shows only tab 0 (SHORTCUTS/help). Tabs 1 (BUILD) and 2 (DEPLOY) are visible but completely empty. Four separate bugs interact to cause this:
-
----
-
-## Bug Analysis
-
-### BUG-1 (PRIMARY): TuiFactory never enables SSE client in the TUI
-
-**File**: `app/cmd/tinywasm/main.go:73-81`
+## Changes to `interface.go`
 
 ```go
-// CURRENT (broken): no ClientMode or ClientURL passed
-TuiFactory: func(exitChan chan bool) app.TuiInterface {
-    return devtui.NewTUI(&devtui.TuiConfig{
-        AppName:    "TINYWASM",
-        ExitChan:   exitChan,
-        // ClientMode: false (default)
-        // ClientURL:  "" (default)
-    })
-},
-```
+type TuiInterface interface {
+    NewTabSection(title, description string) any
+    AddHandler(Handler any, color string, tabSection any)
+    Start(syncWaitGroup ...any)
+    RefreshUI()
+    ReturnFocus() error
+    SetActiveTab(section any)
 
-In `devtui/init.go:127-129`:
-```go
-if c.ClientMode && c.ClientURL != "" {
-    go tui.startSSEClient(c.ClientURL)  // NEVER STARTS
+    // GetHandlerStates returns the current handler state as JSON bytes.
+    // Format: []StateEntry (devtui wire format).
+    // HeadlessTUI: populated by AddHandler calls (daemon mode).
+    // DevTUI: returns nil (client mode, not a state server).
+    GetHandlerStates() []byte
+
+    // DispatchAction routes a remote action to the handler registered for that key.
+    // Returns true if a registered handler handled it; false means caller must handle.
+    // HeadlessTUI: iterates handlers slice built in AddHandler, matches by shortcut key.
+    // DevTUI: always returns false (actions are sent to daemon, not dispatched locally).
+    DispatchAction(key, value string) bool
 }
 ```
 
-**Effect**: The SSE client goroutine is never launched. Client TUI never connects to `http://localhost:3030/logs`. Tabs 1 and 2 receive no data.
+## `HeadlessTUI` Additions
 
----
+`AddHandler` already uses local duck-typed interfaces (`titleGetter`, `namer`,
+`logSetter`). The same pattern extends naturally to state capture and action binding.
+No new public types. No separate struct hierarchy.
 
-### BUG-2 (SECONDARY): SSE data format mismatch
-
-**Files**:
-- `mcpserve/handler.go:238-242` — publishes raw strings: `h.sseHub.Publish([]byte(msg), "logs")`
-- `devtui/sse_client.go:108-114` — expects JSON `tabContentDTO`:
+### Internal state (minimal)
 
 ```go
-var dto tabContentDTO
-if err := json.Unmarshal([]byte(data), &dto); err != nil {
-    continue  // silently drops all raw string messages
+// capturedHandler holds everything HeadlessTUI knows about one registered handler.
+// The handler reference is retained so GetHandlerStates() reads Value()/Label()
+// dynamically — never stale, always reflects current handler state.
+type capturedHandler struct {
+    tabTitle     string
+    handlerName  string
+    handlerColor string
+    handlerType  int          // htDisplay/htEdit/htExecution/htInteractive
+    key          string       // shortcut key (empty if none)
+    action       func(string) // called on DispatchAction
+    handler      any          // original reference for dynamic Value()/Label() reads
 }
-// section lookup by tab_title:
-if section == nil {
-    continue  // drops message if tab_title doesn't match a known section
-}
-```
-
-**Effect**: Even if the SSE connection was established (fixing BUG-1), all messages would be silently dropped due to JSON parse failure.
-
----
-
-### BUG-3 (STRUCTURAL): Project component logs never reach daemon SSE hub
-
-**Files**: `app/bootstrap.go:283-331`, `app/start.go:107-114`, `app/start.go:190-225`
-
-When `start_development` is called:
-
-1. `daemonToolProvider.runProjectLoop` calls `app.Start` with `d.logger` (stdout/file logger).
-2. `app.Start` wraps `h.Logger` to also call `h.MCP.PublishLog()`.
-3. BUT `app.Start` also creates its own MCP (`h.MCP`) on port **3030** — already occupied by the daemon MCP.
-4. The project MCP's `sseHub` is initialized but no client connects to it (clients connect to the daemon MCP on 3030).
-5. The daemon's SSE hub (`mcpHandler.sseHub`) never receives any project component logs.
-
-**Effect**: The daemon's SSE stream is empty of project logs. Even with BUG-1 and BUG-2 fixed, the client would see nothing useful in BUILD/DEPLOY.
-
----
-
-### BUG-4 (STRUCTURAL): HeadlessTUI discards AddHandler — no logger injected into components
-
-**File**: `app/headless_tui.go:25-28`
-
-```go
-func (t *HeadlessTUI) AddHandler(Handler any, color string, tabSection any) {
-    // Does nothing — no logger is injected into components
-}
-```
-
-In daemon mode, `app.Start` calls `h.Tui.AddHandler(h.WasmClient, ...)`. With `HeadlessTUI`, this call is a no-op. The devtui logger injection (`handler.SetLog(...)`) never happens. Components like `WasmClient`, `Server`, `Watcher`, etc., have no logger attached and produce no output.
-
-**Effect**: Even if BUG-3 is fixed, the relay has nothing to relay because components never log.
-
----
-
-## Fix Plan
-
-### Step 1 — Fix BUG-1: Add `clientMode` to TuiFactory signature
-
-**Files**: `app/bootstrap.go`, `app/cmd/tinywasm/main.go`
-
-**1.1** Change `TuiFactory` type in `BootstrapConfig` (`bootstrap.go`):
-
-```go
-TuiFactory func(exitChan chan bool, clientMode bool, clientURL string) TuiInterface
-```
-
-**1.2** Update `runClient()` to pass `clientMode=true` and the SSE URL:
-
-```go
-func runClient(cfg BootstrapConfig) {
-    exitChan := make(chan bool)
-    mcpPort := "3030"
-    if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
-        mcpPort = p
-    }
-    clientURL := "http://localhost:" + mcpPort + "/logs"
-    ui := cfg.TuiFactory(exitChan, true, clientURL)
-    // rest unchanged...
-}
-```
-
-**1.3** Update `runDaemon()` to pass `clientMode=false`:
-
-```go
-if cfg.TuiFactory != nil {
-    ui = cfg.TuiFactory(exitChan, false, "")
-} else {
-    ui = NewHeadlessTUI(logger)
-}
-```
-
-**1.4** Update `main.go` TuiFactory implementation:
-
-```go
-TuiFactory: func(exitChan chan bool, clientMode bool, clientURL string) app.TuiInterface {
-    return devtui.NewTUI(&devtui.TuiConfig{
-        AppName:    "TINYWASM",
-        AppVersion: Version,
-        ExitChan:   exitChan,
-        Color:      devtui.DefaultPalette(),
-        Logger:     func(messages ...any) { logger.Logger(messages...) },
-        Debug:      *debugFlag,
-        ClientMode: clientMode,
-        ClientURL:  clientURL,
-    })
-},
-```
-
----
-
-### Step 2 — Fix BUG-2: Align SSE data format — publisher must send JSON DTOs
-
-**Files**: `mcpserve/handler.go`
-
-**2.1** Add a `LogEntry` struct to `mcpserve/handler.go` matching the `tabContentDTO` JSON keys that `devtui/sse_client.go` expects:
-
-```go
-// LogEntry matches devtui.tabContentDTO JSON structure for SSE routing.
-type LogEntry struct {
-    Id           string `json:"id"`
-    Timestamp    string `json:"timestamp"`
-    Content      string `json:"content"`
-    Type         string `json:"type"`
-    TabTitle     string `json:"tab_title"`
-    HandlerName  string `json:"handler_name"`
-    HandlerColor string `json:"handler_color"`
-    HandlerType  int    `json:"handler_type"` // 0 = loggable
-}
-```
-
-**2.2** Add `PublishTabLog(tabTitle, handlerName, handlerColor, msg string)`:
-
-```go
-func (h *Handler) PublishTabLog(tabTitle, handlerName, handlerColor, msg string) {
-    if h.sseHub == nil {
-        return
-    }
-    entry := LogEntry{
-        Id:           fmt.Sprintf("%d", time.Now().UnixNano()),
-        Timestamp:    time.Now().Format("15:04:05"),
-        Content:      msg,
-        Type:         "info",
-        TabTitle:     tabTitle,
-        HandlerName:  handlerName,
-        HandlerColor: handlerColor,
-        HandlerType:  0,
-    }
-    data, err := json.Marshal(entry)
-    if err != nil {
-        return
-    }
-    h.sseHub.Publish(data, "logs")
-}
-```
-
-**2.3** Update `PublishLog` to use `PublishTabLog` with a default BUILD routing:
-
-```go
-func (h *Handler) PublishLog(msg string) {
-    h.PublishTabLog("BUILD", "MCP", "#f97316", msg) // orange for MCP
-}
-```
-
----
-
-### Step 3 — Fix BUG-3 and BUG-4: HeadlessTUI relays structured logs to daemon SSE
-
-**Files**: `app/headless_tui.go`, `app/bootstrap.go`, `app/start.go`
-
-**3.1** Add `RelayLog` field and fix `NewTabSection` in `headless_tui.go`:
-
-```go
-type headlessSection struct {
-    Title string
-}
-
-func (s *headlessSection) GetTitle() string { return s.Title }
 
 type HeadlessTUI struct {
     logger   func(messages ...any)
-    RelayLog func(tabTitle, handlerName, color, msg string) // optional SSE relay
-}
-
-func NewHeadlessTUI(logger func(messages ...any)) *HeadlessTUI {
-    return &HeadlessTUI{logger: logger}
-}
-
-func (t *HeadlessTUI) NewTabSection(title, description string) any {
-    return &headlessSection{Title: title}
+    RelayLog func(tabTitle, handlerName, color, msg string)
+    handlers []capturedHandler // populated by AddHandler
+    mu       sync.RWMutex
 }
 ```
 
-**3.2** Implement smart `AddHandler` that injects loggers into components:
+> **Why store `handler any` instead of pre-marshaling to `[]byte`?**
+> Pre-marshaling at `AddHandler` time captures the initial value only. If the handler's
+> value changes later (config edit, browser toggle), `GetHandlerStates()` would return
+> stale data. Storing the reference and reading via duck-typing at call time ensures
+> the snapshot always reflects current state.
+
+### `AddHandler` extension
+
+After existing log injection, detect interactive capability via local anonymous
+interfaces (same duck-typing pattern already used in `AddHandler`) and append to
+`handlers`:
 
 ```go
-func (t *HeadlessTUI) AddHandler(handler any, color string, tabSection any) {
-    // Extract tab title
-    tabTitle := "BUILD"
-    type TitleGetter interface{ GetTitle() string }
-    if ts, ok := tabSection.(TitleGetter); ok {
-        tabTitle = ts.GetTitle()
+// handlerType constants — must match devtui.HandlerType* iota values.
+// If devtui/anyHandler.go iota changes, update these in lockstep.
+const (
+    htDisplay     = 0
+    htEdit        = 1
+    htExecution   = 2
+    htInteractive = 3
+)
+```
+
+For each handler type detected, capture the action closure and store `capturedHandler`
+with the handler reference. The shortcut key drives `DispatchAction` routing.
+
+### `GetHandlerStates() []byte`
+
+Reads current state dynamically from each handler reference. JSON tags match
+`devtui.StateEntry` exactly — this is the published wire contract.
+
+```go
+func (t *HeadlessTUI) GetHandlerStates() []byte {
+    t.mu.RLock()
+    defer t.mu.RUnlock()
+
+    // Local duck-typed interfaces — no devtui import required.
+    type labeler interface{ Label() string }
+    type valuer  interface{ Value() string }
+
+    type stateEntry struct {
+        TabTitle     string `json:"tab_title"`
+        HandlerName  string `json:"handler_name"`
+        HandlerColor string `json:"handler_color"`
+        HandlerType  int    `json:"handler_type"`
+        Label        string `json:"label"`
+        Value        string `json:"value"`
+        Shortcut     string `json:"shortcut"`
     }
 
-    // Extract handler name
-    type Namer interface{ Name() string }
-    handlerName := "HANDLER"
-    if n, ok := handler.(Namer); ok {
-        handlerName = n.Name()
+    entries := make([]stateEntry, 0, len(t.handlers))
+    for _, h := range t.handlers {
+        e := stateEntry{
+            TabTitle:     h.tabTitle,
+            HandlerName:  h.handlerName,
+            HandlerColor: h.handlerColor,
+            HandlerType:  h.handlerType,
+            Shortcut:     h.key,
+        }
+        if l, ok := h.handler.(labeler); ok { e.Label = l.Label() }
+        if v, ok := h.handler.(valuer);  ok { e.Value = v.Value() }
+        entries = append(entries, e)
     }
-
-    // Inject logger
-    type LogSetter interface{ SetLog(func(...any)) }
-    if s, ok := handler.(LogSetter); ok {
-        s.SetLog(func(messages ...any) {
-            msg := fmt.Sprint(messages...)
-            if t.logger != nil {
-                t.logger(msg)
-            }
-            if t.RelayLog != nil {
-                t.RelayLog(tabTitle, handlerName, color, msg)
-            }
-        })
-    }
+    data, _ := json.Marshal(entries)
+    return data
 }
 ```
 
-**3.3** In `bootstrap.go — runProjectLoop`, wire `RelayLog` to daemon MCP:
+### `DispatchAction(key, value string) bool`
 
 ```go
-func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath string) {
-    runExitChan := make(chan bool)
-
-    headlessTui := NewHeadlessTUI(d.logger)
-    headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
-        d.mcpHandler.PublishTabLog(tabTitle, handlerName, color, msg)
+func (t *HeadlessTUI) DispatchAction(key, value string) bool {
+    t.mu.RLock()
+    defer t.mu.RUnlock()
+    for _, h := range t.handlers {
+        if h.key == key && h.action != nil {
+            go h.action(value) // non-blocking
+            return true
+        }
     }
-
-    browser := d.cfg.BrowserFactory(headlessTui, runExitChan)
-    // ... goroutine and Start() call unchanged
+    return false
 }
 ```
 
-**3.4** Skip project-level MCP creation in `start.go` when `headless=true` (avoids port conflict):
+## `DevTUI` Stubs (devtui package)
 
-Wrap the MCP creation block (lines ~190-225) with `if !headless { ... }`. Adjust `wg.Add()` accordingly so the WaitGroup count stays correct:
+Two methods on `*DevTUI`:
 
 ```go
-// start.go — existing wg.Add(2) at line 132 covers UI + MCP
-// Change to only add MCP counter when not headless:
-wg.Add(1) // UI always
-if !headless {
-    wg.Add(1) // MCP server (only in standalone mode)
-    // ... full MCP setup and Serve() goroutine
-} // else: no project MCP, no port conflict
+func (d *DevTUI) GetHandlerStates() []byte        { return nil }
+func (d *DevTUI) DispatchAction(_, _ string) bool { return false }
 ```
 
----
+`DevTUI` is a client-mode TUI. It receives state from the daemon (via `GET /state`),
+it does not serve it. It forwards actions to the daemon (via `POST /action`), it does
+not dispatch them locally.
 
-### Step 4 — Verification
+## Bootstrap Wiring (`bootstrap.go`)
 
-**4.1** Manual flow test:
-1. Start daemon: `tinywasm -mcp`
-2. Call `start_development` via MCP tool for any local tinywasm project.
-3. Open client: `tinywasm` (no flags).
-4. Confirm tabs 1 (BUILD) and 2 (DEPLOY) populate with color-coded logs.
+In `runProjectLoop`, `headlessTui` is the local `*HeadlessTUI` variable (which
+satisfies `TuiInterface`). The wiring uses the interface — no internal fields accessed.
 
-**4.2** Run test suite: `gotest`
+```go
+// Wire state provider — direct interface call, no type assertion
+d.mcpHandler.RegisterStateProvider(func() []byte {
+    return headlessTui.GetHandlerStates()
+})
 
-**4.3** Verify no regression in standalone mode (without daemon): `tinywasm -mcp` from project dir should still work as before.
+// Wire action dispatcher — TuiInterface handles the routing
+d.mcpHandler.OnUIAction(func(key, value string) {
+    if headlessTui.DispatchAction(key, value) {
+        return
+    }
+    switch key {
+    case "q": d.logger("Stop command received from UI"); dtp.stopProject()
+    case "r": d.logger("Restart command received from UI"); dtp.restartCurrentProject()
+    default:  d.logger("Unknown UI action:", key)
+    }
+})
+```
 
----
+Bootstrap has zero knowledge of `capturedHandler` or any internal `HeadlessTUI` field.
+It only uses the `TuiInterface` contract.
 
-## Files to Modify (Summary)
+## Files to Change
 
 | File | Change |
 |------|--------|
-| `app/cmd/tinywasm/main.go` | Update `TuiFactory` signature; add `ClientMode`/`ClientURL` to devtui config |
-| `app/bootstrap.go` | Change `TuiFactory` type; update `runClient()`, `runDaemon()`, `runProjectLoop()` |
-| `app/headless_tui.go` | Add `RelayLog`; add `headlessSection`; implement smart `AddHandler` with logger injection |
-| `app/start.go` | Skip project-level MCP creation when `headless=true`; fix `wg.Add` count |
-| `mcpserve/handler.go` | Add `LogEntry` struct; add `PublishTabLog()`; update `PublishLog()` to use it |
+| `interface.go` | Add `GetHandlerStates() []byte` and `DispatchAction(key, value string) bool` to `TuiInterface` |
+| `headless_tui.go` | Add `capturedHandler` struct; add `handlers []capturedHandler` + `mu`; extend `AddHandler`; implement `GetHandlerStates` and `DispatchAction` |
+| `bootstrap.go` | Wire `RegisterStateProvider` and extended `OnUIAction` in `runProjectLoop` |
+| `devtui` (separate repo) | Add two stub methods to `DevTUI` |
 
----
+## Invariants
 
-## Constraints
+- `GetHandlerStates()` JSON tags (`tab_title`, `handler_name`, etc.) must match
+  `devtui.StateEntry` exactly — documented in `headless_tui.go` as an explicit comment
+- `GetHandlerStates()` reads current handler values dynamically — never returns stale
+  state regardless of when it is called
+- `HeadlessTUI` does NOT import `devtui` (no circular dependency)
+- `htDisplay/htEdit/htExecution/htInteractive` constants are unexported, documented
+  to mirror `devtui.HandlerType*` iota
+- `TuiInterface` adding these methods is backward-compatible only if all existing
+  mock implementations (tests) also gain the two stubs
 
-- No new external packages.
-- No WASM-side changes needed.
-- `TuiFactory` signature change is confined to `main.go` (single injection point, per DI rules).
-- `mcpserve.LogEntry` JSON keys must exactly match `devtui.tabContentDTO` JSON tags.
+## Test Strategy
+
+- `TestHeadlessTUI_GetHandlerStates_ValidJSON` — JSON output matches devtui.StateEntry
+- `TestHeadlessTUI_DispatchAction_ReturnsTrue_WhenHandled`
+- `TestHeadlessTUI_DispatchAction_ReturnsFalse_WhenUnknownKey`
+- `TestDevTUI_GetHandlerStates_ReturnsNil`
+- `TestDevTUI_DispatchAction_ReturnsFalse`
+- Update mock `TuiInterface` in test files with the two new stubs
+
+## References
+
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- `interface.go` — `TuiInterface` definition
+- Wire format: `devtui/docs/PLAN.md` (`StateEntry`)
+- Transport: `mcpserve/docs/PLAN.md`
