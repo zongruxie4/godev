@@ -6,7 +6,7 @@ require (
 	github.com/tinywasm/client v0.5.53
 	github.com/tinywasm/context v0.0.17
 	github.com/tinywasm/deploy v0.1.0
-	github.com/tinywasm/devflow v0.2.10
+	github.com/tinywasm/devflow v0.2.22
 	github.com/tinywasm/devtui v0.2.63
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.22
@@ -64,6 +64,7 @@ require (
 	golang.org/x/exp/shiny v0.0.0-20260211191109-2735e65f0518 // indirect
 	golang.org/x/image v0.36.0 // indirect
 	golang.org/x/mobile v0.0.0-20260211191516-dcd2a3258864 // indirect
+	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -81,3 +82,5 @@ require (
 )
 
 replace github.com/tinywasm/sse => ../sse
+
+replace github.com/tinywasm/devtui => ../devtui

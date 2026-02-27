@@ -24,7 +24,7 @@ func (t *HeadlessTUI) NewTabSection(title, description string) any {
 // AddHandler does nothing in headless mode, but logs the registration
 func (t *HeadlessTUI) AddHandler(Handler any, color string, tabSection any) {
 	// Handlers are still registered for MCP tool discovery,
-    // but UI doesn't render them.
+	// but UI doesn't render them.
 }
 
 // Start does nothing in headless mode (no UI loop)

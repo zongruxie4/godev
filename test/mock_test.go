@@ -191,6 +191,10 @@ func (m *MockGitClient) PushWithTags(tag string) (bool, error) {
 	return true, nil
 }
 
+func (m *MockGitClient) HasPendingChanges() (bool, error) {
+	return false, nil
+}
+
 type MockGitHubClient struct {
 	log func(...any)
 }
