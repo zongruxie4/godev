@@ -112,6 +112,8 @@ github.com/tinywasm/devbrowser v0.2.41 h1:kHWMvTf3RlPHOWrKU+XbkJBDak2msgx0rTXhxM
 github.com/tinywasm/devbrowser v0.2.41/go.mod h1:pOw8W1fpxkZ4zRUR8mzQuvSn/f4I4x5p3asy37LBb1k=
 github.com/tinywasm/devflow v0.2.22 h1:Sn6FCclEfCUY0w61oTC7+JLlxiPzr2H1NrNeZNUlF6U=
 github.com/tinywasm/devflow v0.2.22/go.mod h1:ltxhnezvgmFb35LuUX75yai261a/rvYwI612Bi9RGbY=
+github.com/tinywasm/devtui v0.2.69 h1:82JSVZea2IJ2HAVyRQli6IymdhbtMLWoMZQnCsvs8Os=
+github.com/tinywasm/devtui v0.2.69/go.mod h1:A5YpL04IjYRlSjF7EKqB5rusF544g4a4fFvN5/FiOB0=
 github.com/tinywasm/devwatch v0.0.57 h1:yMZ9IH9aUrQhwSvflaIA9r4bXfDhUa0BTn2a5fz8/Q0=
 github.com/tinywasm/devwatch v0.0.57/go.mod h1:/q+VXyPhcaqKyEQt5Coxfx8jORKCDpqYxNKWI4Fba24=
 github.com/tinywasm/fmt v0.18.5 h1:Tz2wsGieLbXBZgdPCUJEszdLaxKfWoNN+29YTZRXOHc=
@@ -130,6 +132,8 @@ github.com/tinywasm/mcpserve v0.0.24 h1:ByKxOnRXQFZoxAo9KLZbSVsibvrBRMj+GgdJ39xV
 github.com/tinywasm/mcpserve v0.0.24/go.mod h1:wfaduwCIZYxijkiqcryZW42rXCYmdmGCgSeCV3VKbH4=
 github.com/tinywasm/server v0.2.7 h1:ta7+EOPfME8fDHCCXVqQS02Aea2hTT3REx+ULPwMtro=
 github.com/tinywasm/server v0.2.7/go.mod h1:v7VvjXPjFLuIhpCSGPNPPyeYD+lVn7fYWy7oLWelrds=
+github.com/tinywasm/sse v0.0.11 h1:LM1r1yMR5JC+OMkPpP7Whnzhftl4p3IgWeSGzbN6cwM=
+github.com/tinywasm/sse v0.0.11/go.mod h1:srTHTLi+j2PEkqaKqjcJ2tTkHVhY4wpUDkCx/G/Ajdw=
 github.com/tinywasm/time v0.3.3 h1:d/ZJZLJ+t7ftT2Z3Cjs9EP1eBgVXgJUswmVcvw2BrOY=
 github.com/tinywasm/time v0.3.3/go.mod h1:5tEf1Sj1SUHvfJpEVvI8QtsOUNXsaJDEpA4rgGG8bkU=
 github.com/tinywasm/unixid v0.2.22 h1:zLZUEaZfcM1wgP8k+nfnFhaVJTpRRhHVuF9U/00e5cc=

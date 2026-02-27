@@ -7,7 +7,7 @@ require (
 	github.com/tinywasm/context v0.0.17
 	github.com/tinywasm/deploy v0.1.0
 	github.com/tinywasm/devflow v0.2.22
-	github.com/tinywasm/devtui v0.2.63
+	github.com/tinywasm/devtui v0.2.69
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/wizard v0.0.22
 )
@@ -55,7 +55,7 @@ require (
 	github.com/tinywasm/goflare v0.0.100 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
 	github.com/tinywasm/mcp v0.0.0-20260222182815-eed752284ce7 // indirect
-	github.com/tinywasm/sse v0.0.10 // indirect
+	github.com/tinywasm/sse v0.0.11 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
 	github.com/tinywasm/unixid v0.2.22 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
@@ -80,7 +80,3 @@ require (
 	github.com/tinywasm/server v0.2.7
 	golang.org/x/sys v0.41.0 // indirect
 )
-
-replace github.com/tinywasm/sse => ../sse
-
-replace github.com/tinywasm/devtui => ../devtui
