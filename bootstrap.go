@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,6 +21,7 @@ type BootstrapConfig struct {
 	StartDir        string
 	McpMode         bool
 	Debug           bool
+	Version         string // Binary version, used to detect and replace stale daemons
 	Logger          func(messages ...any)
 	DB              DB
 	GitHandler      devflow.GitClient
@@ -42,7 +45,17 @@ func Bootstrap(cfg BootstrapConfig) {
 
 	// Check if port 3030 is open (meaning occupied by another instance)
 	if isPortOpen("3030") {
-		// Port occupied -> Run as Client
+		// Port occupied -> check if the running daemon is the same version
+		if cfg.Version != "" && !isDaemonVersionCurrent("3030", cfg.Version) {
+			// Stale daemon detected: kill it and start a fresh one
+			killDaemon()
+			waitForPortFree("3030")
+			if err := startDaemonProcess(cfg.StartDir); err != nil {
+				fmt.Printf("Failed to restart daemon: %v\n", err)
+				os.Exit(1)
+			}
+			waitForPortReady("3030")
+		}
 		runClient(cfg)
 	} else {
 		// Port free -> Start Daemon in background, then run Client
@@ -50,24 +63,7 @@ func Bootstrap(cfg BootstrapConfig) {
 			fmt.Printf("Failed to start daemon: %v\n", err)
 			os.Exit(1)
 		}
-
-		// Wait for port
-		timeout := time.After(5 * time.Second)
-		ticker := time.NewTicker(100 * time.Millisecond)
-		defer ticker.Stop()
-
-		ready := false
-		for !ready {
-			select {
-			case <-timeout:
-				fmt.Println("Timeout waiting for daemon to start")
-				os.Exit(1)
-			case <-ticker.C:
-				if isPortOpen("3030") {
-					ready = true
-				}
-			}
-		}
+		waitForPortReady("3030")
 		runClient(cfg)
 	}
 }
@@ -92,6 +88,7 @@ func runDaemon(cfg BootstrapConfig) {
 		ServerName:    "TinyWasm - Global MCP Server",
 		ServerVersion: "1.0.0",
 		AppName:       "tinywasm",
+		AppVersion:    cfg.Version,
 	}
 
 	// Create an empty TUI stub for the daemon if not provided
@@ -377,6 +374,64 @@ func isPortOpen(port string) bool {
 		return true
 	}
 	return false
+}
+
+// isDaemonVersionCurrent fetches /version from the running daemon and compares to ours.
+// Returns true if versions match (daemon is current), false if stale or unreachable.
+func isDaemonVersionCurrent(port, version string) bool {
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get("http://localhost:" + port + "/version")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	var data struct {
+		Version string `json:"version"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return false
+	}
+	return data.Version == version
+}
+
+// killDaemon sends SIGTERM to any running tinywasm daemon process.
+func killDaemon() {
+	exec.Command("pkill", "-f", "tinywasm -mcp").Run()
+}
+
+// waitForPortFree polls until the port is no longer listening (max 5s).
+func waitForPortFree(port string) {
+	timeout := time.After(5 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-timeout:
+			return
+		case <-ticker.C:
+			if !isPortOpen(port) {
+				return
+			}
+		}
+	}
+}
+
+// waitForPortReady polls until the port is accepting connections (max 5s).
+func waitForPortReady(port string) {
+	timeout := time.After(5 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-timeout:
+			fmt.Println("Timeout waiting for daemon to start")
+			os.Exit(1)
+		case <-ticker.C:
+			if isPortOpen(port) {
+				return
+			}
+		}
+	}
 }
 
 func startDaemonProcess(dir string) error {

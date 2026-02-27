@@ -64,6 +64,7 @@ func main() {
         StartDir: startDir,
         McpMode: *mcpFlag,
         Debug: *debugFlag,
+        Version: Version,
         Logger: logger.Logger,
         DB: db,
         GitHandler: gitHandler,
