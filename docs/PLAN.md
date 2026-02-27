@@ -1,4 +1,4 @@
-# Plan: Extend TuiInterface for State & Action Dispatch
+# Plan: Extend TuiInterface for State & Action Dispatch.
 
 ## Why Extend `TuiInterface`, Not Add a Separate Interface.
 
