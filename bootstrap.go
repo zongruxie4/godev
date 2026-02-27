@@ -117,6 +117,9 @@ func runDaemon(cfg BootstrapConfig) {
 	mcpHandler = mcpserve.NewHandler(mcpConfig, append(cfg.McpToolHandlers, dtp), ui, exitChan)
 	mcpHandler.SetLog(logger)
 	mcpHandler.ConfigureIDEs()
+	// CRITICAL: dtp was created with the first mcpHandler (no sseHub yet).
+	// Update it to point to this final handler so RelayLog publishes to the real SSE hub.
+	dtp.mcpHandler = mcpHandler
 
 	// Handle UI Webhooks (e.g. from the TUI Client when user presses "q" or "r")
 	mcpHandler.OnUIAction(func(key string) {
