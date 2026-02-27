@@ -129,7 +129,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(2) // UI and MCP server (always start)
+	wg.Add(1) // UI goroutine; MCP added below only in standalone (non-headless) mode
 
 	// ADD SECTIONS using the passed UI interface
 	// CRITICAL: Initialize sections BEFORE starting lifecycle
@@ -187,48 +187,51 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		h.OnProjectReady(&wg)
 	}
 
-	// Auto-configure IDE MCP integration (silent, non-blocking)
-	mcpPort := "3030"
-	if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
-		mcpPort = p
-	}
-	mcpConfig := mcpserve.Config{
-		Port:          mcpPort,
-		ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
-		ServerVersion: "1.0.0",
-		AppName:       "tinywasm", // Used to generate MCP server ID (e.g., "tinywasm-MCP")
-	}
-	toolHandlers := []mcpserve.ToolProvider{}
-	// Add app handler itself (for app_rebuild)
-	toolHandlers = append(toolHandlers, h)
-
-	if h.WasmClient != nil {
-		toolHandlers = append(toolHandlers, h.WasmClient)
-	}
-	if h.Browser != nil {
-		toolHandlers = append(toolHandlers, h.Browser)
-	}
-	// Add external MCP tool Handlers (e.g., DevTUI for devtui_get_section_logs)
-	toolHandlers = append(toolHandlers, mcpToolHandlers...)
-	h.MCP = mcpserve.NewHandler(mcpConfig, toolHandlers, h.Tui, h.ExitChan)
-	// Register MCP Handler in BUILD section for logging visibility
-	h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild) // Orange color for MCP
-
-	h.MCP.ConfigureIDEs()
-
-	SetActiveHandler(h)
-
-	// Start MCP HTTP server on the configured port
-	go func() {
-		defer wg.Done()
-		h.MCP.Serve()
-	}()
-
-	// Start the UI (passed from main.go)
 	if !headless {
+		// Standalone mode: create and serve the project-level MCP on port 3030.
+		// In headless/daemon-sub-project mode this is skipped to avoid a port conflict
+		// with the already-running global daemon MCP.
+		mcpPort := "3030"
+		if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
+			mcpPort = p
+		}
+		mcpConfig := mcpserve.Config{
+			Port:          mcpPort,
+			ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
+			ServerVersion: "1.0.0",
+			AppName:       "tinywasm",
+		}
+		toolHandlers := []mcpserve.ToolProvider{}
+		toolHandlers = append(toolHandlers, h)
+		if h.WasmClient != nil {
+			toolHandlers = append(toolHandlers, h.WasmClient)
+		}
+		if h.Browser != nil {
+			toolHandlers = append(toolHandlers, h.Browser)
+		}
+		toolHandlers = append(toolHandlers, mcpToolHandlers...)
+		h.MCP = mcpserve.NewHandler(mcpConfig, toolHandlers, h.Tui, h.ExitChan)
+		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
+		h.MCP.ConfigureIDEs()
+		SetActiveHandler(h)
+
+		// Start MCP HTTP server
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			h.MCP.Serve()
+		}()
+
+		// Start the UI
 		go h.Tui.Start(&wg)
 	} else {
-		wg.Done()
+		// Headless mode: no MCP, no UI. Keep alive until ExitChan is closed.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-ExitChan
+		}()
+		wg.Done() // satisfy the initial wg.Add(1) for UI
 	}
 
 	wg.Wait()

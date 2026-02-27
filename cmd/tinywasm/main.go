@@ -70,7 +70,7 @@ func main() {
         GoModHandler: goModHandler,
         GitHubAuth: devflow.NewGitHubAuth(),
 
-        TuiFactory: func(exitChan chan bool) app.TuiInterface {
+        TuiFactory: func(exitChan chan bool, clientMode bool, clientURL string) app.TuiInterface {
             return devtui.NewTUI(&devtui.TuiConfig{
 				AppName:    "TINYWASM",
 				AppVersion: Version,
@@ -78,6 +78,8 @@ func main() {
 				Color:      devtui.DefaultPalette(),
 				Logger:     func(messages ...any) { logger.Logger(messages...) },
 				Debug:      *debugFlag,
+				ClientMode: clientMode,
+				ClientURL:  clientURL,
 			})
         },
 

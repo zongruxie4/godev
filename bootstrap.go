@@ -24,7 +24,7 @@ type BootstrapConfig struct {
 	GitHandler      devflow.GitClient
 	GoModHandler    devflow.GoModInterface
 	ServerFactory   ServerFactory
-	TuiFactory      func(exitChan chan bool) TuiInterface
+	TuiFactory      func(exitChan chan bool, clientMode bool, clientURL string) TuiInterface
 	BrowserFactory  func(ui TuiInterface, exitChan chan bool) BrowserInterface
 	GitHubAuth      any
 	McpToolHandlers []mcpserve.ToolProvider
@@ -98,7 +98,7 @@ func runDaemon(cfg BootstrapConfig) {
 	var ui TuiInterface
 	exitChan := make(chan bool)
 	if cfg.TuiFactory != nil {
-		ui = cfg.TuiFactory(exitChan)
+		ui = cfg.TuiFactory(exitChan, false, "") // daemon has no TUI client, no SSE needed
 	} else {
 		ui = NewHeadlessTUI(logger)
 	}
@@ -284,6 +284,10 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 	// Create a separate run channel for this project
 	runExitChan := make(chan bool)
 	headlessTui := NewHeadlessTUI(d.logger)
+	// Wire component loggers to the daemon SSE hub so the client TUI receives structured logs
+	headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
+		d.mcpHandler.PublishTabLog(tabTitle, handlerName, color, msg)
+	}
 	browser := d.cfg.BrowserFactory(headlessTui, runExitChan)
 
 	// We wire context cancellation to the channels
@@ -333,9 +337,14 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 
 func runClient(cfg BootstrapConfig) {
 	// Client mode
-	// Use real TUI
+	// Use real TUI with SSE client enabled to receive logs from the daemon
 	exitChan := make(chan bool)
-	ui := cfg.TuiFactory(exitChan)
+	mcpPort := "3030"
+	if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
+		mcpPort = p
+	}
+	clientURL := "http://localhost:" + mcpPort + "/logs"
+	ui := cfg.TuiFactory(exitChan, true, clientURL)
 
 	// In Client Mode, we use Start to orchestrate the tabs without running the backend
 	Start(
