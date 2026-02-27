@@ -1,6 +1,6 @@
 # Plan: Extend TuiInterface for State & Action Dispatch
 
-## Why Extend `TuiInterface`, Not Add a Separate Interface
+## Why Extend `TuiInterface`, Not Add a Separate Interface.
 
 `TuiInterface` is already the contract between `bootstrap.go` and both TUI
 implementations. `bootstrap.go` holds a `ui TuiInterface` reference and calls
