@@ -119,7 +119,10 @@ func runDaemon(cfg BootstrapConfig) {
 	dtp.mcpHandler = mcpHandler
 
 	// Handle UI Webhooks (e.g. from the TUI Client when user presses "q" or "r")
-	mcpHandler.OnUIAction(func(key string) {
+	mcpHandler.OnUIAction(func(key, value string) {
+		if ui.DispatchAction(key, value) {
+			return
+		}
 		switch key {
 		case "q":
 			logger("Stop command received from UI")
@@ -134,6 +137,10 @@ func runDaemon(cfg BootstrapConfig) {
 		default:
 			logger("Unknown UI action:", key)
 		}
+	})
+
+	mcpHandler.RegisterStateProvider(func() []byte {
+		return ui.GetHandlerStates()
 	})
 
 	// Optional: auto-start the project in the current directory

@@ -19,6 +19,18 @@ type TuiInterface interface {
 	RefreshUI()
 	ReturnFocus() error       // returns focus to main UI
 	SetActiveTab(section any) // sets the active tab section
+
+	// GetHandlerStates returns the current handler state as JSON bytes.
+	// Format: []StateEntry (devtui wire format).
+	// HeadlessTUI: populated by AddHandler calls (daemon mode).
+	// DevTUI: returns nil (client mode, not a state server).
+	GetHandlerStates() []byte
+
+	// DispatchAction routes a remote action to the handler registered for that key.
+	// Returns true if a registered handler handled it; false means caller must handle.
+	// HeadlessTUI: iterates handlers slice built in AddHandler, matches by shortcut key.
+	// DevTUI: always returns false (actions are sent to daemon, not dispatched locally).
+	DispatchAction(key, value string) bool
 }
 
 // BrowserInterface defines the browser operations needed by the app.
