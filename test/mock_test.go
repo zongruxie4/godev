@@ -77,6 +77,14 @@ func (m *mockTUI) SetActiveTab(section any) {
 	// no-op
 }
 
+func (m *mockTUI) GetHandlerStates() []byte {
+	return nil
+}
+
+func (m *mockTUI) DispatchAction(key, value string) bool {
+	return false
+}
+
 type MockBrowser struct {
 	reloadCalls   int
 	openCalls     int    // Track actual browser open attempts
