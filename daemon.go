@@ -73,6 +73,14 @@ func runDaemon(cfg BootstrapConfig) {
 
 	// Handle action webhooks (e.g. from the TUI Client when user presses Ctrl+C sending "stop")
 	httpSrv.OnAction(func(key, value string) {
+		// Try project handlers first (shortcuts like "b" for browser, etc.)
+		dtp.mu.Lock()
+		projectTui := dtp.projectTui
+		dtp.mu.Unlock()
+		if projectTui != nil && projectTui.DispatchAction(key, value) {
+			return
+		}
+		// Fall back to daemon-level UI dispatch
 		if ui.DispatchAction(key, value) {
 			return
 		}
@@ -94,6 +102,13 @@ func runDaemon(cfg BootstrapConfig) {
 	})
 
 	httpSrv.OnState(func() []byte {
+		// Return project handlers state if a project is running, else daemon state
+		dtp.mu.Lock()
+		projectTui := dtp.projectTui
+		dtp.mu.Unlock()
+		if projectTui != nil {
+			return projectTui.GetHandlerStates()
+		}
 		return ui.GetHandlerStates()
 	})
 
@@ -120,6 +135,7 @@ type daemonToolProvider struct {
 	logger        func(messages ...any)
 	projectCancel context.CancelFunc
 	projectDone   chan struct{}
+	projectTui    *HeadlessTUI // Current project's TUI (updated per project start)
 	mu            sync.Mutex
 	lastPath      string // Keep track of the last path for remote restarts
 }
@@ -249,6 +265,16 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 	headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
 		d.httpSrv.PublishTabLog(tabTitle, handlerName, color, msg)
 	}
+
+	// Register project TUI so /state and /action can reach project handlers
+	d.mu.Lock()
+	d.projectTui = headlessTui
+	d.mu.Unlock()
+	defer func() {
+		d.mu.Lock()
+		d.projectTui = nil
+		d.mu.Unlock()
+	}()
 	browser := d.cfg.BrowserFactory(headlessTui, runExitChan)
 
 	// We wire context cancellation to the channels
