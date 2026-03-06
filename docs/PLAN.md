@@ -1,24 +1,23 @@
-# Plan: App Package Restructure + MCP Tool Registry
+# Plan: App — Own the HTTP Server + Fix Action Routing
 
 ## References
 
 - [ARCHITECTURE.md](ARCHITECTURE.md)
-- [MCP_ARCHITECTURE_PLAN.md](MCP_ARCHITECTURE_PLAN.md)
-- `bootstrap.go` — current entry point (to be split)
-- `start.go` — Handler struct + Start() (to be split)
-- `mcp-tools.go` — app.Handler tools
-- `devbrowser/mcp-tools.go` — browser tools
+- `bootstrap.go` — daemon entry point
+- `daemon.go` — project lifecycle
+- `start.go` — standalone MCP setup (to be updated)
+- `handler.go` — Handler struct (to be updated)
+- `mcp_registry.go` — ProjectToolProxy
+- [tinywasm/mcp PLAN.md](../../mcp/docs/PLAN.md) — mcp becomes pure JSON-RPC handler (prerequisite)
 
 ---
 
 ## Development Rules
 
 - **SRP:** Every file must have a single, well-defined purpose.
-- **Max 500 lines per file.** Files exceeding this MUST be subdivided.
-- **No global state.** Use dependency injection via interfaces.
-- **Standard library only.** No external test assertion libraries.
-- **Test runner:** Use `gotest` (never `go test` directly).
-- **Publish:** Use `gopush 'message'` after tests pass.
+- **Max 500 lines per file.**
+- **No global state.** Use DI via interfaces.
+- **Test runner:** `gotest`. **Publish:** `gopush`.
 - **Language:** Plans in English, chat in Spanish.
 - **No code changes** until the user says "ejecuta" or "ok".
 
@@ -26,211 +25,281 @@
 
 ## Problem Summary
 
-### 1. `bootstrap.go` violates SRP (476 lines, 4 responsibilities)
-- Bootstrap entry point
-- Daemon lifecycle (`runDaemon`, `daemonToolProvider`, `startProject`, `runProjectLoop`)
-- Network/process helpers (`isPortOpen`, `waitForPort*`, `killDaemon`, `startDaemonProcess`)
-- Client mode (`runClient`)
+After `tinywasm/mcp` removes its HTTP server, `/action`, `/state`, `/version` and SSE
+endpoints, `tinywasm/app` must own the full HTTP server lifecycle as the orchestrator.
 
-### 2. Tool registration is broken in daemon mode
-- `start.go:224-232` registers tools in standalone mode (`h`, `h.Browser`, `h.WasmClient`) — works.
-- `bootstrap.go:129` in daemon mode only registers `daemonToolProvider` — browser and app tools are never registered.
-- `main.go` always leaves `McpToolHandlers = nil`.
-
-### 3. Lifecycle mismatch (root cause)
-The `mcp.Handler` is created **once** at daemon startup, but project-level tool providers (`devbrowser`, `app.Handler`) are created **per project** inside `runProjectLoop`. There is no mechanism to update tool providers after startup.
-
-### 4. `app.Handler.GetMCPTools()` (`app_rebuild`) never reaches the daemon MCP
-It is only registered in standalone mode. In daemon mode it is dead code.
+Additionally:
+- `PublishTabLog` / `PublishLog` move from mcp to app (they contain business logic:
+  hardcoded tab names, handler names, colors)
+- `LogEntry` struct moves from `mcp/handler.go` to `app/http_server.go` — the JSON
+  field names (`tab_title`, `handler_name`, etc.) must remain identical so `devtui/sse_client.go`
+  can still deserialize without changes
+- `h.MCP *mcp.Handler` field is removed from `Handler` struct; replaced by `h.HTTP *TinywasmHTTP`
+  (which implements `Name()` + `SetLog()` for TUI registration)
+- `BootstrapConfig` needs an `AppName string` field (currently hardcoded as `"tinywasm"` in mcpConfig)
+- The `restart` action key changes from `"r"` to `"restart"` — ensure devtui PLAN is consistent
+  (currently no client sends `restart`, so it remains a daemon-internal action only)
 
 ---
 
-## Solution: `ProjectToolProxy` + Single Registration Point
+## Solution: `app/http_server.go` — The Tinywasm HTTP Server
 
-Introduce a `ProjectToolProxy` registered **once** with the MCP daemon at startup. When a project starts or stops, `SetActive()` updates the proxy atomically. The MCP handler always reads current tools via `GetMCPTools()`.
+This file owns:
+1. Full `http.Server` lifecycle
+2. Route registration: `/mcp`, `/logs`, `/action`, `/state`, `/version`
+3. `PublishTabLog` / `PublishLog` (SSE publishing with business context)
+4. `LogEntry` struct (moved from `mcp/handler.go` — JSON field names unchanged)
+5. Action dispatch (`/action` → `onAction` callback)
+6. State provider (`/state` → `onState` callback)
 
+```go
+// TinywasmHTTP is the HTTP server for the TinyWASM daemon and standalone mode.
+// It owns the http.Server, SSE hub, and all tinywasm-specific routes.
+// Implements Name() + SetLog() so it can be registered as a TUI handler.
+type TinywasmHTTP struct {
+    port       string
+    sseHub     ssePublisher  // interface: Publish(data, channel) + http.Handler
+    mcpHTTP    http.Handler  // from mcp.Handler.HTTPHandler()
+    onAction   func(key, value string)
+    onState    func() []byte
+    appVersion string
+    log        func(messages ...any)
+    server     *http.Server
+    mu         sync.Mutex
+}
+
+// NewTinywasmHTTP creates the HTTP server with all routes pre-configured.
+func NewTinywasmHTTP(port string, mcpHTTP http.Handler, sseHub ssePublisher, appVersion string) *TinywasmHTTP
+
+// OnAction registers the callback for POST /action?key=...
+func (s *TinywasmHTTP) OnAction(fn func(key, value string))
+
+// OnState registers the callback for GET /state
+func (s *TinywasmHTTP) OnState(fn func() []byte)
+
+// SetLog satisfies the Loggable interface — app registers TinywasmHTTP in the TUI.
+func (s *TinywasmHTTP) SetLog(fn func(messages ...any))
+
+// Name satisfies the Loggable interface — returns "MCP" for TUI display.
+func (s *TinywasmHTTP) Name() string { return "MCP" }
+
+// Serve starts the HTTP server and blocks until exitChan is closed.
+func (s *TinywasmHTTP) Serve(exitChan chan bool)
+
+// Stop gracefully shuts down the HTTP server.
+func (s *TinywasmHTTP) Stop()
+
+// PublishTabLog publishes a structured log entry to the SSE stream.
+func (s *TinywasmHTTP) PublishTabLog(tabTitle, handlerName, handlerColor, msg string)
+
+// PublishLog publishes a plain log to the BUILD tab under "MCP" handler.
+func (s *TinywasmHTTP) PublishLog(msg string)
 ```
-Daemon startup:
-  proxy := NewProjectToolProxy()
-  mcp.NewHandler([daemonToolProvider, proxy], ...)
 
-start_development called:
-  browser := BrowserFactory(...)
-  handler := newProjectHandler(...)
-  proxy.SetActive(handler, browser, wasmClient)
-
-stop_development called:
-  proxy.SetActive()  // empty
+### SSE publisher interface (internal to app)
+```go
+// ssePublisher is the DI interface for SSE transport.
+// Implemented by tinywasm/sse.SSEServer.
+type ssePublisher interface {
+    http.Handler
+    Publish(data []byte, channel string)
+}
 ```
 
-All tool registration logic lives exclusively in `mcp_registry.go`. No other file assembles tool provider lists.
+### `LogEntry` struct (moved from mcp, JSON field names unchanged)
+```go
+// LogEntry is the wire format for SSE log events consumed by devtui/sse_client.go.
+// JSON field names MUST match tabContentDTO in devtui — do not rename.
+type LogEntry struct {
+    Id           string `json:"id"`
+    Timestamp    string `json:"timestamp"`
+    Content      string `json:"content"`
+    Type         uint8  `json:"type"`
+    TabTitle     string `json:"tab_title"`
+    HandlerName  string `json:"handler_name"`
+    HandlerColor string `json:"handler_color"`
+    HandlerType  int    `json:"handler_type"`
+}
+```
 
 ---
 
-## File Restructure
+## Files to Create/Modify
 
-### Files to CREATE
+### CREATE: `app/http_server.go`
+Contains: `TinywasmHTTP`, `ssePublisher`, `LogEntry`, `PublishTabLog`, `PublishLog`.
+`Name()` returns `"MCP"` so existing TUI display labels stay the same.
 
-#### `net.go`
-Extracted from `bootstrap.go`. Contains only TCP/process helpers.
-- `isPortOpen(port string) bool`
-- `waitForPortFree(port string)`
-- `waitForPortReady(port string)`
-- `isDaemonVersionCurrent(port, version string) bool`
-- `killDaemon()`
-- `startDaemonProcess(dir string) error`
-
-#### `daemon.go`
-Extracted from `bootstrap.go`. Contains daemon lifecycle only.
-- `runDaemon(cfg BootstrapConfig)`
-- `daemonToolProvider` struct
-- `newDaemonToolProvider(...)`
-- `(d *daemonToolProvider) GetMCPTools() []mcp.Tool`
-- `(d *daemonToolProvider) startProject(path string)`
-- `(d *daemonToolProvider) stopProject()`
-- `(d *daemonToolProvider) restartCurrentProject()`
-- `(d *daemonToolProvider) runProjectLoop(ctx, path string)`
-
-#### `handler.go`
-Extracted from `start.go`. Contains the Handler struct definition only.
-- `Handler` struct
-- `sseHubAdapter` struct and `Publish` method
-- `(h *Handler) SetBrowser(...)`
-- `(h *Handler) SetServerFactory(...)`
-- `(h *Handler) CheckDevMode()`
-
-#### `mcp_registry.go`
-**New file. Single source of truth for all MCP tool registration.**
-
+### MODIFY: `bootstrap.go` — add `AppName` to `BootstrapConfig`
 ```go
-// ProjectToolProxy is registered once with the MCP daemon at startup.
-// When a new project starts, SetActive() updates tool providers atomically.
-type ProjectToolProxy struct {
-    mu     sync.RWMutex
-    active []mcp.ToolProvider
-}
-
-func NewProjectToolProxy() *ProjectToolProxy
-
-// SetActive replaces the current project's tool providers.
-// Call with no args to clear (project stopped).
-func (p *ProjectToolProxy) SetActive(providers ...mcp.ToolProvider)
-
-// GetMCPTools implements mcp.ToolProvider. Always reflects the current project.
-func (p *ProjectToolProxy) GetMCPTools() []mcp.Tool
-
-// buildProjectProviders returns the ordered list of tool providers for a given Handler.
-// This is the single place where project-level tool registration order is defined.
-func buildProjectProviders(h *Handler) []mcp.ToolProvider
-```
-
-`buildProjectProviders` implementation:
-```go
-func buildProjectProviders(h *Handler) []mcp.ToolProvider {
-    providers := []mcp.ToolProvider{h} // app_rebuild tool
-    if h.WasmClient != nil {
-        providers = append(providers, h.WasmClient)
-    }
-    if h.Browser != nil {
-        providers = append(providers, h.Browser)
-    }
-    return providers
+type BootstrapConfig struct {
+    AppName string // e.g. "tinywasm" — used in HTTP server version endpoint
+    // ... existing fields unchanged
 }
 ```
 
-### Files to MODIFY
+### MODIFY: `daemon.go` — replace `mcp.Handler` full setup with `TinywasmHTTP`
 
-#### `bootstrap.go` (after split: ~100 lines)
-Keeps only:
-- `Bootstrap(cfg BootstrapConfig)` entry point
-- `runClient(cfg BootstrapConfig)`
-- `logChannelProvider` struct (used in both modes)
-- `BootstrapConfig` struct
-
-Removes: everything moved to `daemon.go` and `net.go`.
-
-#### `start.go` (after split: ~180 lines)
-Keeps only `Start(...)` function.
-Removes: `Handler` struct, `sseHubAdapter`, `SetBrowser`, `SetServerFactory`, `CheckDevMode` (moved to `handler.go`).
-
-Updates tool registration to use `buildProjectProviders`:
+Before:
 ```go
-// Before (start.go:224-232) — scattered, duplicated logic:
-toolHandlers := []mcp.ToolProvider{}
-toolHandlers = append(toolHandlers, h)
-if h.WasmClient != nil { toolHandlers = append(toolHandlers, h.WasmClient) }
-if h.Browser != nil { toolHandlers = append(toolHandlers, h.Browser) }
-toolHandlers = append(toolHandlers, mcpToolHandlers...)
+mcpHandler = mcp.NewHandler(mcpConfig, toolProviders, ui, sseHub, exitChan)
+mcpHandler.SetLog(logger)
+mcpHandler.ConfigureIDEs()
+mcpHandler.OnUIAction(func(key, value string) { ... })
+mcpHandler.RegisterStateProvider(...)
+mcpHandler.Serve()
+```
 
-// After — single call:
+After:
+```go
+mcpHandler := mcp.NewHandler(mcpConfig, toolProviders)
+mcpHandler.SetLog(logger)
+mcpHandler.ConfigureIDEs()
+
+httpSrv := NewTinywasmHTTP(mcpPort, mcpHandler.HTTPHandler(), sseHub, cfg.Version)
+httpSrv.SetLog(logger)
+httpSrv.OnAction(func(key, value string) {
+    if ui.DispatchAction(key, value) {
+        return
+    }
+    switch key {
+    case "stop":
+        logger("Stop command received from UI")
+        dtp.stopProject()
+    case "restart":
+        logger("Restart command received from UI")
+        dtp.restartCurrentProject()
+    default:
+        logger("Unknown UI action:", key)
+    }
+})
+httpSrv.OnState(func() []byte { return ui.GetHandlerStates() })
+dtp.httpSrv = httpSrv
+go httpSrv.Serve(exitChan)
+```
+
+Note: `"restart"` is kept as a daemon-internal action (no client sends it yet, but
+`restartCurrentProject` is still valid for future use).
+
+Update `runProjectLoop` relay log wiring:
+```go
+// Before:
+headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
+    d.mcpHandler.PublishTabLog(tabTitle, handlerName, color, msg)
+}
+
+// After:
+headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
+    d.httpSrv.PublishTabLog(tabTitle, handlerName, color, msg)
+}
+```
+
+Add `httpSrv *TinywasmHTTP` field to `daemonToolProvider` (remove `mcpHandler *mcp.Handler`).
+
+### MODIFY: `start.go` — standalone mode (non-headless path)
+
+Before:
+```go
 toolHandlers := buildProjectProviders(h)
 toolHandlers = append(toolHandlers, mcpToolHandlers...)
+h.MCP = mcp.NewHandler(mcpConfig, toolHandlers, h.Tui, sseHub, h.ExitChan)
+h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
+h.MCP.ConfigureIDEs()
+SetActiveHandler(h)
+go h.MCP.Serve()
 ```
 
-#### `daemon.go` — `runProjectLoop`
-After creating the project handler and browser, update the proxy:
+After:
 ```go
-// After Start() initializes h.WasmClient and h.Browser:
-proxy.SetActive(buildProjectProviders(h)...)
+toolHandlers := buildProjectProviders(h)
+toolHandlers = append(toolHandlers, mcpToolHandlers...)
 
-// On project stop (deferred in runProjectLoop):
-defer proxy.SetActive()
+mcpHandler := mcp.NewHandler(mcpConfig, toolHandlers)
+mcpHandler.SetLog(h.Logger)
+mcpHandler.ConfigureIDEs()
+
+h.HTTP = NewTinywasmHTTP(mcpPort, mcpHandler.HTTPHandler(), sseHub, "")
+h.HTTP.SetLog(h.Logger)
+h.HTTP.OnState(func() []byte { return h.Tui.GetHandlerStates() })
+// No OnAction in standalone — all handlers dispatch locally via TUI
+
+h.Tui.AddHandler(h.HTTP, colorOrangeLight, h.SectionBuild)
+SetActiveHandler(h)
+go h.HTTP.Serve(h.ExitChan)
 ```
 
-`runDaemon` passes the proxy as a provider:
+Update logger wrapper (currently uses `h.MCP.PublishLog`):
 ```go
-proxy := NewProjectToolProxy()
-mcpHandler = mcp.NewHandler(
-    mcpConfig,
-    append(cfg.McpToolHandlers, dtp, proxy),
-    ui, sseHub, exitChan,
-)
+// Before:
+h.Logger = func(messages ...any) {
+    logger(messages...)
+    if h.MCP != nil {
+        h.MCP.PublishLog(fmt.Sprint(messages...))
+    }
+}
+
+// After:
+h.Logger = func(messages ...any) {
+    logger(messages...)
+    if h.HTTP != nil {
+        h.HTTP.PublishLog(fmt.Sprint(messages...))
+    }
+}
 ```
 
-#### `main.go` (no structural change needed)
-`McpToolHandlers` stays nil — the proxy handles project-level tools. No change required.
+### MODIFY: `handler.go` — update Handler struct
+
+```go
+// Before:
+MCP *mcp.Handler
+
+// After:
+HTTP *TinywasmHTTP
+```
+
+Remove `mcp` import if no longer used elsewhere in `handler.go`.
 
 ---
 
 ## Execution Steps
 
-### Step 1 — Create `net.go`
-Move all TCP/process helper functions out of `bootstrap.go` into a new `net.go` file. No logic changes.
+### Step 1 — Apply `tinywasm/mcp` changes first (prerequisite)
+`mcp.Handler.HTTPHandler()` must exist and `NewHandler` must have the new signature.
 
-### Step 2 — Create `handler.go`
-Move `Handler` struct, `sseHubAdapter`, `SetBrowser`, `SetServerFactory`, `CheckDevMode` out of `start.go` into `handler.go`. No logic changes.
+### Step 2 — Create `app/http_server.go`
+Implement `TinywasmHTTP`, `ssePublisher`, `LogEntry`, `PublishTabLog`, `PublishLog`.
+`Name()` returns `"MCP"`. `SetLog()` stores the logger.
 
-### Step 3 — Create `daemon.go`
-Move `runDaemon`, `daemonToolProvider` and all its methods, `runProjectLoop` out of `bootstrap.go` into `daemon.go`. No logic changes yet.
+### Step 3 — Update `bootstrap.go`
+Add `AppName string` to `BootstrapConfig`.
+Update `main.go` to pass `AppName: "tinywasm"`.
 
-### Step 4 — Trim `bootstrap.go` and `start.go`
-After moves, both files should contain only their core responsibility. Verify line counts < 200.
+### Step 4 — Update `daemon.go`
+- Replace `mcp.NewHandler(...)` with new pattern using `TinywasmHTTP`
+- Replace `daemonToolProvider.mcpHandler` field with `httpSrv *TinywasmHTTP`
+- Update `runProjectLoop` relay log wiring
+- Change `case "q"` → `case "stop"` in action switch
 
-### Step 5 — Create `mcp_registry.go`
-Implement `ProjectToolProxy` and `buildProjectProviders`. Add tests in `test/mcp_registry_test.go`.
+### Step 5 — Update `start.go`
+Replace `h.MCP` with `h.HTTP`. Update logger wrapper. Update `AddHandler` call.
 
-### Step 6 — Wire `ProjectToolProxy` in `daemon.go`
-Update `runDaemon` to create and register the proxy. Update `runProjectLoop` to call `proxy.SetActive(buildProjectProviders(h)...)` after project start and `defer proxy.SetActive()` on exit.
+### Step 6 — Update `handler.go`
+Replace `MCP *mcp.Handler` with `HTTP *TinywasmHTTP`.
 
-### Step 7 — Update `start.go` standalone mode
-Replace the manual tool list assembly (lines 224-232) with `buildProjectProviders(h)`.
-
-### Step 8 — Run tests and publish
+### Step 7 — Run tests and publish
 ```bash
 gotest
-gopush 'refactor: split bootstrap, add ProjectToolProxy for unified MCP tool registration'
+gopush 'feat: app owns HTTP server, PublishTabLog, action/state routes'
 ```
 
 ---
 
 ## Test Strategy
 
-- `TestProjectToolProxy_EmptyByDefault` — `GetMCPTools()` returns empty slice when no active project.
-- `TestProjectToolProxy_SetActive_ExposesBrowserTools` — after `SetActive(browser)`, tools from browser appear.
-- `TestProjectToolProxy_SetActive_Clear` — after `SetActive()` with no args, tools return empty.
-- `TestProjectToolProxy_ThreadSafe` — concurrent `SetActive` + `GetMCPTools` does not race (run with `-race`).
-- `TestBuildProjectProviders_IncludesHandler` — always includes `app.Handler` first.
-- `TestBuildProjectProviders_SkipsNilBrowser` — nil browser is not added.
-- `TestBuildProjectProviders_SkipsNilWasmClient` — nil WasmClient is not added.
-
-Existing tests must continue passing. No mock changes required (proxy is internal to daemon path).
+- `TestTinywasmHTTP_ActionRoute` — `POST /action?key=stop` → `onAction` called with `"stop"`
+- `TestTinywasmHTTP_StateRoute` — `GET /state` → `onState()` result returned as JSON
+- `TestTinywasmHTTP_VersionRoute` — `GET /version` → JSON `{"version":"..."}` with correct appVersion
+- `TestPublishTabLog_JSONFieldNames` — published JSON has fields `tab_title`, `handler_name`,
+  `handler_color`, `handler_type` — matching `devtui.tabContentDTO` exactly
+- `TestTinywasmHTTP_Name` — `Name()` returns `"MCP"`
+- Existing `test/mcp_test.go` and server tests must continue passing

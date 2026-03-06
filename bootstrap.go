@@ -15,6 +15,7 @@ type BootstrapConfig struct {
 	McpMode         bool
 	Debug           bool
 	Version         string // Binary version, used to detect and replace stale daemons
+	AppName         string // e.g. "tinywasm" — used in HTTP server version endpoint
 	Logger          func(messages ...any)
 	DB              DB
 	GitHandler      devflow.GitClient

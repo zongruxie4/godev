@@ -39,12 +39,12 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		GoModHandler:  goModHandler,
 	}
 
-	// Wrap logger to also broadcast to MCP if initialized.
+	// Wrap logger to also broadcast to HTTP server if initialized.
 	// This ensures that all components using h.Logger will broadcast to SSE.
 	h.Logger = func(messages ...any) {
 		logger(messages...)
-		if h.MCP != nil {
-			h.MCP.PublishLog(fmt.Sprint(messages...))
+		if h.HTTP != nil {
+			h.HTTP.PublishLog(fmt.Sprint(messages...))
 		}
 	}
 
@@ -128,7 +128,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	}
 
 	if !headless {
-		// Standalone mode: create and serve the project-level MCP on port 3030.
+		// Standalone mode: create and serve the project-level HTTP server on port 3030.
 		// In headless/daemon-sub-project mode this is skipped to avoid a port conflict
 		// with the already-running global daemon MCP.
 		mcpPort := "3030"
@@ -154,22 +154,30 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		// Use buildProjectProviders for single source of truth
 		toolHandlers := buildProjectProviders(h)
 		toolHandlers = append(toolHandlers, mcpToolHandlers...)
-		h.MCP = mcp.NewHandler(mcpConfig, toolHandlers, h.Tui, sseHub, h.ExitChan)
-		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
-		h.MCP.ConfigureIDEs()
+		mcpHandler := mcp.NewHandler(mcpConfig, toolHandlers)
+		mcpHandler.SetLog(logger)
+		mcpHandler.ConfigureIDEs()
+
+		// Create HTTP server that owns /mcp, /logs, /action, /state, /version routes
+		h.HTTP = NewTinywasmHTTP(mcpPort, mcpHandler.HTTPHandler(), sseHub, "")
+		h.HTTP.SetLog(logger)
+		h.HTTP.OnState(func() []byte { return h.Tui.GetHandlerStates() })
+		// No OnAction in standalone — all handlers dispatch locally via TUI
+
+		h.Tui.AddHandler(h.HTTP, colorOrangeLight, h.SectionBuild)
 		SetActiveHandler(h)
 
-		// Start MCP HTTP server
+		// Start HTTP server
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			h.MCP.Serve()
+			h.HTTP.Serve(h.ExitChan)
 		}()
 
 		// Start the UI
 		go h.Tui.Start(&wg)
 	} else {
-		// Headless mode: no MCP, no UI. Keep alive until ExitChan is closed.
+		// Headless mode: no HTTP, no UI. Keep alive until ExitChan is closed.
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

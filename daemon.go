@@ -51,41 +51,36 @@ func runDaemon(cfg BootstrapConfig) {
 		ReplayAllOnConnect:  true,
 	})
 
-	// Create MCP handler with injected SSE transport
-	mcpHandler := mcp.NewHandler(mcpConfig, nil, ui, sseHub, exitChan)
+	// Define the daemon tool provider that controls the project lifecycles
+	dtp := newDaemonToolProvider(cfg, logger)
+
+	// Create MCP handler (pure JSON-RPC, no HTTP server)
+	toolProviders := append(cfg.McpToolHandlers, dtp)
+	mcpHandler := mcp.NewHandler(mcpConfig, toolProviders)
 	mcpHandler.SetLog(logger)
 	mcpHandler.ConfigureIDEs()
 
-	// Define the daemon tool provider that controls the project lifecycles
-	dtp := newDaemonToolProvider(cfg, mcpHandler, logger)
+	// Create HTTP server that owns /mcp, /logs, /action, /state, /version routes
+	httpSrv := NewTinywasmHTTP(mcpPort, mcpHandler.HTTPHandler(), sseHub, cfg.Version)
+	httpSrv.SetLog(logger)
 
 	// Create the ProjectToolProxy — registered once, updated when projects start/stop
 	proxy := NewProjectToolProxy()
 
-	// Recreate handler with all tool providers: external handlers, daemon, and project proxy
-	toolProviders := append(cfg.McpToolHandlers, dtp, proxy)
-	mcpHandler = mcp.NewHandler(mcpConfig, toolProviders, ui, sseHub, exitChan)
-	mcpHandler.SetLog(logger)
-	mcpHandler.ConfigureIDEs()
-	// Update dtp to point to final handler so RelayLog publishes to SSE hub
-	dtp.mcpHandler = mcpHandler
-	// Store proxy in dtp so runProjectLoop can update it
+	// Update dtp to store proxy and HTTP server
 	dtp.toolProxy = proxy
+	dtp.httpSrv = httpSrv
 
-	// Handle UI Webhooks (e.g. from the TUI Client when user presses "q" or "r")
-	mcpHandler.OnUIAction(func(key, value string) {
+	// Handle action webhooks (e.g. from the TUI Client when user presses Ctrl+C sending "stop")
+	httpSrv.OnAction(func(key, value string) {
 		if ui.DispatchAction(key, value) {
 			return
 		}
 		switch key {
-		case "q":
+		case "stop":
 			logger("Stop command received from UI")
 			dtp.stopProject()
-			// We intentionally don't close exitChan here to keep the Daemon alive,
-			// just the project dies.
-		case "r":
-			// A true hot reload could be triggered by touching a watched file or signaling the watcher
-			// For now, restarting the project is the closest equivalent
+		case "restart":
 			logger("Restart command received from UI")
 			dtp.restartCurrentProject()
 		default:
@@ -93,7 +88,7 @@ func runDaemon(cfg BootstrapConfig) {
 		}
 	})
 
-	mcpHandler.RegisterStateProvider(func() []byte {
+	httpSrv.OnState(func() []byte {
 		return ui.GetHandlerStates()
 	})
 
@@ -107,15 +102,15 @@ func runDaemon(cfg BootstrapConfig) {
 		}()
 	}
 
-	// Block forever serving MCP and SSE
-	mcpHandler.Serve()
+	// Block forever serving HTTP (which includes /mcp, /logs, /action, /state, /version)
+	httpSrv.Serve(exitChan)
 }
 
 // daemonToolProvider implements mcp.ToolProvider to expose global daemon tools
 // and manages the lifecycle of the running project instance.
 type daemonToolProvider struct {
 	cfg           BootstrapConfig
-	mcpHandler    *mcp.Handler
+	httpSrv       *TinywasmHTTP
 	toolProxy     *ProjectToolProxy // Updated when projects start/stop
 	logger        func(messages ...any)
 	projectCancel context.CancelFunc
@@ -124,11 +119,10 @@ type daemonToolProvider struct {
 	lastPath      string // Keep track of the last path for remote restarts
 }
 
-func newDaemonToolProvider(cfg BootstrapConfig, mcp *mcp.Handler, logger func(messages ...any)) *daemonToolProvider {
+func newDaemonToolProvider(cfg BootstrapConfig, logger func(messages ...any)) *daemonToolProvider {
 	return &daemonToolProvider{
-		cfg:        cfg,
-		mcpHandler: mcp,
-		logger:     logger,
+		cfg:    cfg,
+		logger: logger,
 	}
 }
 
@@ -248,7 +242,7 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 	headlessTui := NewHeadlessTUI(d.logger)
 	// Wire component loggers to the daemon SSE hub so the client TUI receives structured logs
 	headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
-		d.mcpHandler.PublishTabLog(tabTitle, handlerName, color, msg)
+		d.httpSrv.PublishTabLog(tabTitle, handlerName, color, msg)
 	}
 	browser := d.cfg.BrowserFactory(headlessTui, runExitChan)
 

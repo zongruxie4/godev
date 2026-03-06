@@ -8,7 +8,6 @@ import (
 	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
-	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
 )
 
@@ -56,8 +55,8 @@ type Handler struct {
 	SectionDeploy    any // Store reference to deploy tab
 	RestartRequested bool
 
-	// MCP Handler for LLM integration
-	MCP *mcp.Handler
+	// HTTP Server for LLM integration (owns /mcp, /logs, /action, /state, /version routes)
+	HTTP *TinywasmHTTP
 
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
