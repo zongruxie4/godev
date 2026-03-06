@@ -9,7 +9,7 @@ require (
 	github.com/tinywasm/devflow v0.2.22
 	github.com/tinywasm/devtui v0.2.73
 	github.com/tinywasm/kvdb v0.0.21
-	github.com/tinywasm/mcp v0.0.11
+	github.com/tinywasm/mcp v0.0.12
 	github.com/tinywasm/sse v0.0.12
 	github.com/tinywasm/wizard v0.0.22
 )
@@ -70,6 +70,4 @@ replace (
 	github.com/tinywasm/client => ../client
 	github.com/tinywasm/devbrowser => ../devbrowser
 	github.com/tinywasm/devtui => ../devtui
-	github.com/tinywasm/mcp => ../mcp
-	github.com/tinywasm/mcpserve => ../mcpserve
 )

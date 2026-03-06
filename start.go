@@ -5,11 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/tinywasm/assetmin"
-	"github.com/tinywasm/client"
-	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
 )
@@ -17,82 +13,11 @@ import (
 // TestMode disables browser auto-start when running tests
 var TestMode bool
 
-// sseHubAdapter wraps *sse.SSEServer to implement mcp.SSEHub interface
-type sseHubAdapter struct {
-	*sse.SSEServer
-}
-
-func (a *sseHubAdapter) Publish(data []byte, channel string) {
-	a.SSEServer.Publish(data, channel)
-}
-
-// Handler contains application state and dependencies
-// CRITICAL: This struct does NOT import DevTUI
-type Handler struct {
-	FrameworkName string // eg: "TINYWASM", "DEVGO", etc.
-	DevMode       bool   // True if running in development mode (read from DB)
-	RootDir       string
-	Config        *Config
-	Tui           TuiInterface // Interface defined in TINYWASM, not DevTUI
-	ExitChan      chan bool
-	Logger        func(messages ...any) // Main logger for passing to components
-
-	DB DB // Key-value store interface
-
-	// Build dependencies
-	Server        ServerInterface
-	serverFactory ServerFactory
-
-	AssetsHandler *assetmin.AssetMin
-	GitHandler    devflow.GitClient
-	GoHandler     *devflow.Go
-	GoNew         *devflow.GoNew
-	WasmClient    *client.WasmClient
-	Watcher       *devwatch.DevWatch
-	Browser       BrowserInterface
-	GitHubAuth    any
-
-	// Deploy dependencies
-	DeployManager *deploy.Daemon
-
-	// Lifecycle management
-	startOnce        sync.Once
-	SectionBuild     any // Store reference to build tab
-	SectionDeploy    any // Store reference to deploy tab
-	RestartRequested bool
-
-	// MCP Handler for LLM integration
-	MCP *mcp.Handler
-
-	// GoMod Handler
-	GoModHandler devflow.GoModInterface
-}
-
-func (h *Handler) SetBrowser(b BrowserInterface) {
-	h.Browser = b
-}
-
-func (h *Handler) SetServerFactory(f ServerFactory) {
-	h.serverFactory = f
-}
-
-// CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
-// CheckDevMode checks the DB for "dev_mode" key and sets the DevMode field
-func (h *Handler) CheckDevMode() {
-	if h.DB != nil {
-		val, err := h.DB.Get("dev_mode")
-		// Default to true if not found (err != nil), empty, or explicitly "true"
-		if err != nil || val == "" || val == "true" {
-			h.DevMode = true
-			h.DB.Set("dev_mode", "true")
-		}
-	}
-}
-
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement GetMCPTools() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, mcpToolHandlers ...mcp.ToolProvider) bool {
+// onProjectReady: optional callback called after handler initialization (for daemon mode to set up proxy)
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, onProjectReady func(*Handler), mcpToolHandlers ...mcp.ToolProvider) bool {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -188,6 +113,11 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		}
 	}()
 
+	// Call onProjectReady callback (used by daemon to set up tool proxy)
+	if onProjectReady != nil {
+		onProjectReady(h)
+	}
+
 	if !h.IsPartOfProject() {
 		sectionWizard := h.AddSectionWIZARD(func() {
 			h.OnProjectReady(&wg)
@@ -221,14 +151,8 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 			ReplayAllOnConnect:  true,
 		})
 
-		toolHandlers := []mcp.ToolProvider{}
-		toolHandlers = append(toolHandlers, h)
-		if h.WasmClient != nil {
-			toolHandlers = append(toolHandlers, h.WasmClient)
-		}
-		if h.Browser != nil {
-			toolHandlers = append(toolHandlers, h.Browser)
-		}
+		// Use buildProjectProviders for single source of truth
+		toolHandlers := buildProjectProviders(h)
 		toolHandlers = append(toolHandlers, mcpToolHandlers...)
 		h.MCP = mcp.NewHandler(mcpConfig, toolHandlers, h.Tui, sseHub, h.ExitChan)
 		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)

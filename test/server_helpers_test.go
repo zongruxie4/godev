@@ -205,7 +205,7 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 
 	appDone := make(chan struct{})
 	go func() {
-		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH, false, false)
+		app.Start(RootDir, logger, ctx.UI, ctx.Browser, ctx.DB, ExitChan, factory, devflow.NewMockGitHubAuth(), ctx.GitHandler, goModH, false, false, nil)
 		close(appDone)
 	}()
 	// Wait for handler registration

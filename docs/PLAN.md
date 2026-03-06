@@ -1,230 +1,236 @@
-# Plan: Extend TuiInterface for State & Action Dispatch.
-
-## Why Extend `TuiInterface`, Not Add a Separate Interface.
-
-`TuiInterface` is already the contract between `bootstrap.go` and both TUI
-implementations. `bootstrap.go` holds a `ui TuiInterface` reference and calls
-`ui.AddHandler(...)` for every registered handler. The TUI already owns the handler
-knowledge the moment `AddHandler` is called.
-
-Adding a separate `StateProvider` interface (checked via type assertion) is a design
-smell: it means the interface contract is incomplete. The correct answer is to make
-the contract complete by extending `TuiInterface` directly. The compiler then
-enforces that both `HeadlessTUI` and `DevTUI` implement the full contract — no
-runtime assertions, no optional duck-typing.
-
-## Changes to `interface.go`
-
-```go
-type TuiInterface interface {
-    NewTabSection(title, description string) any
-    AddHandler(Handler any, color string, tabSection any)
-    Start(syncWaitGroup ...any)
-    RefreshUI()
-    ReturnFocus() error
-    SetActiveTab(section any)
-
-    // GetHandlerStates returns the current handler state as JSON bytes.
-    // Format: []StateEntry (devtui wire format).
-    // HeadlessTUI: populated by AddHandler calls (daemon mode).
-    // DevTUI: returns nil (client mode, not a state server).
-    GetHandlerStates() []byte
-
-    // DispatchAction routes a remote action to the handler registered for that key.
-    // Returns true if a registered handler handled it; false means caller must handle.
-    // HeadlessTUI: iterates handlers slice built in AddHandler, matches by shortcut key.
-    // DevTUI: always returns false (actions are sent to daemon, not dispatched locally).
-    DispatchAction(key, value string) bool
-}
-```
-
-## `HeadlessTUI` Additions
-
-`AddHandler` already uses local duck-typed interfaces (`titleGetter`, `namer`,
-`logSetter`). The same pattern extends naturally to state capture and action binding.
-No new public types. No separate struct hierarchy.
-
-### Internal state (minimal)
-
-```go
-// capturedHandler holds everything HeadlessTUI knows about one registered handler.
-// The handler reference is retained so GetHandlerStates() reads Value()/Label()
-// dynamically — never stale, always reflects current handler state.
-type capturedHandler struct {
-    tabTitle     string
-    handlerName  string
-    handlerColor string
-    handlerType  int          // htDisplay/htEdit/htExecution/htInteractive
-    key          string       // shortcut key (empty if none)
-    action       func(string) // called on DispatchAction
-    handler      any          // original reference for dynamic Value()/Label() reads
-}
-
-type HeadlessTUI struct {
-    logger   func(messages ...any)
-    RelayLog func(tabTitle, handlerName, color, msg string)
-    handlers []capturedHandler // populated by AddHandler
-    mu       sync.RWMutex
-}
-```
-
-> **Why store `handler any` instead of pre-marshaling to `[]byte`?**
-> Pre-marshaling at `AddHandler` time captures the initial value only. If the handler's
-> value changes later (config edit, browser toggle), `GetHandlerStates()` would return
-> stale data. Storing the reference and reading via duck-typing at call time ensures
-> the snapshot always reflects current state.
-
-### `AddHandler` extension
-
-After existing log injection, detect interactive capability via local anonymous
-interfaces (same duck-typing pattern already used in `AddHandler`) and append to
-`handlers`:
-
-```go
-// handlerType constants — must match devtui.HandlerType* iota values.
-// If devtui/anyHandler.go iota changes, update these in lockstep.
-const (
-    htDisplay     = 0
-    htEdit        = 1
-    htExecution   = 2
-    htInteractive = 3
-)
-```
-
-For each handler type detected, capture the action closure and store `capturedHandler`
-with the handler reference. The shortcut key drives `DispatchAction` routing.
-
-### `GetHandlerStates() []byte`
-
-Reads current state dynamically from each handler reference. JSON tags match
-`devtui.StateEntry` exactly — this is the published wire contract.
-
-```go
-func (t *HeadlessTUI) GetHandlerStates() []byte {
-    t.mu.RLock()
-    defer t.mu.RUnlock()
-
-    // Local duck-typed interfaces — no devtui import required.
-    type labeler interface{ Label() string }
-    type valuer  interface{ Value() string }
-
-    type stateEntry struct {
-        TabTitle     string `json:"tab_title"`
-        HandlerName  string `json:"handler_name"`
-        HandlerColor string `json:"handler_color"`
-        HandlerType  int    `json:"handler_type"`
-        Label        string `json:"label"`
-        Value        string `json:"value"`
-        Shortcut     string `json:"shortcut"`
-    }
-
-    entries := make([]stateEntry, 0, len(t.handlers))
-    for _, h := range t.handlers {
-        e := stateEntry{
-            TabTitle:     h.tabTitle,
-            HandlerName:  h.handlerName,
-            HandlerColor: h.handlerColor,
-            HandlerType:  h.handlerType,
-            Shortcut:     h.key,
-        }
-        if l, ok := h.handler.(labeler); ok { e.Label = l.Label() }
-        if v, ok := h.handler.(valuer);  ok { e.Value = v.Value() }
-        entries = append(entries, e)
-    }
-    data, _ := json.Marshal(entries)
-    return data
-}
-```
-
-### `DispatchAction(key, value string) bool`
-
-```go
-func (t *HeadlessTUI) DispatchAction(key, value string) bool {
-    t.mu.RLock()
-    defer t.mu.RUnlock()
-    for _, h := range t.handlers {
-        if h.key == key && h.action != nil {
-            go h.action(value) // non-blocking
-            return true
-        }
-    }
-    return false
-}
-```
-
-## `DevTUI` Stubs (devtui package)
-
-Two methods on `*DevTUI`:
-
-```go
-func (d *DevTUI) GetHandlerStates() []byte        { return nil }
-func (d *DevTUI) DispatchAction(_, _ string) bool { return false }
-```
-
-`DevTUI` is a client-mode TUI. It receives state from the daemon (via `GET /state`),
-it does not serve it. It forwards actions to the daemon (via `POST /action`), it does
-not dispatch them locally.
-
-## Bootstrap Wiring (`bootstrap.go`)
-
-In `runProjectLoop`, `headlessTui` is the local `*HeadlessTUI` variable (which
-satisfies `TuiInterface`). The wiring uses the interface — no internal fields accessed.
-
-```go
-// Wire state provider — direct interface call, no type assertion
-d.mcpHandler.RegisterStateProvider(func() []byte {
-    return headlessTui.GetHandlerStates()
-})
-
-// Wire action dispatcher — TuiInterface handles the routing
-d.mcpHandler.OnUIAction(func(key, value string) {
-    if headlessTui.DispatchAction(key, value) {
-        return
-    }
-    switch key {
-    case "q": d.logger("Stop command received from UI"); dtp.stopProject()
-    case "r": d.logger("Restart command received from UI"); dtp.restartCurrentProject()
-    default:  d.logger("Unknown UI action:", key)
-    }
-})
-```
-
-Bootstrap has zero knowledge of `capturedHandler` or any internal `HeadlessTUI` field.
-It only uses the `TuiInterface` contract.
-
-## Files to Change
-
-| File | Change |
-|------|--------|
-| `interface.go` | Add `GetHandlerStates() []byte` and `DispatchAction(key, value string) bool` to `TuiInterface` |
-| `headless_tui.go` | Add `capturedHandler` struct; add `handlers []capturedHandler` + `mu`; extend `AddHandler`; implement `GetHandlerStates` and `DispatchAction` |
-| `bootstrap.go` | Wire `RegisterStateProvider` and extended `OnUIAction` in `runProjectLoop` |
-| `devtui` (separate repo) | Add two stub methods to `DevTUI` |
-
-## Invariants
-
-- `GetHandlerStates()` JSON tags (`tab_title`, `handler_name`, etc.) must match
-  `devtui.StateEntry` exactly — documented in `headless_tui.go` as an explicit comment
-- `GetHandlerStates()` reads current handler values dynamically — never returns stale
-  state regardless of when it is called
-- `HeadlessTUI` does NOT import `devtui` (no circular dependency)
-- `htDisplay/htEdit/htExecution/htInteractive` constants are unexported, documented
-  to mirror `devtui.HandlerType*` iota
-- `TuiInterface` adding these methods is backward-compatible only if all existing
-  mock implementations (tests) also gain the two stubs
-
-## Test Strategy
-
-- `TestHeadlessTUI_GetHandlerStates_ValidJSON` — JSON output matches devtui.StateEntry
-- `TestHeadlessTUI_DispatchAction_ReturnsTrue_WhenHandled`
-- `TestHeadlessTUI_DispatchAction_ReturnsFalse_WhenUnknownKey`
-- `TestDevTUI_GetHandlerStates_ReturnsNil`
-- `TestDevTUI_DispatchAction_ReturnsFalse`
-- Update mock `TuiInterface` in test files with the two new stubs
+# Plan: App Package Restructure + MCP Tool Registry
 
 ## References
 
 - [ARCHITECTURE.md](ARCHITECTURE.md)
-- `interface.go` — `TuiInterface` definition
-- Wire format: `devtui/docs/PLAN.md` (`StateEntry`)
-- Transport: `mcpserve/docs/PLAN.md`
+- [MCP_ARCHITECTURE_PLAN.md](MCP_ARCHITECTURE_PLAN.md)
+- `bootstrap.go` — current entry point (to be split)
+- `start.go` — Handler struct + Start() (to be split)
+- `mcp-tools.go` — app.Handler tools
+- `devbrowser/mcp-tools.go` — browser tools
+
+---
+
+## Development Rules
+
+- **SRP:** Every file must have a single, well-defined purpose.
+- **Max 500 lines per file.** Files exceeding this MUST be subdivided.
+- **No global state.** Use dependency injection via interfaces.
+- **Standard library only.** No external test assertion libraries.
+- **Test runner:** Use `gotest` (never `go test` directly).
+- **Publish:** Use `gopush 'message'` after tests pass.
+- **Language:** Plans in English, chat in Spanish.
+- **No code changes** until the user says "ejecuta" or "ok".
+
+---
+
+## Problem Summary
+
+### 1. `bootstrap.go` violates SRP (476 lines, 4 responsibilities)
+- Bootstrap entry point
+- Daemon lifecycle (`runDaemon`, `daemonToolProvider`, `startProject`, `runProjectLoop`)
+- Network/process helpers (`isPortOpen`, `waitForPort*`, `killDaemon`, `startDaemonProcess`)
+- Client mode (`runClient`)
+
+### 2. Tool registration is broken in daemon mode
+- `start.go:224-232` registers tools in standalone mode (`h`, `h.Browser`, `h.WasmClient`) — works.
+- `bootstrap.go:129` in daemon mode only registers `daemonToolProvider` — browser and app tools are never registered.
+- `main.go` always leaves `McpToolHandlers = nil`.
+
+### 3. Lifecycle mismatch (root cause)
+The `mcp.Handler` is created **once** at daemon startup, but project-level tool providers (`devbrowser`, `app.Handler`) are created **per project** inside `runProjectLoop`. There is no mechanism to update tool providers after startup.
+
+### 4. `app.Handler.GetMCPTools()` (`app_rebuild`) never reaches the daemon MCP
+It is only registered in standalone mode. In daemon mode it is dead code.
+
+---
+
+## Solution: `ProjectToolProxy` + Single Registration Point
+
+Introduce a `ProjectToolProxy` registered **once** with the MCP daemon at startup. When a project starts or stops, `SetActive()` updates the proxy atomically. The MCP handler always reads current tools via `GetMCPTools()`.
+
+```
+Daemon startup:
+  proxy := NewProjectToolProxy()
+  mcp.NewHandler([daemonToolProvider, proxy], ...)
+
+start_development called:
+  browser := BrowserFactory(...)
+  handler := newProjectHandler(...)
+  proxy.SetActive(handler, browser, wasmClient)
+
+stop_development called:
+  proxy.SetActive()  // empty
+```
+
+All tool registration logic lives exclusively in `mcp_registry.go`. No other file assembles tool provider lists.
+
+---
+
+## File Restructure
+
+### Files to CREATE
+
+#### `net.go`
+Extracted from `bootstrap.go`. Contains only TCP/process helpers.
+- `isPortOpen(port string) bool`
+- `waitForPortFree(port string)`
+- `waitForPortReady(port string)`
+- `isDaemonVersionCurrent(port, version string) bool`
+- `killDaemon()`
+- `startDaemonProcess(dir string) error`
+
+#### `daemon.go`
+Extracted from `bootstrap.go`. Contains daemon lifecycle only.
+- `runDaemon(cfg BootstrapConfig)`
+- `daemonToolProvider` struct
+- `newDaemonToolProvider(...)`
+- `(d *daemonToolProvider) GetMCPTools() []mcp.Tool`
+- `(d *daemonToolProvider) startProject(path string)`
+- `(d *daemonToolProvider) stopProject()`
+- `(d *daemonToolProvider) restartCurrentProject()`
+- `(d *daemonToolProvider) runProjectLoop(ctx, path string)`
+
+#### `handler.go`
+Extracted from `start.go`. Contains the Handler struct definition only.
+- `Handler` struct
+- `sseHubAdapter` struct and `Publish` method
+- `(h *Handler) SetBrowser(...)`
+- `(h *Handler) SetServerFactory(...)`
+- `(h *Handler) CheckDevMode()`
+
+#### `mcp_registry.go`
+**New file. Single source of truth for all MCP tool registration.**
+
+```go
+// ProjectToolProxy is registered once with the MCP daemon at startup.
+// When a new project starts, SetActive() updates tool providers atomically.
+type ProjectToolProxy struct {
+    mu     sync.RWMutex
+    active []mcp.ToolProvider
+}
+
+func NewProjectToolProxy() *ProjectToolProxy
+
+// SetActive replaces the current project's tool providers.
+// Call with no args to clear (project stopped).
+func (p *ProjectToolProxy) SetActive(providers ...mcp.ToolProvider)
+
+// GetMCPTools implements mcp.ToolProvider. Always reflects the current project.
+func (p *ProjectToolProxy) GetMCPTools() []mcp.Tool
+
+// buildProjectProviders returns the ordered list of tool providers for a given Handler.
+// This is the single place where project-level tool registration order is defined.
+func buildProjectProviders(h *Handler) []mcp.ToolProvider
+```
+
+`buildProjectProviders` implementation:
+```go
+func buildProjectProviders(h *Handler) []mcp.ToolProvider {
+    providers := []mcp.ToolProvider{h} // app_rebuild tool
+    if h.WasmClient != nil {
+        providers = append(providers, h.WasmClient)
+    }
+    if h.Browser != nil {
+        providers = append(providers, h.Browser)
+    }
+    return providers
+}
+```
+
+### Files to MODIFY
+
+#### `bootstrap.go` (after split: ~100 lines)
+Keeps only:
+- `Bootstrap(cfg BootstrapConfig)` entry point
+- `runClient(cfg BootstrapConfig)`
+- `logChannelProvider` struct (used in both modes)
+- `BootstrapConfig` struct
+
+Removes: everything moved to `daemon.go` and `net.go`.
+
+#### `start.go` (after split: ~180 lines)
+Keeps only `Start(...)` function.
+Removes: `Handler` struct, `sseHubAdapter`, `SetBrowser`, `SetServerFactory`, `CheckDevMode` (moved to `handler.go`).
+
+Updates tool registration to use `buildProjectProviders`:
+```go
+// Before (start.go:224-232) — scattered, duplicated logic:
+toolHandlers := []mcp.ToolProvider{}
+toolHandlers = append(toolHandlers, h)
+if h.WasmClient != nil { toolHandlers = append(toolHandlers, h.WasmClient) }
+if h.Browser != nil { toolHandlers = append(toolHandlers, h.Browser) }
+toolHandlers = append(toolHandlers, mcpToolHandlers...)
+
+// After — single call:
+toolHandlers := buildProjectProviders(h)
+toolHandlers = append(toolHandlers, mcpToolHandlers...)
+```
+
+#### `daemon.go` — `runProjectLoop`
+After creating the project handler and browser, update the proxy:
+```go
+// After Start() initializes h.WasmClient and h.Browser:
+proxy.SetActive(buildProjectProviders(h)...)
+
+// On project stop (deferred in runProjectLoop):
+defer proxy.SetActive()
+```
+
+`runDaemon` passes the proxy as a provider:
+```go
+proxy := NewProjectToolProxy()
+mcpHandler = mcp.NewHandler(
+    mcpConfig,
+    append(cfg.McpToolHandlers, dtp, proxy),
+    ui, sseHub, exitChan,
+)
+```
+
+#### `main.go` (no structural change needed)
+`McpToolHandlers` stays nil — the proxy handles project-level tools. No change required.
+
+---
+
+## Execution Steps
+
+### Step 1 — Create `net.go`
+Move all TCP/process helper functions out of `bootstrap.go` into a new `net.go` file. No logic changes.
+
+### Step 2 — Create `handler.go`
+Move `Handler` struct, `sseHubAdapter`, `SetBrowser`, `SetServerFactory`, `CheckDevMode` out of `start.go` into `handler.go`. No logic changes.
+
+### Step 3 — Create `daemon.go`
+Move `runDaemon`, `daemonToolProvider` and all its methods, `runProjectLoop` out of `bootstrap.go` into `daemon.go`. No logic changes yet.
+
+### Step 4 — Trim `bootstrap.go` and `start.go`
+After moves, both files should contain only their core responsibility. Verify line counts < 200.
+
+### Step 5 — Create `mcp_registry.go`
+Implement `ProjectToolProxy` and `buildProjectProviders`. Add tests in `test/mcp_registry_test.go`.
+
+### Step 6 — Wire `ProjectToolProxy` in `daemon.go`
+Update `runDaemon` to create and register the proxy. Update `runProjectLoop` to call `proxy.SetActive(buildProjectProviders(h)...)` after project start and `defer proxy.SetActive()` on exit.
+
+### Step 7 — Update `start.go` standalone mode
+Replace the manual tool list assembly (lines 224-232) with `buildProjectProviders(h)`.
+
+### Step 8 — Run tests and publish
+```bash
+gotest
+gopush 'refactor: split bootstrap, add ProjectToolProxy for unified MCP tool registration'
+```
+
+---
+
+## Test Strategy
+
+- `TestProjectToolProxy_EmptyByDefault` — `GetMCPTools()` returns empty slice when no active project.
+- `TestProjectToolProxy_SetActive_ExposesBrowserTools` — after `SetActive(browser)`, tools from browser appear.
+- `TestProjectToolProxy_SetActive_Clear` — after `SetActive()` with no args, tools return empty.
+- `TestProjectToolProxy_ThreadSafe` — concurrent `SetActive` + `GetMCPTools` does not race (run with `-race`).
+- `TestBuildProjectProviders_IncludesHandler` — always includes `app.Handler` first.
+- `TestBuildProjectProviders_SkipsNilBrowser` — nil browser is not added.
+- `TestBuildProjectProviders_SkipsNilWasmClient` — nil WasmClient is not added.
+
+Existing tests must continue passing. No mock changes required (proxy is internal to daemon path).
