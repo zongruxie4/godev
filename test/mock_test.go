@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/mcpserve"
+	"github.com/tinywasm/mcp"
 )
 
 type mockTUI struct {
@@ -137,8 +137,8 @@ func (m *MockBrowser) SetLog(f func(message ...any)) {
 	m.logFunc = f
 }
 
-func (m *MockBrowser) GetMCPToolsMetadata() []mcpserve.ToolMetadata {
-	return []mcpserve.ToolMetadata{}
+func (m *MockBrowser) GetMCPTools() []mcp.Tool {
+	return []mcp.Tool{}
 }
 
 type MockGitClient struct {

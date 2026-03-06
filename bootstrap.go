@@ -13,7 +13,8 @@ import (
 	"time"
 
 	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/mcpserve"
+	"github.com/tinywasm/mcp"
+	"github.com/tinywasm/sse"
 )
 
 // BootstrapConfig holds dependencies for bootstrapping the application
@@ -30,7 +31,7 @@ type BootstrapConfig struct {
 	TuiFactory      func(exitChan chan bool, clientMode bool, clientURL string) TuiInterface
 	BrowserFactory  func(ui TuiInterface, exitChan chan bool) BrowserInterface
 	GitHubAuth      any
-	McpToolHandlers []mcpserve.ToolProvider
+	McpToolHandlers []mcp.ToolProvider
 }
 
 // Bootstrap is the main entry point for the application logic
@@ -68,6 +69,13 @@ func Bootstrap(cfg BootstrapConfig) {
 	}
 }
 
+// logChannelProvider implements sse.ChannelProvider
+type logChannelProvider struct{}
+
+func (p *logChannelProvider) ResolveChannels(r *http.Request) ([]string, error) {
+	return []string{"logs"}, nil
+}
+
 func runDaemon(cfg BootstrapConfig) {
 	// Headless mode
 	// Ensure we have a valid Logger for daemon itself
@@ -83,7 +91,7 @@ func runDaemon(cfg BootstrapConfig) {
 		mcpPort = p
 	}
 
-	mcpConfig := mcpserve.Config{
+	mcpConfig := mcp.Config{
 		Port:          mcpPort,
 		ServerName:    "TinyWasm - Global MCP Server",
 		ServerVersion: "1.0.0",
@@ -100,22 +108,28 @@ func runDaemon(cfg BootstrapConfig) {
 		ui = NewHeadlessTUI(logger)
 	}
 
-	// We will create the MCP handler globally first but without tools so we can pass it
-	// to the daemon tool provider.
-	mcpHandler := mcpserve.NewHandler(mcpConfig, nil, ui, exitChan)
+	// Create SSE server (tinywasm/sse) and inject into Handler (mcp.SSEHub interface)
+	tinySSE := sse.New(&sse.Config{})
+	sseHub := tinySSE.Server(&sse.ServerConfig{
+		ChannelProvider:     &logChannelProvider{},
+		ClientChannelBuffer: 256,
+		HistoryReplayBuffer: 100,
+		ReplayAllOnConnect:  true,
+	})
+
+	// Create MCP handler with injected SSE transport
+	mcpHandler := mcp.NewHandler(mcpConfig, nil, ui, sseHub, exitChan)
 	mcpHandler.SetLog(logger)
 	mcpHandler.ConfigureIDEs()
 
 	// Define the daemon tool provider that controls the project lifecycles
 	dtp := newDaemonToolProvider(cfg, mcpHandler, logger)
 
-	// Since NewHandler accepts full slice, we can add it manually or recreate the handler.
-	// We'll just recreate it for simplicity, since it's cleaner:
-	mcpHandler = mcpserve.NewHandler(mcpConfig, append(cfg.McpToolHandlers, dtp), ui, exitChan)
+	// Recreate handler with all tool providers including daemon
+	mcpHandler = mcp.NewHandler(mcpConfig, append(cfg.McpToolHandlers, dtp), ui, sseHub, exitChan)
 	mcpHandler.SetLog(logger)
 	mcpHandler.ConfigureIDEs()
-	// CRITICAL: dtp was created with the first mcpHandler (no sseHub yet).
-	// Update it to point to this final handler so RelayLog publishes to the real SSE hub.
+	// Update dtp to point to final handler so RelayLog publishes to SSE hub
 	dtp.mcpHandler = mcpHandler
 
 	// Handle UI Webhooks (e.g. from the TUI Client when user presses "q" or "r")
@@ -157,11 +171,11 @@ func runDaemon(cfg BootstrapConfig) {
 	mcpHandler.Serve()
 }
 
-// daemonToolProvider implements mcpserve.ToolProvider to expose global daemon tools
+// daemonToolProvider implements mcp.ToolProvider to expose global daemon tools
 // and manages the lifecycle of the running project instance.
 type daemonToolProvider struct {
 	cfg           BootstrapConfig
-	mcpHandler    *mcpserve.Handler
+	mcpHandler    *mcp.Handler
 	logger        func(messages ...any)
 	projectCancel context.CancelFunc
 	projectDone   chan struct{}
@@ -169,7 +183,7 @@ type daemonToolProvider struct {
 	lastPath      string // Keep track of the last path for remote restarts
 }
 
-func newDaemonToolProvider(cfg BootstrapConfig, mcp *mcpserve.Handler, logger func(messages ...any)) *daemonToolProvider {
+func newDaemonToolProvider(cfg BootstrapConfig, mcp *mcp.Handler, logger func(messages ...any)) *daemonToolProvider {
 	return &daemonToolProvider{
 		cfg:        cfg,
 		mcpHandler: mcp,
@@ -177,12 +191,12 @@ func newDaemonToolProvider(cfg BootstrapConfig, mcp *mcpserve.Handler, logger fu
 	}
 }
 
-func (d *daemonToolProvider) GetMCPToolsMetadata() []mcpserve.ToolMetadata {
-	return []mcpserve.ToolMetadata{
+func (d *daemonToolProvider) GetMCPTools() []mcp.Tool {
+	return []mcp.Tool{
 		{
 			Name:        "start_development",
 			Description: "Start a TinyWASM project environment (Server, WASM compiler, Assets, Browser) in the specified directory. Will stop any currently running project first.",
-			Parameters: []mcpserve.ParameterMetadata{
+			Parameters: []mcp.Parameter{
 				{
 					Name:        "ide_name",
 					Description: "Name of the IDE or LLM client making the request (e.g., 'vsc', 'cursor')",

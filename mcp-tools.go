@@ -1,17 +1,17 @@
 package app
 
 import (
-	"github.com/tinywasm/mcpserve"
+	"github.com/tinywasm/mcp"
 )
 
-// GetMCPToolsMetadata returns metadata for all Handler MCP tools
-func (h *Handler) GetMCPToolsMetadata() []mcpserve.ToolMetadata {
-	return []mcpserve.ToolMetadata{
+// GetMCPTools returns metadata for all Handler MCP tools
+func (h *Handler) GetMCPTools() []mcp.Tool {
+	return []mcp.Tool{
 		{
 			Name: "app_rebuild",
 			Description: "Trigger a full site recompilation (WASM, assets) and reload the environment. " +
 				"Use this after making code changes to ensure they are applied.",
-			Parameters: []mcpserve.ParameterMetadata{},
+			Parameters: []mcp.Parameter{},
 			Execute: func(args map[string]any) {
 				h.Logger("Manual rebuild triggered via MCP...")
 				if h.WasmClient != nil {

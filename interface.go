@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/tinywasm/kvdb"
-	"github.com/tinywasm/mcpserve"
+	"github.com/tinywasm/mcp"
 )
 
 type DB interface {
@@ -39,7 +39,7 @@ type BrowserInterface interface {
 	Reload() error
 	OpenBrowser(port string, https bool)
 	SetLog(f func(message ...any))
-	GetMCPToolsMetadata() []mcpserve.ToolMetadata
+	GetMCPTools() []mcp.Tool
 }
 
 // ServerInterface is the common contract for all server backends.

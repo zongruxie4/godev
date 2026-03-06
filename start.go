@@ -10,11 +10,21 @@ import (
 	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
-	"github.com/tinywasm/mcpserve"
+	"github.com/tinywasm/mcp"
+	"github.com/tinywasm/sse"
 )
 
 // TestMode disables browser auto-start when running tests
 var TestMode bool
+
+// sseHubAdapter wraps *sse.SSEServer to implement mcp.SSEHub interface
+type sseHubAdapter struct {
+	*sse.SSEServer
+}
+
+func (a *sseHubAdapter) Publish(data []byte, channel string) {
+	a.SSEServer.Publish(data, channel)
+}
 
 // Handler contains application state and dependencies
 // CRITICAL: This struct does NOT import DevTUI
@@ -52,7 +62,7 @@ type Handler struct {
 	RestartRequested bool
 
 	// MCP Handler for LLM integration
-	MCP *mcpserve.Handler
+	MCP *mcp.Handler
 
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
@@ -81,8 +91,8 @@ func (h *Handler) CheckDevMode() {
 
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
-// mcpToolHandlers: optional external Handlers that implement GetMCPToolsMetadata() for MCP tool discovery
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, mcpToolHandlers ...mcpserve.ToolProvider) bool {
+// mcpToolHandlers: optional external Handlers that implement GetMCPTools() for MCP tool discovery
+func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, mcpToolHandlers ...mcp.ToolProvider) bool {
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -195,13 +205,23 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
 			mcpPort = p
 		}
-		mcpConfig := mcpserve.Config{
+		mcpConfig := mcp.Config{
 			Port:          mcpPort,
 			ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
 			ServerVersion: "1.0.0",
 			AppName:       "tinywasm",
 		}
-		toolHandlers := []mcpserve.ToolProvider{}
+
+		// Create SSE server for log transport
+		tinySSE := sse.New(&sse.Config{})
+		sseHub := tinySSE.Server(&sse.ServerConfig{
+			ChannelProvider:     &logChannelProvider{},
+			ClientChannelBuffer: 256,
+			HistoryReplayBuffer: 100,
+			ReplayAllOnConnect:  true,
+		})
+
+		toolHandlers := []mcp.ToolProvider{}
 		toolHandlers = append(toolHandlers, h)
 		if h.WasmClient != nil {
 			toolHandlers = append(toolHandlers, h.WasmClient)
@@ -210,7 +230,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 			toolHandlers = append(toolHandlers, h.Browser)
 		}
 		toolHandlers = append(toolHandlers, mcpToolHandlers...)
-		h.MCP = mcpserve.NewHandler(mcpConfig, toolHandlers, h.Tui, h.ExitChan)
+		h.MCP = mcp.NewHandler(mcpConfig, toolHandlers, h.Tui, sseHub, h.ExitChan)
 		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
 		h.MCP.ConfigureIDEs()
 		SetActiveHandler(h)

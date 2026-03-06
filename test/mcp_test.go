@@ -7,18 +7,41 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tinywasm/mcpserve"
+	"github.com/tinywasm/mcp"
+	"github.com/tinywasm/sse"
 )
 
-func setupMCPTest(t *testing.T) (*mcpserve.Handler, chan bool, string) {
+// stubTUI implements mcp.tuiRefresher
+type stubTUI struct{}
+
+func (s *stubTUI) RefreshUI() {}
+
+// channelProvider implements sse.ChannelProvider
+type channelProvider struct{}
+
+func (p *channelProvider) ResolveChannels(r *http.Request) ([]string, error) {
+	return []string{"logs"}, nil
+}
+
+func setupMCPTest(t *testing.T) (*mcp.Handler, chan bool, string) {
 	ExitChan := make(chan bool)
 	port := freePort()
-	mcpConfig := mcpserve.Config{
+	mcpConfig := mcp.Config{
 		Port:          port,
 		ServerName:    "TINYWASM",
 		ServerVersion: "1.0.0",
 	}
-	m := mcpserve.NewHandler(mcpConfig, nil, nil, ExitChan)
+
+	// Create SSE server for tests
+	tinySSE := sse.New(&sse.Config{})
+	sseHub := tinySSE.Server(&sse.ServerConfig{
+		ChannelProvider:     &channelProvider{},
+		ClientChannelBuffer: 256,
+		HistoryReplayBuffer: 100,
+		ReplayAllOnConnect:  true,
+	})
+
+	m := mcp.NewHandler(mcpConfig, []mcp.ToolProvider{}, &stubTUI{}, sseHub, ExitChan)
 	return m, ExitChan, port
 }
 
