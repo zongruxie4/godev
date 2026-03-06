@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/tinywasm/devflow"
@@ -78,8 +79,21 @@ func runClient(cfg BootstrapConfig) {
 	if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
 		mcpPort = p
 	}
-	clientURL := "http://localhost:" + mcpPort + "/logs"
+	baseURL := "http://localhost:" + mcpPort
+	clientURL := baseURL + "/logs"
 	ui := cfg.TuiFactory(exitChan, true, clientURL)
+
+	// Tell the daemon to start (or restart) the project in the current directory.
+	// This ensures every `tinywasm` invocation activates the project for its working dir.
+	if cfg.StartDir != "" {
+		go func() {
+			targetURL := baseURL + "/action?key=start&value=" + url.QueryEscape(cfg.StartDir)
+			resp, err := http.Post(targetURL, "application/json", nil)
+			if err == nil {
+				resp.Body.Close()
+			}
+		}()
+	}
 
 	// In Client Mode, we use Start to orchestrate the tabs without running the backend
 	Start(

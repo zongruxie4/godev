@@ -77,6 +77,11 @@ func runDaemon(cfg BootstrapConfig) {
 			return
 		}
 		switch key {
+		case "start":
+			if value != "" {
+				logger("Start command received for path:", value)
+				go dtp.startProject(value)
+			}
 		case "stop":
 			logger("Stop command received from UI")
 			dtp.stopProject()
