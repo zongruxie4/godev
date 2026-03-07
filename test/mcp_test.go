@@ -23,7 +23,7 @@ func setupMCPTest(t *testing.T) (*mcp.Handler, string) {
 		AppName:       "tinywasm",
 	}
 
-	m := mcp.NewHandler(mcpConfig, []mcp.ToolProvider{})
+	m := mcp.NewHandler(mcpConfig, nil, []mcp.ToolProvider{})
 	return m, port
 }
 

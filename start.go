@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
@@ -39,14 +41,8 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		GoModHandler:  goModHandler,
 	}
 
-	// Wrap logger to also broadcast to HTTP server if initialized.
-	// This ensures that all components using h.Logger will broadcast to SSE.
-	h.Logger = func(messages ...any) {
-		logger(messages...)
-		if h.HTTP != nil {
-			h.HTTP.PublishLog(fmt.Sprint(messages...))
-		}
-	}
+	// Noop initial logger to avoid nil check issues
+	h.Logger = logger
 
 	// Check if we are in dev mode
 	h.CheckDevMode()
@@ -144,34 +140,42 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 
 		// Create SSE server for log transport
 		tinySSE := sse.New(&sse.Config{})
-		sseHub := tinySSE.Server(&sse.ServerConfig{
+		sseHub := &sseHubAdapter{tinySSE.Server(&sse.ServerConfig{
 			ChannelProvider:     &logChannelProvider{},
 			ClientChannelBuffer: 256,
 			HistoryReplayBuffer: 100,
 			ReplayAllOnConnect:  true,
-		})
+		})}
+
+		ssePub := NewSSEPublisher(sseHub)
+		h.Logger = func(messages ...any) {
+			logger(messages...)
+			ssePub.PublishLog(fmt.Sprint(messages...))
+		}
 
 		// Use buildProjectProviders for single source of truth
 		toolHandlers := buildProjectProviders(h)
 		toolHandlers = append(toolHandlers, mcpToolHandlers...)
-		mcpHandler := mcp.NewHandler(mcpConfig, toolHandlers)
-		mcpHandler.SetLog(logger)
-		mcpHandler.ConfigureIDEs()
 
-		// Create HTTP server that owns /mcp, /logs, /action, /state, /version routes
-		h.HTTP = NewTinywasmHTTP(mcpPort, mcpHandler.HTTPHandler(), sseHub, "")
-		h.HTTP.SetLog(logger)
-		h.HTTP.OnState(func() []byte { return h.Tui.GetHandlerStates() })
-		// No OnAction in standalone — all handlers dispatch locally via TUI
+		h.MCP = mcp.NewHandler(mcpConfig, sseHub, toolHandlers)
+		h.MCP.SetLog(logger)
+		h.MCP.ConfigureIDEs()
+		h.MCP.SetAuth(mcp.OpenAuthorizer()) // standalone: local only, explicit opt-in
 
-		h.Tui.AddHandler(h.HTTP, colorOrangeLight, h.SectionBuild)
+		// Register state method — same name as daemon so mcp.Client callers work identically
+		h.MCP.RegisterMethod("tinywasm/state", func(_ context.Context, _ []byte) (any, error) {
+			return json.RawMessage(h.Tui.GetHandlerStates()), nil
+		})
+		// No tinywasm/action in standalone — handlers dispatch locally via TUI
+
+		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
 		SetActiveHandler(h)
 
 		// Start HTTP server
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			h.HTTP.Serve(h.ExitChan)
+			h.MCP.Serve(h.ExitChan)
 		}()
 
 		// Start the UI

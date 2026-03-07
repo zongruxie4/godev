@@ -3,7 +3,7 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.5.53
+	github.com/tinywasm/client v0.5.66
 	github.com/tinywasm/context v0.0.17
 	github.com/tinywasm/deploy v0.1.0
 	github.com/tinywasm/devflow v0.2.22
@@ -62,13 +62,8 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.8 // indirect
 	github.com/tinywasm/assetmin v0.2.1
-	github.com/tinywasm/devbrowser v0.3.9
+	github.com/tinywasm/devbrowser v0.3.13
 	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/server v0.2.7
 	golang.org/x/sys v0.41.0 // indirect
-)
-
-replace (
-	github.com/tinywasm/client => ../client
-	github.com/tinywasm/devbrowser => ../devbrowser
 )
