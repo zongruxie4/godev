@@ -9,7 +9,7 @@ require (
 	github.com/tinywasm/devflow v0.2.22
 	github.com/tinywasm/devtui v0.2.80
 	github.com/tinywasm/kvdb v0.0.21
-	github.com/tinywasm/mcp v0.0.15
+	github.com/tinywasm/mcp v0.0.17
 	github.com/tinywasm/sse v0.0.12
 	github.com/tinywasm/wizard v0.0.22
 )
@@ -41,10 +41,12 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.5 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/fmt v0.18.5 // indirect
+	github.com/tinywasm/fetch v0.1.22 // indirect
+	github.com/tinywasm/fmt v0.18.6 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/goflare v0.0.100 // indirect
 	github.com/tinywasm/gorun v0.0.19 // indirect
+	github.com/tinywasm/json v0.1.7 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.3.3 // indirect
 	github.com/tinywasm/unixid v0.2.22 // indirect
