@@ -14,6 +14,7 @@ import (
 type ssePublisher interface {
 	http.Handler
 	Publish(data []byte, channel string)
+	PublishEvent(event string, data []byte, channels ...string)
 }
 
 // LogEntry is the wire format for SSE log events consumed by devtui/sse_client.go.
@@ -202,4 +203,13 @@ func (s *TinywasmHTTP) PublishTabLog(tabTitle, handlerName, handlerColor, msg st
 // PublishLog publishes a plain log to the BUILD tab under "MCP" handler.
 func (s *TinywasmHTTP) PublishLog(msg string) {
 	s.PublishTabLog("BUILD", "MCP", "#f97316", msg)
+}
+
+// PublishStateEvent broadcasts a typed "state" SSE event so connected clients
+// can reconstruct their remote handler footer fields immediately.
+func (s *TinywasmHTTP) PublishStateEvent(stateJSON []byte) {
+	if s.sseHub == nil {
+		return
+	}
+	s.sseHub.PublishEvent("state", stateJSON, "logs")
 }

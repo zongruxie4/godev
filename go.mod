@@ -7,7 +7,7 @@ require (
 	github.com/tinywasm/context v0.0.17
 	github.com/tinywasm/deploy v0.1.0
 	github.com/tinywasm/devflow v0.2.22
-	github.com/tinywasm/devtui v0.2.79
+	github.com/tinywasm/devtui v0.2.80
 	github.com/tinywasm/kvdb v0.0.21
 	github.com/tinywasm/mcp v0.0.15
 	github.com/tinywasm/sse v0.0.12

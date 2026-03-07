@@ -112,16 +112,6 @@ func runDaemon(cfg BootstrapConfig) {
 		return ui.GetHandlerStates()
 	})
 
-	// Optional: auto-start the project in the current directory
-	// so `tinywasm -mcp` behaves similarly to before for the local folder.
-	if cfg.StartDir != "" && cfg.StartDir != "/" {
-		go func() {
-			// Give the server a moment to start
-			time.Sleep(500 * time.Millisecond)
-			dtp.startProject(cfg.StartDir)
-		}()
-	}
-
 	// Block forever serving HTTP (which includes /mcp, /logs, /action, /state, /version)
 	httpSrv.Serve(exitChan)
 }
@@ -300,6 +290,9 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 		onProjectReady := func(h *Handler) {
 			d.toolProxy.SetActive(buildProjectProviders(h)...)
 			d.logger("ProjectToolProxy activated with", len(buildProjectProviders(h)), "tool providers")
+			// Push a typed "state" SSE event so the connected client TUI can
+			// reconstruct its remote handler footer fields without polling.
+			d.httpSrv.PublishStateEvent(headlessTui.GetHandlerStates())
 		}
 
 		restart := Start(
