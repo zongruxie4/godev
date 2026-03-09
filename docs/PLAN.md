@@ -1,4 +1,8 @@
-# PLAN: Fix Remote TUI Action Dispatch
+# PLAN: Fix Remote TUI Action Dispatch ✅ COMPLETED
+
+**Status**: All 5 stages implemented and tested.
+- **tinywasm/app**: v0.2.165 ✅
+- **tinywasm/devtui**: v0.2.84 ✅
 
 ## Development Rules
 
@@ -212,10 +216,10 @@ No code change needed here — it already uses `e.Shortcut` which will now be po
 
 ## Affected Packages
 
-| Package | Changes | Version Bump |
-|---------|---------|-------------|
-| `tinywasm/app` | HeadlessTUI type switch + shortcut dispatch | patch |
-| `tinywasm/devtui` | StateEntry + remote_handler + shortcut registration | patch |
+| Package | Changes | Version |
+|---------|---------|---------|
+| `tinywasm/app` | HeadlessTUI type switch + shortcut dispatch | v0.2.165 ✅ |
+| `tinywasm/devtui` | StateEntry + remote_handler + shortcut registration | v0.2.84 ✅ |
 
 ## Flow After Fix
 

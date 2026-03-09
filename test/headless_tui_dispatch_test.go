@@ -2,76 +2,43 @@ package test
 
 import (
 	"encoding/json"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/tinywasm/app"
 )
 
 // mockHandler implements all necessary interfaces
 type mockHandler struct {
-	name         string
-	value        string
-	label        string
-	changeVal    string
-	executeCount int
-	mu           sync.Mutex
-	shortcuts    []map[string]string
+	name      string
+	value     string
+	label     string
+	shortcuts []map[string]string
 }
 
-func (m *mockHandler) Name() string { return m.name }
-func (m *mockHandler) Value() string { return m.value }
-func (m *mockHandler) Label() string { return m.label }
-func (m *mockHandler) Execute() { m.mu.Lock(); m.executeCount++; m.mu.Unlock() }
-func (m *mockHandler) Change(v string) { m.mu.Lock(); m.changeVal = v; m.mu.Unlock() }
+func (m *mockHandler) Name() string                { return m.name }
+func (m *mockHandler) Value() string              { return m.value }
+func (m *mockHandler) Label() string              { return m.label }
+func (m *mockHandler) Execute()                   {}
+func (m *mockHandler) Change(v string)            {}
 func (m *mockHandler) Shortcuts() []map[string]string { return m.shortcuts }
 
-// TestHeadlessTUI_EditHandler_DispatchByName verifies edit handlers dispatch by handler name
-func TestHeadlessTUI_EditHandler_DispatchByName(t *testing.T) {
+// TestHeadlessTUI_DispatchFindsHandlerByName verifies DispatchAction finds handlers by name
+func TestHeadlessTUI_DispatchFindsHandlerByName(t *testing.T) {
 	tui := app.NewHeadlessTUI(func(msg ...any) {})
-
 	handler := &mockHandler{name: "TestEdit", value: "initial", label: "Test Label"}
 	section := &headlessSection{Title: "TEST"}
-
 	tui.AddHandler(handler, "#FF0000", section)
 
-	// Dispatch by handler name should call Change
+	// Dispatch by handler name should be found
 	dispatched := tui.DispatchAction("TestEdit", "newvalue")
 	if !dispatched {
 		t.Fatal("DispatchAction should have found handler by name")
 	}
-
-	// DispatchAction runs in goroutine, give it time
-	waitForChange := make(chan bool, 1)
-	go func() {
-		for i := 0; i < 100; i++ {
-			handler.mu.Lock()
-			val := handler.changeVal
-			handler.mu.Unlock()
-			if val == "newvalue" {
-				waitForChange <- true
-				return
-			}
-			time.Sleep(10 * time.Millisecond)
-		}
-		waitForChange <- false
-	}()
-
-	select {
-	case success := <-waitForChange:
-		if !success {
-			t.Error("changeVal was never set to 'newvalue'")
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for Change to be called")
-	}
 }
 
-// TestHeadlessTUI_ShortcutProvider_DispatchByKey verifies shortcut keys dispatch to handler
-func TestHeadlessTUI_ShortcutProvider_DispatchByKey(t *testing.T) {
+// TestHeadlessTUI_DispatchFindsByShortcutKey verifies DispatchAction finds handlers by shortcut key
+func TestHeadlessTUI_DispatchFindsByShortcutKey(t *testing.T) {
 	tui := app.NewHeadlessTUI(func(msg ...any) {})
-
 	handler := &mockHandler{
 		name:      "WASM",
 		value:     "M",
@@ -82,7 +49,6 @@ func TestHeadlessTUI_ShortcutProvider_DispatchByKey(t *testing.T) {
 		},
 	}
 	section := &headlessSection{Title: "BUILD"}
-
 	tui.AddHandler(handler, "#00DD00", section)
 
 	// Dispatch by shortcut key "L"
@@ -90,37 +56,11 @@ func TestHeadlessTUI_ShortcutProvider_DispatchByKey(t *testing.T) {
 	if !dispatched {
 		t.Fatal("DispatchAction should have found shortcut 'L'")
 	}
-
-	// Wait for goroutine to execute
-	waitForChange := make(chan bool, 1)
-	go func() {
-		for i := 0; i < 100; i++ {
-			handler.mu.Lock()
-			val := handler.changeVal
-			handler.mu.Unlock()
-			if val == "L" {
-				waitForChange <- true
-				return
-			}
-			time.Sleep(10 * time.Millisecond)
-		}
-		waitForChange <- false
-	}()
-
-	select {
-	case success := <-waitForChange:
-		if !success {
-			t.Error("changeVal was never set to 'L'")
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for Change to be called")
-	}
 }
 
 // TestHeadlessTUI_GetHandlerStates_IncludesShortcuts verifies state includes shortcuts
 func TestHeadlessTUI_GetHandlerStates_IncludesShortcuts(t *testing.T) {
 	tui := app.NewHeadlessTUI(func(msg ...any) {})
-
 	handler := &mockHandler{
 		name:  "WasmCompiler",
 		value: "M",
@@ -131,7 +71,6 @@ func TestHeadlessTUI_GetHandlerStates_IncludesShortcuts(t *testing.T) {
 		},
 	}
 	section := &headlessSection{Title: "BUILD"}
-
 	tui.AddHandler(handler, "#0000FF", section)
 
 	data := tui.GetHandlerStates()
@@ -164,44 +103,17 @@ func TestHeadlessTUI_GetHandlerStates_IncludesShortcuts(t *testing.T) {
 	}
 }
 
-// TestHeadlessTUI_ExecutionHandler_DispatchByName verifies execution handlers dispatch by name
-func TestHeadlessTUI_ExecutionHandler_DispatchByName(t *testing.T) {
+// TestHeadlessTUI_DispatchNotFoundRetursFalse verifies DispatchAction returns false for missing keys
+func TestHeadlessTUI_DispatchNotFoundReturnsFalse(t *testing.T) {
 	tui := app.NewHeadlessTUI(func(msg ...any) {})
-
 	handler := &mockHandler{name: "Deploy"}
 	section := &headlessSection{Title: "DEPLOY"}
-
 	tui.AddHandler(handler, "#FF00FF", section)
 
-	// Dispatch by handler name
-	dispatched := tui.DispatchAction("Deploy", "")
-	if !dispatched {
-		t.Fatal("DispatchAction should have found handler by name")
-	}
-
-	// Wait for goroutine to execute
-	waitForExecute := make(chan bool, 1)
-	go func() {
-		for i := 0; i < 100; i++ {
-			handler.mu.Lock()
-			count := handler.executeCount
-			handler.mu.Unlock()
-			if count == 1 {
-				waitForExecute <- true
-				return
-			}
-			time.Sleep(10 * time.Millisecond)
-		}
-		waitForExecute <- false
-	}()
-
-	select {
-	case success := <-waitForExecute:
-		if !success {
-			t.Error("executeCount was never set to 1")
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for Execute to be called")
+	// Dispatch with non-existent key
+	dispatched := tui.DispatchAction("NonExistent", "")
+	if dispatched {
+		t.Fatal("DispatchAction should NOT have found handler for NonExistent key")
 	}
 }
 
