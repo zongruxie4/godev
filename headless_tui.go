@@ -98,31 +98,34 @@ func (t *HeadlessTUI) AddHandler(handler any, color string, tabSection any) {
 	}
 
 	type display interface{ Value() string }
-	type edit interface {
+	type changer interface {
 		Value() string
 		Change(string)
 	}
-	type execution interface {
+	type executor interface {
 		Execute()
-		Shortcut() string
 	}
-	type interactive interface {
+	type interactor interface {
 		Execute(string)
-		Shortcut() string
+	}
+	type shortcutProvider interface {
+		Shortcuts() []map[string]string
 	}
 
 	// Determine type and bind action/shortcut
+	// All handler types with actions use handlerName as dispatch key
 	switch h := handler.(type) {
-	case interactive:
+	case interactor:
 		ch.handlerType = htInteractive
-		ch.key = h.Shortcut()
+		ch.key = handlerName
 		ch.action = h.Execute
-	case execution:
+	case executor:
 		ch.handlerType = htExecution
-		ch.key = h.Shortcut()
+		ch.key = handlerName
 		ch.action = func(string) { h.Execute() }
-	case edit:
+	case changer:
 		ch.handlerType = htEdit
+		ch.key = handlerName
 		ch.action = h.Change
 	case display:
 		ch.handlerType = htDisplay
@@ -131,7 +134,27 @@ func (t *HeadlessTUI) AddHandler(handler any, color string, tabSection any) {
 		ch.handlerType = htDisplay
 	}
 
+	// Register primary handler
 	t.handlers = append(t.handlers, ch)
+
+	// Register ShortcutProvider shortcuts as additional dispatch entries
+	if sp, ok := handler.(shortcutProvider); ok {
+		shortcuts := sp.Shortcuts()
+		for _, m := range shortcuts {
+			for key := range m {
+				shortcutCh := capturedHandler{
+					tabTitle:     tabTitle,
+					handlerName:  handlerName,
+					handlerColor: color,
+					handlerType:  ch.handlerType,
+					key:          key,
+					action:       ch.action,
+					handler:      handler,
+				}
+				t.handlers = append(t.handlers, shortcutCh)
+			}
+		}
+	}
 }
 
 // GetHandlerStates reads current state dynamically from each handler reference.
@@ -143,18 +166,33 @@ func (t *HeadlessTUI) GetHandlerStates() []byte {
 	type labeler interface{ Label() string }
 	type valuer interface{ Value() string }
 
+	type shortcutProvider interface {
+		Shortcuts() []map[string]string
+	}
+
 	type stateEntry struct {
-		TabTitle     string `json:"tab_title"`
-		HandlerName  string `json:"handler_name"`
-		HandlerColor string `json:"handler_color"`
-		HandlerType  int    `json:"handler_type"`
-		Label        string `json:"label"`
-		Value        string `json:"value"`
-		Shortcut     string `json:"shortcut"`
+		TabTitle     string              `json:"tab_title"`
+		HandlerName  string              `json:"handler_name"`
+		HandlerColor string              `json:"handler_color"`
+		HandlerType  int                 `json:"handler_type"`
+		Label        string              `json:"label"`
+		Value        string              `json:"value"`
+		Shortcut     string              `json:"shortcut"`      // primary key = handler Name()
+		Shortcuts    []map[string]string `json:"shortcuts"`    // from ShortcutProvider
 	}
 
 	entries := make([]stateEntry, 0, len(t.handlers))
+	seen := make(map[string]bool) // Track processed handlers to avoid duplicates
 	for _, h := range t.handlers {
+		// Only process primary handler (where key == handlerName), skip shortcut duplicates
+		if h.key != h.handlerName {
+			continue
+		}
+		if seen[h.handlerName] {
+			continue
+		}
+		seen[h.handlerName] = true
+
 		e := stateEntry{
 			TabTitle:     h.tabTitle,
 			HandlerName:  h.handlerName,
@@ -167,6 +205,10 @@ func (t *HeadlessTUI) GetHandlerStates() []byte {
 		}
 		if v, ok := h.handler.(valuer); ok {
 			e.Value = v.Value()
+		}
+		// Extract shortcuts from ShortcutProvider
+		if sp, ok := h.handler.(shortcutProvider); ok {
+			e.Shortcuts = sp.Shortcuts()
 		}
 		entries = append(entries, e)
 	}
