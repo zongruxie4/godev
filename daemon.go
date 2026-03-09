@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net"
 	"os"
 	"sync"
@@ -37,58 +39,83 @@ func runDaemon(cfg BootstrapConfig) {
 	var ui TuiInterface
 	exitChan := make(chan bool)
 	if cfg.TuiFactory != nil {
-		ui = cfg.TuiFactory(exitChan, false, "") // daemon has no TUI client, no SSE needed
+		ui = cfg.TuiFactory(exitChan, false, "", "") // daemon has no TUI client, no SSE needed
 	} else {
 		ui = NewHeadlessTUI(logger)
 	}
 
 	// Create SSE server (tinywasm/sse) and inject into Handler (mcp.SSEHub interface)
 	tinySSE := sse.New(&sse.Config{})
-	sseHub := tinySSE.Server(&sse.ServerConfig{
+	sseHub := &sseHubAdapter{tinySSE.Server(&sse.ServerConfig{
 		ChannelProvider:     &logChannelProvider{},
 		ClientChannelBuffer: 256,
 		HistoryReplayBuffer: 100,
 		ReplayAllOnConnect:  true,
-	})
+	})}
+
+	// Load or create API key for this daemon instance
+	apiKey, err := loadOrCreateAPIKey(cfg.APIKeyPath)
+	if err != nil {
+		fmt.Printf("Failed to generate API key: %v\n", err)
+		os.Exit(1)
+	}
+
+	// FIX: create proxy BEFORE mcpHandler (root bug — was created after)
+	proxy := NewProjectToolProxy()
 
 	// Define the daemon tool provider that controls the project lifecycles
 	dtp := newDaemonToolProvider(cfg, logger)
 
-	// Create MCP handler (pure JSON-RPC, no HTTP server)
-	toolProviders := append(cfg.McpToolHandlers, dtp)
-	mcpHandler := mcp.NewHandler(mcpConfig, toolProviders)
+	// FIX: proxy is a FIXED provider — MCPServer rebuilds include it
+	toolProviders := append(cfg.McpToolHandlers, dtp, proxy)
+	mcpHandler := mcp.NewHandler(mcpConfig, sseHub, toolProviders)
 	mcpHandler.SetLog(logger)
+
+	// Wire auth: ALWAYS explicit — mcp.Handler denies all by default.
+	// Open mode (no APIKeyPath) is a conscious opt-in, not a silent fallback.
+	if apiKey != "" {
+		mcpHandler.SetAuth(mcp.NewTokenAuthorizer(apiKey))
+		mcpHandler.SetAPIKey(apiKey) // written into IDE config Authorization headers
+	} else {
+		mcpHandler.SetAuth(mcp.OpenAuthorizer()) // explicit opt-in: local/trusted environment
+	}
 	mcpHandler.ConfigureIDEs()
 
-	// Create HTTP server that owns /mcp, /logs, /action, /state, /version routes
-	httpSrv := NewTinywasmHTTP(mcpPort, mcpHandler.HTTPHandler(), sseHub, cfg.Version)
-	httpSrv.SetLog(logger)
+	ssePub := NewSSEPublisher(sseHub)
 
-	// Create the ProjectToolProxy — registered once, updated when projects start/stop
-	proxy := NewProjectToolProxy()
-
-	// Update dtp to store proxy and HTTP server
+	// Update dtp to store proxy, mcpHandler and ssePub
 	dtp.toolProxy = proxy
-	dtp.httpSrv = httpSrv
+	dtp.mcpHandler = mcpHandler
+	dtp.ssePub = ssePub
 
-	// Handle action webhooks (e.g. from the TUI Client when user presses Ctrl+C sending "stop")
-	httpSrv.OnAction(func(key, value string) {
-		// Try project handlers first (shortcuts like "b" for browser, etc.)
+	// Method names defined here in app — mcp.Handler is agnostic.
+	const (
+		methodAction = "tinywasm/action"
+		methodState  = "tinywasm/state"
+	)
+
+	// Register action dispatcher — app owns the method name and param schema.
+	mcpHandler.RegisterMethod(methodAction, func(ctx context.Context, params []byte) (any, error) {
+		var p struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
+		}
+		json.Unmarshal(params, &p)
+
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
 		dtp.mu.Unlock()
-		if projectTui != nil && projectTui.DispatchAction(key, value) {
-			return
+		if projectTui != nil && projectTui.DispatchAction(p.Key, p.Value) {
+			return "OK", nil
 		}
-		// Fall back to daemon-level UI dispatch
-		if ui.DispatchAction(key, value) {
-			return
+		if ui.DispatchAction(p.Key, p.Value) {
+			return "OK", nil
 		}
-		switch key {
+		switch p.Key {
 		case "start":
-			if value != "" {
-				logger("Start command received for path:", value)
-				go dtp.startProject(value)
+			if p.Value != "" {
+				logger("Start command received for path:", p.Value)
+				go dtp.startProject(p.Value)
 			}
 		case "stop":
 			logger("Stop command received from UI")
@@ -97,30 +124,32 @@ func runDaemon(cfg BootstrapConfig) {
 			logger("Restart command received from UI")
 			dtp.restartCurrentProject()
 		default:
-			logger("Unknown UI action:", key)
+			logger("Unknown UI action:", p.Key)
 		}
+		return "OK", nil
 	})
 
-	httpSrv.OnState(func() []byte {
-		// Return project handlers state if a project is running, else daemon state
+	// Register state provider — app owns the method name and return schema.
+	mcpHandler.RegisterMethod(methodState, func(ctx context.Context, _ []byte) (any, error) {
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
 		dtp.mu.Unlock()
 		if projectTui != nil {
-			return projectTui.GetHandlerStates()
+			return json.RawMessage(projectTui.GetHandlerStates()), nil
 		}
-		return ui.GetHandlerStates()
+		return json.RawMessage(ui.GetHandlerStates()), nil
 	})
 
-	// Block forever serving HTTP (which includes /mcp, /logs, /action, /state, /version)
-	httpSrv.Serve(exitChan)
+	// Block forever serving MCP (which includes /mcp, /logs, /action, /state, /version)
+	mcpHandler.Serve(exitChan)
 }
 
 // daemonToolProvider implements mcp.ToolProvider to expose global daemon tools
 // and manages the lifecycle of the running project instance.
 type daemonToolProvider struct {
 	cfg           BootstrapConfig
-	httpSrv       *TinywasmHTTP
+	mcpHandler    *mcp.Handler
+	ssePub        *SSEPublisher
 	toolProxy     *ProjectToolProxy // Updated when projects start/stop
 	logger        func(messages ...any)
 	projectCancel context.CancelFunc
@@ -253,7 +282,7 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 	headlessTui := NewHeadlessTUI(d.logger)
 	// Wire component loggers to the daemon SSE hub so the client TUI receives structured logs
 	headlessTui.RelayLog = func(tabTitle, handlerName, color, msg string) {
-		d.httpSrv.PublishTabLog(tabTitle, handlerName, color, msg)
+		d.ssePub.PublishTabLog(tabTitle, handlerName, color, msg)
 	}
 
 	// Register project TUI so /state and /action can reach project handlers
@@ -278,9 +307,10 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 		}
 	}()
 
-	// Clear proxy on exit
+	// defer cleanup: clear proxy then trigger rebuild
 	defer func() {
 		d.toolProxy.SetActive()
+		d.mcpHandler.SetDynamicProviders() // rebuild with empty proxy
 		d.logger("Project loop cleanup: proxy cleared")
 	}()
 
@@ -288,11 +318,13 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 	for {
 		// Callback to set up proxy after handler is initialized
 		onProjectReady := func(h *Handler) {
-			d.toolProxy.SetActive(buildProjectProviders(h)...)
-			d.logger("ProjectToolProxy activated with", len(buildProjectProviders(h)), "tool providers")
-			// Push a typed "state" SSE event so the connected client TUI can
-			// reconstruct its remote handler footer fields without polling.
-			d.httpSrv.PublishStateEvent(headlessTui.GetHandlerStates())
+			providers := buildProjectProviders(h)
+			d.toolProxy.SetActive(providers...)
+			// SetDynamicProviders() triggers rebuildMCPServer() which re-reads all
+			// fixed providers (including proxy, now populated with project tools).
+			d.mcpHandler.SetDynamicProviders()
+			d.logger("ProjectToolProxy activated:", len(providers), "providers")
+			d.ssePub.PublishStateRefresh() // signal only — devtui re-fetches via JSON-RPC
 		}
 
 		restart := Start(

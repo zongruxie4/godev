@@ -1,9 +1,8 @@
 package app
 
 import (
+	"context"
 	"fmt"
-	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/tinywasm/devflow"
@@ -17,12 +16,13 @@ type BootstrapConfig struct {
 	Debug           bool
 	Version         string // Binary version, used to detect and replace stale daemons
 	AppName         string // e.g. "tinywasm" — used in HTTP server version endpoint
+	APIKeyPath      string // path to persist API key; empty = no auth (open mode)
 	Logger          func(messages ...any)
 	DB              DB
 	GitHandler      devflow.GitClient
 	GoModHandler    devflow.GoModInterface
 	ServerFactory   ServerFactory
-	TuiFactory      func(exitChan chan bool, clientMode bool, clientURL string) TuiInterface
+	TuiFactory      func(exitChan chan bool, clientMode bool, clientURL, apiKey string) TuiInterface
 	BrowserFactory  func(ui TuiInterface, exitChan chan bool) BrowserInterface
 	GitHubAuth      any
 	McpToolHandlers []mcp.ToolProvider
@@ -63,14 +63,6 @@ func Bootstrap(cfg BootstrapConfig) {
 	}
 }
 
-// logChannelProvider implements sse.ChannelProvider
-type logChannelProvider struct{}
-
-func (p *logChannelProvider) ResolveChannels(r *http.Request) ([]string, error) {
-	return []string{"logs"}, nil
-}
-
-
 func runClient(cfg BootstrapConfig) {
 	// Client mode
 	// Use real TUI with SSE client enabled to receive logs from the daemon
@@ -81,18 +73,21 @@ func runClient(cfg BootstrapConfig) {
 	}
 	baseURL := "http://localhost:" + mcpPort
 	clientURL := baseURL + "/logs"
-	ui := cfg.TuiFactory(exitChan, true, clientURL)
+
+	// Read API key (daemon already created it on its startup)
+	apiKey := readAPIKey(cfg.APIKeyPath)
+
+	// TuiFactory now receives apiKey so devtui can attach auth to /logs SSE
+	ui := cfg.TuiFactory(exitChan, true, clientURL, apiKey)
 
 	// Tell the daemon to start (or restart) the project in the current directory.
 	// This ensures every `tinywasm` invocation activates the project for its working dir.
 	if cfg.StartDir != "" {
-		go func() {
-			targetURL := baseURL + "/action?key=start&value=" + url.QueryEscape(cfg.StartDir)
-			resp, err := http.Post(targetURL, "application/json", nil)
-			if err == nil {
-				resp.Body.Close()
-			}
-		}()
+		// Dispatch: fire-and-forget, no response needed
+		mcp.NewClient(baseURL, apiKey).Dispatch(context.Background(), "tinywasm/action", map[string]string{
+			"key":   "start",
+			"value": cfg.StartDir,
+		})
 	}
 
 	// In Client Mode, we use Start to orchestrate the tabs without running the backend

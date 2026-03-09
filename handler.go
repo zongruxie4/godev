@@ -8,17 +8,8 @@ import (
 	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/devwatch"
-	"github.com/tinywasm/sse"
+	"github.com/tinywasm/mcp"
 )
-
-// sseHubAdapter wraps *sse.SSEServer to implement mcp.SSEHub interface
-type sseHubAdapter struct {
-	*sse.SSEServer
-}
-
-func (a *sseHubAdapter) Publish(data []byte, channel string) {
-	a.SSEServer.Publish(data, channel)
-}
 
 // Handler contains application state and dependencies
 // CRITICAL: This struct does NOT import DevTUI
@@ -55,8 +46,8 @@ type Handler struct {
 	SectionDeploy    any // Store reference to deploy tab
 	RestartRequested bool
 
-	// HTTP Server for LLM integration (owns /mcp, /logs, /action, /state, /version routes)
-	HTTP *TinywasmHTTP
+	// MCP Handler for LLM integration (owns /mcp, /logs, /action, /state, /version routes)
+	MCP *mcp.Handler
 
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
