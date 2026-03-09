@@ -38,6 +38,11 @@ func (c *Config) SetLog(f func(message ...any)) {
 	c.logger = f
 }
 
+// GetLog implements Loggable interface
+func (c *Config) GetLog() func(message ...any) {
+	return c.logger
+}
+
 // GetAppName returns the detected application name
 func (c *Config) GetAppName() string {
 	if c.AppName == "" {
