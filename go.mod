@@ -9,7 +9,7 @@ require (
 	github.com/tinywasm/devflow v0.3.2
 	github.com/tinywasm/devtui v0.2.84
 	github.com/tinywasm/kvdb v0.0.25
-	github.com/tinywasm/mcp v0.0.18
+	github.com/tinywasm/mcp v0.0.19
 	github.com/tinywasm/sse v0.0.12
 	github.com/tinywasm/wizard v0.0.22
 )
