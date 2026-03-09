@@ -62,7 +62,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.10 // indirect
 	github.com/tinywasm/assetmin v0.2.1
-	github.com/tinywasm/devbrowser v0.3.13
+	github.com/tinywasm/devbrowser v0.3.15
 	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/server v0.2.10
 	golang.org/x/sys v0.42.0 // indirect
