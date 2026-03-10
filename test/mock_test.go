@@ -137,6 +137,12 @@ func (m *MockBrowser) SetLog(f func(message ...any)) {
 	m.logFunc = f
 }
 
+func (m *MockBrowser) GetLog() func(message ...any) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.logFunc
+}
+
 func (m *MockBrowser) GetMCPTools() []mcp.Tool {
 	return []mcp.Tool{}
 }

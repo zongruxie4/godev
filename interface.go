@@ -39,6 +39,7 @@ type BrowserInterface interface {
 	Reload() error
 	OpenBrowser(port string, https bool)
 	SetLog(f func(message ...any))
+	GetLog() func(message ...any)
 	GetMCPTools() []mcp.Tool
 }
 
