@@ -42,7 +42,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.10 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
 	github.com/tinywasm/fetch v0.1.22 // indirect
-	github.com/tinywasm/fmt v0.18.6 // indirect
+	github.com/tinywasm/fmt v0.18.9 // indirect
 	github.com/tinywasm/gobuild v0.0.24 // indirect
 	github.com/tinywasm/goflare v0.0.114 // indirect
 	github.com/tinywasm/gorun v0.0.22 // indirect
