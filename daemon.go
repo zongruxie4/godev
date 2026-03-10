@@ -320,9 +320,9 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 		onProjectReady := func(h *Handler) {
 			providers := buildProjectProviders(h)
 			d.toolProxy.SetActive(providers...)
-			// SetDynamicProviders() triggers rebuildMCPServer() which re-reads all
-			// fixed providers (including proxy, now populated with project tools).
-			d.mcpHandler.SetDynamicProviders()
+			// Pass providers directly so rebuildMCPServer can resolve Loggable
+			// per individual provider (proxy indirection breaks Loggable type assertion).
+			d.mcpHandler.SetDynamicProviders(providers...)
 			d.logger("ProjectToolProxy activated:", len(providers), "providers")
 			d.ssePub.PublishStateRefresh() // signal only — devtui re-fetches via JSON-RPC
 		}
