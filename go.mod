@@ -6,7 +6,7 @@ require (
 	github.com/tinywasm/client v0.5.66
 	github.com/tinywasm/context v0.0.17
 	github.com/tinywasm/deploy v0.1.0
-	github.com/tinywasm/devflow v0.3.4
+	github.com/tinywasm/devflow v0.4.3
 	github.com/tinywasm/devtui v0.2.84
 	github.com/tinywasm/kvdb v0.0.25
 	github.com/tinywasm/mcp v0.0.19
