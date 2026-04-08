@@ -1,10 +1,10 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"os"
 
+	twctx "github.com/tinywasm/context"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/mcp"
 )
@@ -85,7 +85,7 @@ func runClient(cfg BootstrapConfig) {
 	// This ensures every `tinywasm` invocation activates the project for its working dir.
 	if cfg.StartDir != "" {
 		// Dispatch: fire-and-forget, no response needed
-		mcp.NewClient(baseURL, apiKey).Dispatch(context.Background(), "tinywasm/action", map[string]string{
+		mcp.NewClient(baseURL, apiKey).Dispatch(twctx.Background(), "tinywasm/action", map[string]string{
 			"key":   "start",
 			"value": cfg.StartDir,
 		})
@@ -108,4 +108,3 @@ func runClient(cfg BootstrapConfig) {
 		nil,   // no onProjectReady callback in client mode
 	)
 }
-

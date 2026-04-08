@@ -1,12 +1,14 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"sync"
 
+	twctx "github.com/tinywasm/context"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
@@ -17,7 +19,7 @@ var TestMode bool
 
 // Start is called from main.go with UI, Browser and DB passed as parameters
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
-// mcpToolHandlers: optional external Handlers that implement GetMCPTools() for MCP tool discovery
+// mcpToolHandlers: optional external Handlers that implement Tools() for MCP tool discovery
 // onProjectReady: optional callback called after handler initialization (for daemon mode to set up proxy)
 func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, onProjectReady func(*Handler), mcpToolHandlers ...mcp.ToolProvider) bool {
 
@@ -131,51 +133,91 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		if p := os.Getenv("TINYWASM_MCP_PORT"); p != "" {
 			mcpPort = p
 		}
-		mcpConfig := mcp.Config{
-			Port:          mcpPort,
-			ServerName:    "TinyWasm - Full-stack Go+WASM Dev Environment (Server, WASM, Assets, Browser, Deploy)",
-			ServerVersion: "1.0.0",
-			AppName:       "tinywasm",
-		}
 
 		// Create SSE server for log transport
 		tinySSE := sse.New(&sse.Config{})
-		sseHub := &sseHubAdapter{tinySSE.Server(&sse.ServerConfig{
+		sseServer := tinySSE.Server(&sse.ServerConfig{
 			ChannelProvider:     &logChannelProvider{},
 			ClientChannelBuffer: 256,
 			HistoryReplayBuffer: 100,
 			ReplayAllOnConnect:  true,
-		})}
+		})
 
-		ssePub := NewSSEPublisher(sseHub)
+		ssePub := NewSSEPublisher(sseServer)
 		h.Logger = func(messages ...any) {
 			logger(messages...)
 			ssePub.PublishLog(fmt.Sprint(messages...))
+		}
+
+		appVersion := "1.0.0"
+		// Try to get version from DB if available, or just use 1.0.0
+		if val, err := h.DB.Get("TINYWASM_VERSION"); err == nil && val != "" {
+			appVersion = val
+		}
+
+		mcpConfig := mcp.Config{
+			Name:    "TinyWasm - Full-stack Go+WASM Dev Environment",
+			Version: appVersion,
+			Auth:    mcp.OpenAuthorizer(),
+			SSE:     sseServer,
 		}
 
 		// Use buildProjectProviders for single source of truth
 		toolHandlers := buildProjectProviders(h)
 		toolHandlers = append(toolHandlers, mcpToolHandlers...)
 
-		h.MCP = mcp.NewHandler(mcpConfig, sseHub, toolHandlers)
-		h.MCP.SetLog(logger)
-		h.MCP.ConfigureIDEs()
-		h.MCP.SetAuth(mcp.OpenAuthorizer()) // standalone: local only, explicit opt-in
+		var err error
+		h.MCP, err = mcp.NewServer(mcpConfig, toolHandlers)
+		if err != nil {
+			logger("Failed to initialize MCP Server:", err)
+			return false
+		}
 
-		// Register state method — same name as daemon so mcp.Client callers work identically
-		h.MCP.RegisterMethod("tinywasm/state", func(_ context.Context, _ []byte) (any, error) {
-			return json.RawMessage(h.Tui.GetHandlerStates()), nil
-		})
-		// No tinywasm/action in standalone — handlers dispatch locally via TUI
+		// Configure IDEs (standalone mode)
+		if err := ConfigureIDEs("tinywasm", appVersion, mcpPort, ""); err != nil {
+			logger("Warning: Failed to configure IDEs:", err)
+		}
 
 		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
 		SetActiveHandler(h)
+
+		mux := http.NewServeMux()
+		mux.Handle("/logs", sseServer)
+		mux.HandleFunc("POST /mcp", func(w http.ResponseWriter, r *http.Request) {
+			var msg []byte
+			if r.Body != nil {
+				msg, _ = io.ReadAll(r.Body)
+			}
+			ctx := twctx.Background()
+			resp := h.MCP.HandleMessage(ctx, msg)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(resp)
+		})
+		mux.HandleFunc("GET /tinywasm/state", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(h.Tui.GetHandlerStates())
+		})
+		mux.HandleFunc("GET /version", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(appVersion))
+		})
+
+		server := &http.Server{
+			Addr:    ":" + mcpPort,
+			Handler: mux,
+		}
 
 		// Start HTTP server
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			h.MCP.Serve(h.ExitChan)
+			go func() {
+				<-ExitChan
+				server.Close()
+			}()
+			logger("Standalone listener on", server.Addr)
+			if err := server.ListenAndServe(); err != http.ErrServerClosed {
+				logger("Standalone server error:", err)
+			}
 		}()
 
 		// Start the UI

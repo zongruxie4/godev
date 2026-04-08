@@ -46,8 +46,8 @@ type Handler struct {
 	SectionDeploy    any // Store reference to deploy tab
 	RestartRequested bool
 
-	// MCP Handler for LLM integration (owns /mcp, /logs, /action, /state, /version routes)
-	MCP *mcp.Handler
+	// MCP Server for LLM integration (owns /mcp, /logs, /action, /state, /version routes)
+	MCP *mcp.Server
 
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
