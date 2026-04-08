@@ -45,7 +45,8 @@ func Bootstrap(cfg BootstrapConfig) {
 			// Stale daemon detected: kill it and start a fresh one
 			killDaemon()
 			waitForPortFree("3030")
-			if err := startDaemonProcess(cfg.StartDir); err != nil {
+
+			if err := startDaemonProcess(cfg.StartDir, cfg.Logger); err != nil {
 				fmt.Printf("Failed to restart daemon: %v\n", err)
 				os.Exit(1)
 			}
@@ -54,7 +55,7 @@ func Bootstrap(cfg BootstrapConfig) {
 		runClient(cfg)
 	} else {
 		// Port free -> Start Daemon in background, then run Client
-		if err := startDaemonProcess(cfg.StartDir); err != nil {
+		if err := startDaemonProcess(cfg.StartDir, cfg.Logger); err != nil {
 			fmt.Printf("Failed to start daemon: %v\n", err)
 			os.Exit(1)
 		}

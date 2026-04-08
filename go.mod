@@ -3,15 +3,15 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.5.66
-	github.com/tinywasm/context v0.0.17
+	github.com/tinywasm/client v0.6.0
+	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/deploy v0.1.0
-	github.com/tinywasm/devflow v0.4.3
-	github.com/tinywasm/devtui v0.2.84
-	github.com/tinywasm/kvdb v0.0.25
-	github.com/tinywasm/mcp v0.0.19
-	github.com/tinywasm/sse v0.0.12
-	github.com/tinywasm/wizard v0.0.22
+	github.com/tinywasm/devflow v0.4.14
+	github.com/tinywasm/devtui v0.3.0
+	github.com/tinywasm/kvdb v0.0.26
+	github.com/tinywasm/mcp v0.1.1
+	github.com/tinywasm/sse v0.0.13
+	github.com/tinywasm/wizard v0.0.23
 )
 
 require (
@@ -19,7 +19,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/bubbles v1.0.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.10 // indirect
-	github.com/charmbracelet/colorprofile v0.4.2 // indirect
+	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/lipgloss v1.1.0 // indirect
 	github.com/charmbracelet/x/ansi v0.11.6 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.15 // indirect
@@ -41,19 +41,22 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.10 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/fetch v0.1.22 // indirect
-	github.com/tinywasm/fmt v0.18.9 // indirect
-	github.com/tinywasm/gobuild v0.0.24 // indirect
-	github.com/tinywasm/goflare v0.0.114 // indirect
-	github.com/tinywasm/gorun v0.0.22 // indirect
-	github.com/tinywasm/json v0.1.7 // indirect
+	github.com/tinywasm/dom v0.6.0 // indirect
+	github.com/tinywasm/fetch v0.1.23 // indirect
+	github.com/tinywasm/fmt v0.22.2 // indirect
+	github.com/tinywasm/form v0.2.0 // indirect
+	github.com/tinywasm/gobuild v0.0.25 // indirect
+	github.com/tinywasm/goflare v0.0.117 // indirect
+	github.com/tinywasm/gorun v0.0.23 // indirect
+	github.com/tinywasm/json v0.4.1 // indirect
+	github.com/tinywasm/orm v0.6.0 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
-	github.com/tinywasm/time v0.3.9 // indirect
-	github.com/tinywasm/unixid v0.2.22 // indirect
+	github.com/tinywasm/time v0.4.0 // indirect
+	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
-	golang.org/x/term v0.40.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/term v0.41.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -62,8 +65,8 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.10 // indirect
 	github.com/tinywasm/assetmin v0.2.1
-	github.com/tinywasm/devbrowser v0.3.17
+	github.com/tinywasm/devbrowser v0.3.19
 	github.com/tinywasm/devwatch v0.0.57
-	github.com/tinywasm/server v0.2.10
+	github.com/tinywasm/server v0.2.15
 	golang.org/x/sys v0.42.0 // indirect
 )

@@ -7,9 +7,24 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"time"
 )
+
+// loggerWriter adapts a logger func to io.Writer
+type loggerWriter struct {
+	logger func(messages ...any)
+}
+
+func (lw *loggerWriter) Write(p []byte) (n int, err error) {
+	if lw.logger != nil {
+		// We trim to avoid double newlines since the logger already appends one
+		msg := string(p)
+		if len(msg) > 0 {
+			lw.logger(msg)
+		}
+	}
+	return len(p), nil
+}
 
 // isPortOpen checks if a TCP port is open on localhost
 func isPortOpen(port string) bool {
@@ -83,8 +98,8 @@ func waitForPortReady(port string) {
 	}
 }
 
-// startDaemonProcess starts a detached daemon process
-func startDaemonProcess(dir string) error {
+// startDaemonProcess starts a detached daemon process using the logger's configuration
+func startDaemonProcess(dir string, logger func(messages ...any)) error {
 	exe, err := os.Executable()
 	if err != nil {
 		return err
@@ -93,11 +108,10 @@ func startDaemonProcess(dir string) error {
 	cmd := exec.Command(exe, "-mcp")
 	cmd.Dir = dir
 
-	logPath := filepath.Join(dir, "tinywasm-daemon.log")
-	logFile, err := os.Create(logPath)
-	if err == nil {
-		cmd.Stdout = logFile
-		cmd.Stderr = logFile
+	if logger != nil {
+		writer := &loggerWriter{logger: logger}
+		cmd.Stdout = writer
+		cmd.Stderr = writer
 	}
 
 	return cmd.Start()
