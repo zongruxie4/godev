@@ -51,6 +51,7 @@ type Handler struct {
 
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
+
 }
 
 func (h *Handler) SetBrowser(b BrowserInterface) {
