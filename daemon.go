@@ -1,14 +1,16 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"os"
 	"sync"
 	"time"
 
+	twctx "github.com/tinywasm/context"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
 )
@@ -27,14 +29,6 @@ func runDaemon(cfg BootstrapConfig) {
 		mcpPort = p
 	}
 
-	mcpConfig := mcp.Config{
-		Port:          mcpPort,
-		ServerName:    "TinyWasm - Global MCP Server",
-		ServerVersion: "1.0.0",
-		AppName:       "tinywasm",
-		AppVersion:    cfg.Version,
-	}
-
 	// Create an empty TUI stub for the daemon if not provided
 	var ui TuiInterface
 	exitChan := make(chan bool)
@@ -44,14 +38,14 @@ func runDaemon(cfg BootstrapConfig) {
 		ui = NewHeadlessTUI(logger)
 	}
 
-	// Create SSE server (tinywasm/sse) and inject into Handler (mcp.SSEHub interface)
+	// Create SSE server (tinywasm/sse)
 	tinySSE := sse.New(&sse.Config{})
-	sseHub := &sseHubAdapter{tinySSE.Server(&sse.ServerConfig{
+	sseServer := tinySSE.Server(&sse.ServerConfig{
 		ChannelProvider:     &logChannelProvider{},
 		ClientChannelBuffer: 256,
 		HistoryReplayBuffer: 100,
 		ReplayAllOnConnect:  true,
-	})}
+	})
 
 	// Load or create API key for this daemon instance
 	apiKey, err := loadOrCreateAPIKey(cfg.APIKeyPath)
@@ -60,99 +54,153 @@ func runDaemon(cfg BootstrapConfig) {
 		os.Exit(1)
 	}
 
-	// FIX: create proxy BEFORE mcpHandler (root bug — was created after)
+	var auth mcp.Authorizer
+	if apiKey != "" {
+		auth = mcp.NewTokenAuthorizer(apiKey)
+	} else {
+		auth = mcp.OpenAuthorizer()
+	}
+
+	mcpConfig := mcp.Config{
+		Name:    "TinyWasm - Global MCP Server",
+		Version: cfg.Version,
+		Auth:    auth,
+		SSE:     sseServer,
+	}
+
+	// proxy is a FIXED provider
 	proxy := NewProjectToolProxy()
 
 	// Define the daemon tool provider that controls the project lifecycles
 	dtp := newDaemonToolProvider(cfg, logger)
 
-	// FIX: proxy is a FIXED provider — MCPServer rebuilds include it
 	toolProviders := append(cfg.McpToolHandlers, dtp, proxy)
-	mcpHandler := mcp.NewHandler(mcpConfig, sseHub, toolProviders)
-	mcpHandler.SetLog(logger)
-
-	// Wire auth: ALWAYS explicit — mcp.Handler denies all by default.
-	// Open mode (no APIKeyPath) is a conscious opt-in, not a silent fallback.
-	if apiKey != "" {
-		mcpHandler.SetAuth(mcp.NewTokenAuthorizer(apiKey))
-		mcpHandler.SetAPIKey(apiKey) // written into IDE config Authorization headers
-	} else {
-		mcpHandler.SetAuth(mcp.OpenAuthorizer()) // explicit opt-in: local/trusted environment
+	mcpServer, err := mcp.NewServer(mcpConfig, toolProviders)
+	if err != nil {
+		fmt.Printf("Failed to initialize MCP Server: %v\n", err)
+		os.Exit(1)
 	}
-	mcpHandler.ConfigureIDEs()
 
-	ssePub := NewSSEPublisher(sseHub)
+	// Configure IDEs
+	if err := ConfigureIDEs("tinywasm", cfg.Version, mcpPort, apiKey); err != nil {
+		logger("Warning: Failed to configure IDEs:", err)
+	}
 
-	// Update dtp to store proxy, mcpHandler and ssePub
+	ssePub := NewSSEPublisher(sseServer)
+
+	// Update dtp to store proxy, mcpServer and ssePub
 	dtp.toolProxy = proxy
-	dtp.mcpHandler = mcpHandler
+	dtp.mcpServer = mcpServer
 	dtp.ssePub = ssePub
 
-	// Method names defined here in app — mcp.Handler is agnostic.
-	const (
-		methodAction = "tinywasm/action"
-		methodState  = "tinywasm/state"
-	)
+	mux := http.NewServeMux()
 
-	// Register action dispatcher — app owns the method name and param schema.
-	mcpHandler.RegisterMethod(methodAction, func(ctx context.Context, params []byte) (any, error) {
+	// SSE endpoint (from tinywasm/sse)
+	mux.Handle("/logs", sseServer)
+
+	// MCP JSON-RPC endpoint
+	mux.HandleFunc("POST /mcp", func(w http.ResponseWriter, r *http.Request) {
+		var msg []byte
+		if r.Body != nil {
+			msg, _ = io.ReadAll(r.Body)
+		}
+		// mcp.Server needs a twctx.Context
+		ctx := twctx.Background()
+		// Attach token for mcp server to authorize
+		authHeader := r.Header.Get("Authorization")
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			ctx.Set(mcp.CtxKeyAuthToken, authHeader[7:])
+		} else {
+			ctx.Set(mcp.CtxKeyAuthToken, authHeader)
+		}
+
+		resp := mcpServer.HandleMessage(ctx, msg)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	})
+
+	// Register action dispatcher
+	mux.HandleFunc("POST /tinywasm/action", func(w http.ResponseWriter, r *http.Request) {
 		var p struct {
 			Key   string `json:"key"`
 			Value string `json:"value"`
 		}
-		json.Unmarshal(params, &p)
+		json.NewDecoder(r.Body).Decode(&p)
 
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
 		dtp.mu.Unlock()
+
+		handled := false
 		if projectTui != nil && projectTui.DispatchAction(p.Key, p.Value) {
-			return "OK", nil
+			handled = true
+		} else if ui.DispatchAction(p.Key, p.Value) {
+			handled = true
 		}
-		if ui.DispatchAction(p.Key, p.Value) {
-			return "OK", nil
-		}
-		switch p.Key {
-		case "start":
-			if p.Value != "" {
-				logger("Start command received for path:", p.Value)
-				go dtp.startProject(p.Value)
+
+		if !handled {
+			switch p.Key {
+			case "start":
+				if p.Value != "" {
+					logger("Start command received for path:", p.Value)
+					go dtp.startProject(p.Value)
+				}
+			case "stop":
+				logger("Stop command received from UI")
+				dtp.stopProject()
+			case "restart":
+				logger("Restart command received from UI")
+				dtp.restartCurrentProject()
+			default:
+				logger("Unknown UI action:", p.Key)
 			}
-		case "stop":
-			logger("Stop command received from UI")
-			dtp.stopProject()
-		case "restart":
-			logger("Restart command received from UI")
-			dtp.restartCurrentProject()
-		default:
-			logger("Unknown UI action:", p.Key)
 		}
-		return "OK", nil
+		w.Write([]byte("OK"))
 	})
 
-	// Register state provider — app owns the method name and return schema.
-	mcpHandler.RegisterMethod(methodState, func(ctx context.Context, _ []byte) (any, error) {
+	// Register state provider
+	mux.HandleFunc("GET /tinywasm/state", func(w http.ResponseWriter, r *http.Request) {
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
 		dtp.mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
 		if projectTui != nil {
-			return json.RawMessage(projectTui.GetHandlerStates()), nil
+			w.Write(projectTui.GetHandlerStates())
+		} else {
+			w.Write(ui.GetHandlerStates())
 		}
-		return json.RawMessage(ui.GetHandlerStates()), nil
 	})
 
-	// Block forever serving MCP (which includes /mcp, /logs, /action, /state, /version)
-	mcpHandler.Serve(exitChan)
+	// Server version endpoint
+	mux.HandleFunc("GET /version", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(cfg.Version))
+	})
+
+	server := &http.Server{
+		Addr:    ":" + mcpPort,
+		Handler: mux,
+	}
+
+	go func() {
+		<-exitChan
+		server.Close()
+	}()
+
+	logger("Daemon listening on", server.Addr)
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		logger("Server error:", err)
+	}
 }
 
 // daemonToolProvider implements mcp.ToolProvider to expose global daemon tools
 // and manages the lifecycle of the running project instance.
 type daemonToolProvider struct {
 	cfg           BootstrapConfig
-	mcpHandler    *mcp.Handler
+	mcpServer     *mcp.Server
 	ssePub        *SSEPublisher
 	toolProxy     *ProjectToolProxy // Updated when projects start/stop
 	logger        func(messages ...any)
-	projectCancel context.CancelFunc
+	projectCancel chan bool
 	projectDone   chan struct{}
 	projectTui    *HeadlessTUI // Current project's TUI (updated per project start)
 	mu            sync.Mutex
@@ -166,39 +214,37 @@ func newDaemonToolProvider(cfg BootstrapConfig, logger func(messages ...any)) *d
 	}
 }
 
-func (d *daemonToolProvider) GetMCPTools() []mcp.Tool {
+func (d *daemonToolProvider) Tools() []mcp.Tool {
 	return []mcp.Tool{
 		{
 			Name:        "start_development",
 			Description: "Start a TinyWASM project environment (Server, WASM compiler, Assets, Browser) in the specified directory. Will stop any currently running project first.",
-			Parameters: []mcp.Parameter{
-				{
-					Name:        "ide_name",
-					Description: "Name of the IDE or LLM client making the request (e.g., 'vsc', 'cursor')",
-					Required:    true,
-					Type:        "string",
+			InputSchema: `{
+				"type": "object",
+				"properties": {
+					"ide_name": { "type": "string", "description": "Name of the IDE or LLM client making the request" },
+					"project_path": { "type": "string", "description": "Absolute or relative path to the TinyWASM project directory" }
 				},
-				{
-					Name:        "project_path",
-					Description: "Absolute or relative path to the TinyWASM project directory to start",
-					Required:    true,
-					Type:        "string",
-				},
-			},
-			Execute: func(args map[string]any) {
-				path, ok := args["project_path"].(string)
-				if !ok {
-					d.logger("Error: project_path is required and must be a string")
-					return
+				"required": ["project_path"]
+			}`,
+			Resource: "project",
+			Action:   'c',
+			Execute: func(ctx *twctx.Context, req mcp.Request) (*mcp.Result, error) {
+				// req.Bind requires fmt.SafeFields (ormc generated).
+				// For now, since we haven't generated them, we parse manually.
+				var args struct {
+					IdeName     string `json:"ide_name"`
+					ProjectPath string `json:"project_path"`
+				}
+				json.Unmarshal([]byte(req.Params.Arguments), &args)
+
+				if args.ProjectPath == "" {
+					return nil, fmt.Errorf("project_path is required")
 				}
 
-				ide, ok := args["ide_name"].(string)
-				if !ok {
-					ide = "unknown"
-				}
-
-				d.logger("Starting development environment for:", path, "(requested by:", ide, ")")
-				d.startProject(path)
+				d.logger("Starting development environment for:", args.ProjectPath, "(requested by:", args.IdeName, ")")
+				d.startProject(args.ProjectPath)
+				return mcp.Text("Development environment starting..."), nil
 			},
 		},
 	}
@@ -208,7 +254,7 @@ func (d *daemonToolProvider) stopProject() {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.projectCancel != nil {
-		d.projectCancel()
+		close(d.projectCancel)
 		d.projectCancel = nil
 	}
 }
@@ -233,7 +279,7 @@ func (d *daemonToolProvider) startProject(projectPath string) {
 
 	// 1. Cancel previous project
 	if d.projectCancel != nil {
-		d.projectCancel()
+		close(d.projectCancel)
 	}
 
 	// 2. Block until port 8080 unbinds
@@ -250,9 +296,6 @@ portLoop:
 		case <-ticker.C:
 			conn, err := net.Dial("tcp", "localhost:"+os.Getenv("PORT"))
 			if err != nil {
-				// We assume it's 8080 if PORT isn't set, this dial check uses the same env as Start
-				// Actually, Start sets a default 8080 if empty, but we can't easily know here.
-				// For safety, let's just dial 8080 as a heuristic.
 				conn8080, err8080 := net.Dial("tcp", "localhost:8080")
 				if err8080 != nil {
 					break portLoop
@@ -266,17 +309,18 @@ portLoop:
 
 	d.logger("Project Restart logic: starting new project at", projectPath)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := twctx.Background()
+	cancel := make(chan bool)
 	d.projectCancel = cancel
 	d.projectDone = make(chan struct{})
 
 	go func() {
 		defer close(d.projectDone)
-		d.runProjectLoop(ctx, projectPath)
+		d.runProjectLoop(ctx, projectPath, cancel)
 	}()
 }
 
-func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath string) {
+func (d *daemonToolProvider) runProjectLoop(ctx *twctx.Context, projectPath string, cancel chan bool) {
 	// Create a separate run channel for this project
 	runExitChan := make(chan bool)
 	headlessTui := NewHeadlessTUI(d.logger)
@@ -296,21 +340,20 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 	}()
 	browser := d.cfg.BrowserFactory(headlessTui, runExitChan)
 
-	// We wire context cancellation to the channels
+	// We wire cancellation to the channels
 	go func() {
 		select {
-		case <-ctx.Done():
-			d.logger("Context cancelled, stopping project loop...")
+		case <-cancel:
+			d.logger("Stop signaled, stopping project loop...")
 			close(runExitChan)
 		case <-runExitChan:
-			// app stopped itself
+			// project stopped itself
 		}
 	}()
 
-	// defer cleanup: clear proxy then trigger rebuild
+	// defer cleanup: clear proxy
 	defer func() {
 		d.toolProxy.SetActive()
-		d.mcpHandler.SetDynamicProviders() // rebuild with empty proxy
 		d.logger("Project loop cleanup: proxy cleared")
 	}()
 
@@ -320,11 +363,8 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 		onProjectReady := func(h *Handler) {
 			providers := buildProjectProviders(h)
 			d.toolProxy.SetActive(providers...)
-			// Pass providers directly so rebuildMCPServer can resolve Loggable
-			// per individual provider (proxy indirection breaks Loggable type assertion).
-			d.mcpHandler.SetDynamicProviders(providers...)
 			d.logger("ProjectToolProxy activated:", len(providers), "providers")
-			d.ssePub.PublishStateRefresh() // signal only — devtui re-fetches via JSON-RPC
+			d.ssePub.PublishStateRefresh()
 		}
 
 		restart := Start(
@@ -343,19 +383,26 @@ func (d *daemonToolProvider) runProjectLoop(ctx context.Context, projectPath str
 			onProjectReady,
 			// Empty tools
 		)
-		if !restart || ctx.Err() != nil {
+
+		select {
+		case <-cancel:
+			restart = false
+		default:
+		}
+
+		if !restart {
 			break
 		}
 		d.logger("Restarting project loop...")
 		// Recreate exit channel for next loop
 		runExitChan = make(chan bool)
-		go func(c chan bool) {
+		go func(c chan bool, cl chan bool) {
 			select {
-			case <-ctx.Done():
+			case <-cl:
 				close(c)
 			case <-c:
 			}
-		}(runExitChan)
+		}(runExitChan, cancel)
 	}
 	d.logger("Project loop ended for", projectPath)
 }

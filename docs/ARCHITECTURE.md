@@ -45,16 +45,17 @@ The app operates in two primary modes based on the presence of user's `web/serve
 ## 4. MCP Daemon & TUI Client Architecture
 **CRITICAL**: Bubble Tea (DevTUI) and MCP both require `stdio`, causing lockups if shared.
 **Solution**: The project employs a Persistent Global Daemon architecture.
-- **Global Daemon (`tinywasm -mcp`)**: Runs persistently on port `3030` using `StreamableHTTP`. It registers global tools like `start_development` (via `daemonToolProvider`) and manages headless project execution, shielding the LLM from restarts.
+- **Global Daemon (`tinywasm -mcp`)**: Runs persistently on port `3030` (configurable via `TINYWASM_MCP_PORT`). It uses the `mcp.Server` implementation and native Go `http` routing. It registers global tools like `start_development` (via `daemonToolProvider`) and manages headless project execution, shielding the LLM from restarts.
 - **TUI Client (`tinywasm`)**: When a user types `tinywasm`, it detects the daemon on `3030`, runs `app.Start` in `clientMode` (to inject layout sections), and connects strictly as a viewer via Server-Sent Events (`/logs`).
-- **Keyboard Webhooks**: In Client Mode, keys like `q` (quit) and `r` (reload) are routed seamlessly via HTTP POST to `http://localhost:3030/action?key=...`.
+- **Keyboard Webhooks**: In Client Mode, keys like `q` (quit) and `r` (reload) are routed seamlessly via HTTP POST to `http://localhost:3030/tinywasm/action`.
 
 **IDE Configuration**: 
-- Transport: `http`
+- Transport: `http` (SSE)
 - URL: `http://localhost:3030/mcp`
+- Config: Automatically managed via `app.ConfigureIDEs` for Cursor and VSCode.
 
 ## 5. Startup Flow (`start.go`)
 1. Initialize KVDB -> Configure Modes (Local vs Server).
 2. Wire `ServerInterface`, `WasmClient`, `AssetMin`, `Goflare`.
-3. Configure VS Code MCP (Port 3100).
+3. Configure IDEs for MCP (Port 3030).
 4. Concurrently run: HTTP Server (or External Process), DevWatcher, TUI, MCP.

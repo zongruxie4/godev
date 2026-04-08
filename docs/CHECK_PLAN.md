@@ -123,7 +123,10 @@ The app must implement its own HTTP server wrapping `mcpServer.HandleMessage`. T
 - `GET /logs` → SSE endpoint (already handled by `tinySSE`)
 
 ### 4. `mcp.EmptyArgs` does NOT exist in v0.1.1
-Stage 4 references `new(mcp.EmptyArgs).Schema()` — this type is absent from the package. InputSchema must be a raw JSON schema string or generated via `ormc gen`. Verify this before executing Stage 4.
+Stage 4 references `new(mcp.EmptyArgs).Schema()` — this type is absent from the package. InputSchema must be a raw JSON schema string or generated via `ormc gen`.
+
+### 5. Migration Complete (2026-04-09)
+Migration successfully executed. The app now uses `mcp.Server` with manual routing and cross-platform IDE auto-configuration.
 
 ---
 

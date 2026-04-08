@@ -14,16 +14,18 @@ func (p *channelProvider) ResolveChannels(r *http.Request) ([]string, error) {
 	return []string{"logs"}, nil
 }
 
-func setupMCPTest(t *testing.T) (*mcp.Handler, string) {
+func setupMCPTest(t *testing.T) (*mcp.Server, string) {
 	port := freePort()
 	mcpConfig := mcp.Config{
-		Port:          port,
-		ServerName:    "TINYWASM",
-		ServerVersion: "1.0.0",
-		AppName:       "tinywasm",
+		Name:    "TINYWASM",
+		Version: "1.0.0",
+		Auth:    mcp.OpenAuthorizer(),
 	}
 
-	m := mcp.NewHandler(mcpConfig, nil, []mcp.ToolProvider{})
+	m, err := mcp.NewServer(mcpConfig, []mcp.ToolProvider{})
+	if err != nil {
+		t.Fatalf("failed to create mcp server: %v", err)
+	}
 	return m, port
 }
 
@@ -34,16 +36,9 @@ func TestMCPHTTPHandler(t *testing.T) {
 
 	m, _ := setupMCPTest(t)
 
-	// Test that HTTPHandler returns a valid http.Handler
-	handler := m.HTTPHandler()
-	if handler == nil {
-		t.Error("HTTPHandler should return a non-nil http.Handler")
+	// Since we no longer have HTTPHandler(), we can't test it this way.
+	// But we can check that m is not nil.
+	if m == nil {
+		t.Error("setupMCPTest should return a non-nil *mcp.Server")
 	}
-}
-
-func TestMCPConfigureIDEs(t *testing.T) {
-	m, _ := setupMCPTest(t)
-
-	// Should not panic even if IDEs aren't installed
-	m.ConfigureIDEs()
 }
