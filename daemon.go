@@ -98,34 +98,143 @@ func runDaemon(cfg BootstrapConfig) {
 	// SSE endpoint (from tinywasm/sse)
 	mux.Handle("/logs", sseServer)
 
+	// Helper for common authorization and context creation
+	getAuthCtx := func(r *http.Request) (*twctx.Context, string) {
+		ctx := twctx.Background()
+		authHeader := r.Header.Get("Authorization")
+		token := authHeader
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			token = authHeader[7:]
+		}
+		ctx.Set(mcp.CtxKeyAuthToken, token)
+		return ctx, token
+	}
+
 	// MCP JSON-RPC endpoint
 	mux.HandleFunc("POST /mcp", func(w http.ResponseWriter, r *http.Request) {
 		var msg []byte
 		if r.Body != nil {
 			msg, _ = io.ReadAll(r.Body)
 		}
-		// mcp.Server needs a twctx.Context
-		ctx := twctx.Background()
-		// Attach token for mcp server to authorize
-		authHeader := r.Header.Get("Authorization")
-		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-			ctx.Set(mcp.CtxKeyAuthToken, authHeader[7:])
-		} else {
-			ctx.Set(mcp.CtxKeyAuthToken, authHeader)
+
+		// Extract method from JSON-RPC body to intercept custom app methods.
+		// mcp.Server only handles standard MCP protocol; tinywasm/state and
+		// tinywasm/action must be intercepted here because devtui calls them
+		// via mcp.Client (JSON-RPC to /mcp), not via the plain HTTP endpoints.
+		var rpcEnvelope struct {
+			ID     string          `json:"id"`
+			Method string          `json:"method"`
+			Params json.RawMessage `json:"params"`
+		}
+		if err := json.Unmarshal(msg, &rpcEnvelope); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
-		resp := mcpServer.HandleMessage(ctx, msg)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		switch rpcEnvelope.Method {
+		case "tinywasm/state":
+			_, token := getAuthCtx(r)
+			if _, err := auth.Authorize(token); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.Write([]byte(fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"error":{"code":-32000,"message":"Unauthorized"}}`, rpcEnvelope.ID)))
+				return
+			}
+
+			dtp.mu.Lock()
+			projectTui := dtp.projectTui
+			dtp.mu.Unlock()
+
+			var stateJSON []byte
+			if projectTui != nil {
+				stateJSON = projectTui.GetHandlerStates()
+			} else {
+				stateJSON = ui.GetHandlerStates()
+			}
+
+			// result must be a JSON-encoded string (double-encoded) per mcp wire protocol
+			resultStr, _ := json.Marshal(string(stateJSON))
+			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"result":%s}`,
+				rpcEnvelope.ID, resultStr)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(resp))
+
+		case "tinywasm/action":
+			_, token := getAuthCtx(r)
+			if _, err := auth.Authorize(token); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.Write([]byte(fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"error":{"code":-32000,"message":"Unauthorized"}}`, rpcEnvelope.ID)))
+				return
+			}
+
+			var p struct {
+				Key   string `json:"key"`
+				Value string `json:"value"`
+			}
+			// params is double-encoded: first un-JSON the outer string
+			var paramsStr string
+			if err := json.Unmarshal(rpcEnvelope.Params, &paramsStr); err == nil {
+				json.Unmarshal([]byte(paramsStr), &p)
+			} else {
+				// Fallback: try to unmarshal directly as object
+				json.Unmarshal(rpcEnvelope.Params, &p)
+			}
+
+			handled := false
+			dtp.mu.Lock()
+			projectTui := dtp.projectTui
+			dtp.mu.Unlock()
+			if projectTui != nil && projectTui.DispatchAction(p.Key, p.Value) {
+				handled = true
+			} else if ui.DispatchAction(p.Key, p.Value) {
+				handled = true
+			}
+			if !handled {
+				switch p.Key {
+				case "start":
+					if p.Value != "" {
+						logger("Start command received for path:", p.Value)
+						go dtp.startProject(p.Value)
+					}
+				case "stop":
+					dtp.stopProject()
+				case "restart":
+					dtp.restartCurrentProject()
+				default:
+					logger("Unknown UI action:", p.Key)
+				}
+			}
+
+			resultStr, _ := json.Marshal("OK")
+			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"result":%s}`,
+				rpcEnvelope.ID, resultStr)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(resp))
+
+		default:
+			// Standard MCP protocol
+			ctx, _ := getAuthCtx(r)
+			resp := mcpServer.HandleMessage(ctx, msg)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(resp)
+		}
 	})
 
 	// Register action dispatcher
 	mux.HandleFunc("POST /tinywasm/action", func(w http.ResponseWriter, r *http.Request) {
+		_, token := getAuthCtx(r)
+		if _, err := auth.Authorize(token); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		var p struct {
 			Key   string `json:"key"`
 			Value string `json:"value"`
 		}
-		json.NewDecoder(r.Body).Decode(&p)
+		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
@@ -160,6 +269,12 @@ func runDaemon(cfg BootstrapConfig) {
 
 	// Register state provider
 	mux.HandleFunc("GET /tinywasm/state", func(w http.ResponseWriter, r *http.Request) {
+		_, token := getAuthCtx(r)
+		if _, err := auth.Authorize(token); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
 		dtp.mu.Unlock()

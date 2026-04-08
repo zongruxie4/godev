@@ -1,10 +1,12 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
-	twctx "github.com/tinywasm/context"
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/mcp"
 )
@@ -84,11 +86,26 @@ func runClient(cfg BootstrapConfig) {
 	// Tell the daemon to start (or restart) the project in the current directory.
 	// This ensures every `tinywasm` invocation activates the project for its working dir.
 	if cfg.StartDir != "" {
-		// Dispatch: fire-and-forget, no response needed
-		mcp.NewClient(baseURL, apiKey).Dispatch(twctx.Background(), "tinywasm/action", map[string]string{
-			"key":   "start",
-			"value": cfg.StartDir,
-		})
+		body, err := json.Marshal(map[string]string{"key": "start", "value": cfg.StartDir})
+		if err != nil {
+			cfg.Logger("Error marshaling action body:", err)
+		} else {
+			req, err := http.NewRequest("POST", baseURL+"/tinywasm/action", bytes.NewReader(body))
+			if err != nil {
+				cfg.Logger("Error creating request:", err)
+			} else {
+				req.Header.Set("Content-Type", "application/json")
+				if apiKey != "" {
+					req.Header.Set("Authorization", "Bearer "+apiKey)
+				}
+				resp, err := http.DefaultClient.Do(req)
+				if err != nil {
+					cfg.Logger("Error sending start action to daemon:", err)
+				} else {
+					resp.Body.Close()
+				}
+			}
+		}
 	}
 
 	// In Client Mode, we use Start to orchestrate the tabs without running the backend
