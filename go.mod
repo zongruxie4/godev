@@ -5,9 +5,9 @@ go 1.25.2
 require (
 	github.com/tinywasm/client v0.6.0
 	github.com/tinywasm/context v0.0.18
-	github.com/tinywasm/deploy v0.1.0
-	github.com/tinywasm/devflow v0.4.14
-	github.com/tinywasm/devtui v0.3.0
+	github.com/tinywasm/deploy v0.2.0
+	github.com/tinywasm/devflow v0.4.15
+	github.com/tinywasm/devtui v0.3.1
 	github.com/tinywasm/kvdb v0.0.26
 	github.com/tinywasm/mcp v0.1.1
 	github.com/tinywasm/sse v0.0.13
@@ -39,17 +39,17 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/tdewolff/parse/v2 v2.8.10 // indirect
+	github.com/tdewolff/parse/v2 v2.8.11 // indirect
 	github.com/tinywasm/depfind v0.0.23 // indirect
-	github.com/tinywasm/dom v0.6.0 // indirect
+	github.com/tinywasm/dom v0.7.0 // indirect
 	github.com/tinywasm/fetch v0.1.23 // indirect
-	github.com/tinywasm/fmt v0.22.2 // indirect
-	github.com/tinywasm/form v0.2.0 // indirect
+	github.com/tinywasm/fmt v0.23.2 // indirect
+	github.com/tinywasm/form v0.2.1 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
-	github.com/tinywasm/goflare v0.0.117 // indirect
+	github.com/tinywasm/goflare v0.2.2 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
-	github.com/tinywasm/json v0.4.1 // indirect
-	github.com/tinywasm/orm v0.6.0 // indirect
+	github.com/tinywasm/json v0.5.0 // indirect
+	github.com/tinywasm/orm v0.7.1 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.4.0 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
@@ -63,7 +63,7 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/tdewolff/minify/v2 v2.24.10 // indirect
+	github.com/tdewolff/minify/v2 v2.24.12 // indirect
 	github.com/tinywasm/assetmin v0.2.1
 	github.com/tinywasm/devbrowser v0.3.19
 	github.com/tinywasm/devwatch v0.0.57

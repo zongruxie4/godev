@@ -15,12 +15,10 @@ func TestDeploydTabAware(t *testing.T) {
 	// Create mock Daemon using empty mockstore
 	store := &mockStore{data: make(map[string]string)}
 	d := deploy.NewDaemon(&deploy.DaemonConfig{
-		AppRootDir:          "/tmp",
-		CmdEdgeWorkerDir:    "cmd/worker",
-		DeployEdgeWorkerDir: "public/worker",
-		OutputWasmFileName:  "app.wasm",
-		DeployConfigPath:    filepath.Join("/tmp", "deploy.yaml"),
-		Store:               store,
+		EdgeDir:          "cmd/worker",
+		OutputDir:        "public/worker",
+		DeployConfigPath: filepath.Join("/tmp", "deploy.yaml"),
+		Store:            store,
 	})
 
 	// Setup a minimal wizard wrapping the Deployd similar to initDeployWizard

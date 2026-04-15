@@ -69,8 +69,8 @@ func TestWizardLogsIntegration(t *testing.T) {
 	}
 
 	// 8. Verify Logs are preserved and correctly formatted
-	// Note: index 1 because NewTUI adds SHORTCUTS as tab 0
-	content := Tui.ContentViewPlain(1)
+	// Note: index 0 — devtui v0.3.1 adds SHORTCUTS last (inside Start()), not first
+	content := Tui.ContentViewPlain(0)
 
 	expectedLogs := []string{
 		"✓ Project Name: myapp",

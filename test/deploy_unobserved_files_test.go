@@ -94,8 +94,8 @@ export default {
 	unobservedFiles := h.DeployManager.UnobservedFiles()
 
 	// Verify UnobservedFiles contains the expected files (both should be RELATIVE paths)
+	// goflare v0.2.2 only reports _worker.js; app.wasm is no longer in UnobservedFiles
 	expectedFiles := []string{
-		"deploy/edgeworker/app.wasm",
 		"deploy/edgeworker/_worker.js",
 	}
 

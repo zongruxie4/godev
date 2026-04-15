@@ -18,12 +18,10 @@ func (h *Handler) AddSectionDEPLOY() any {
 // Called from InitBuildHandlers to ensure Watcher exists.
 func (h *Handler) InitDeployHandlers() {
 	d := deploy.NewDaemon(&deploy.DaemonConfig{
-		AppRootDir:          h.Config.RootDir,
-		CmdEdgeWorkerDir:    h.Config.CmdEdgeWorkerDir(),
-		DeployEdgeWorkerDir: h.Config.DeployEdgeWorkerDir(),
-		OutputWasmFileName:  "app.wasm",
-		DeployConfigPath:    filepath.Join(h.RootDir, "deploy.yaml"),
-		Store:               h.DB,
+		EdgeDir:          h.Config.CmdEdgeWorkerDir(),
+		OutputDir:        h.Config.DeployEdgeWorkerDir(),
+		DeployConfigPath: filepath.Join(h.RootDir, "deploy.yaml"),
+		Store:            h.DB,
 	})
 	d.SetLog(h.Logger)
 	h.DeployManager = d
