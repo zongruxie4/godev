@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -11,8 +10,11 @@ import (
 	"time"
 
 	twctx "github.com/tinywasm/context"
+	twfmt "github.com/tinywasm/fmt"
+	twjson "github.com/tinywasm/json"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
+	"strings"
 )
 
 // runDaemon starts the global MCP daemon on port 3030
@@ -117,26 +119,21 @@ func runDaemon(cfg BootstrapConfig) {
 			msg, _ = io.ReadAll(r.Body)
 		}
 
-		// Extract method from JSON-RPC body to intercept custom app methods.
-		// mcp.Server only handles standard MCP protocol; tinywasm/state and
-		// tinywasm/action must be intercepted here because devtui calls them
-		// via mcp.Client (JSON-RPC to /mcp), not via the plain HTTP endpoints.
-		var rpcEnvelope struct {
-			ID     string          `json:"id"`
-			Method string          `json:"method"`
-			Params json.RawMessage `json:"params"`
+		// Extract values from JSON-RPC body to intercept custom app methods.
+		// Use ExtractJSONValue to avoid encoding/json and handle int/string IDs.
+		method := string(unquote(mcp.ExtractJSONValue(msg, "method")))
+		id := string(mcp.ExtractJSONValue(msg, "id"))
+		if id == "" {
+			id = "null"
 		}
-		if err := json.Unmarshal(msg, &rpcEnvelope); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+		params := mcp.ExtractJSONValue(msg, "params")
 
-		switch rpcEnvelope.Method {
+		switch method {
 		case "tinywasm/state":
 			_, token := getAuthCtx(r)
 			if _, err := auth.Authorize(token); err != nil {
 				w.Header().Set("Content-Type", "application/json")
-				w.Write([]byte(fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"error":{"code":-32000,"message":"Unauthorized"}}`, rpcEnvelope.ID)))
+				w.Write([]byte(fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"Unauthorized"}}`, id)))
 				return
 			}
 
@@ -152,9 +149,8 @@ func runDaemon(cfg BootstrapConfig) {
 			}
 
 			// result must be a JSON-encoded string (double-encoded) per mcp wire protocol
-			resultStr, _ := json.Marshal(string(stateJSON))
-			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"result":%s}`,
-				rpcEnvelope.ID, resultStr)
+			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"result":%q}`,
+				id, string(stateJSON))
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(resp))
 
@@ -162,51 +158,45 @@ func runDaemon(cfg BootstrapConfig) {
 			_, token := getAuthCtx(r)
 			if _, err := auth.Authorize(token); err != nil {
 				w.Header().Set("Content-Type", "application/json")
-				w.Write([]byte(fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"error":{"code":-32000,"message":"Unauthorized"}}`, rpcEnvelope.ID)))
+				w.Write([]byte(fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"Unauthorized"}}`, id)))
 				return
 			}
 
-			var p struct {
-				Key   string `json:"key"`
-				Value string `json:"value"`
+			// params can be double-encoded string or direct object
+			pBytes := params
+			if len(params) > 0 && params[0] == '"' {
+				pBytes = unquote(params)
 			}
-			// params is double-encoded: first un-JSON the outer string
-			var paramsStr string
-			if err := json.Unmarshal(rpcEnvelope.Params, &paramsStr); err == nil {
-				json.Unmarshal([]byte(paramsStr), &p)
-			} else {
-				// Fallback: try to unmarshal directly as object
-				json.Unmarshal(rpcEnvelope.Params, &p)
-			}
+
+			key := string(unquote(mcp.ExtractJSONValue(pBytes, "key")))
+			value := string(unquote(mcp.ExtractJSONValue(pBytes, "value")))
 
 			handled := false
 			dtp.mu.Lock()
 			projectTui := dtp.projectTui
 			dtp.mu.Unlock()
-			if projectTui != nil && projectTui.DispatchAction(p.Key, p.Value) {
+			if projectTui != nil && projectTui.DispatchAction(key, value) {
 				handled = true
-			} else if ui.DispatchAction(p.Key, p.Value) {
+			} else if ui.DispatchAction(key, value) {
 				handled = true
 			}
 			if !handled {
-				switch p.Key {
+				switch key {
 				case "start":
-					if p.Value != "" {
-						logger("Start command received for path:", p.Value)
-						go dtp.startProject(p.Value)
+					if value != "" {
+						logger("Start command received for path:", value)
+						go dtp.startProject(value)
 					}
 				case "stop":
 					dtp.stopProject()
 				case "restart":
 					dtp.restartCurrentProject()
 				default:
-					logger("Unknown UI action:", p.Key)
+					logger("Unknown UI action:", key)
 				}
 			}
 
-			resultStr, _ := json.Marshal("OK")
-			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"result":%s}`,
-				rpcEnvelope.ID, resultStr)
+			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"result":"OK"}`, id)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(resp))
 
@@ -215,7 +205,16 @@ func runDaemon(cfg BootstrapConfig) {
 			ctx, _ := getAuthCtx(r)
 			resp := mcpServer.HandleMessage(ctx, msg)
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(resp)
+			var out []byte
+			if f, ok := resp.(twfmt.Fielder); ok {
+				twjson.Encode(f, &out)
+			}
+			if len(out) == 0 {
+				// Fallback if not a Fielder or empty
+				w.Write([]byte(`{"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal Error"}}`))
+			} else {
+				w.Write(out)
+			}
 		}
 	})
 
@@ -227,32 +226,27 @@ func runDaemon(cfg BootstrapConfig) {
 			return
 		}
 
-		var p struct {
-			Key   string `json:"key"`
-			Value string `json:"value"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+		body, _ := io.ReadAll(r.Body)
+		key := string(unquote(mcp.ExtractJSONValue(body, "key")))
+		value := string(unquote(mcp.ExtractJSONValue(body, "value")))
 
 		dtp.mu.Lock()
 		projectTui := dtp.projectTui
 		dtp.mu.Unlock()
 
 		handled := false
-		if projectTui != nil && projectTui.DispatchAction(p.Key, p.Value) {
+		if projectTui != nil && projectTui.DispatchAction(key, value) {
 			handled = true
-		} else if ui.DispatchAction(p.Key, p.Value) {
+		} else if ui.DispatchAction(key, value) {
 			handled = true
 		}
 
 		if !handled {
-			switch p.Key {
+			switch key {
 			case "start":
-				if p.Value != "" {
-					logger("Start command received for path:", p.Value)
-					go dtp.startProject(p.Value)
+				if value != "" {
+					logger("Start command received for path:", value)
+					go dtp.startProject(value)
 				}
 			case "stop":
 				logger("Stop command received from UI")
@@ -261,7 +255,7 @@ func runDaemon(cfg BootstrapConfig) {
 				logger("Restart command received from UI")
 				dtp.restartCurrentProject()
 			default:
-				logger("Unknown UI action:", p.Key)
+				logger("Unknown UI action:", key)
 			}
 		}
 		w.Write([]byte("OK"))
@@ -345,24 +339,52 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 			Resource: "project",
 			Action:   'c',
 			Execute: func(ctx *twctx.Context, req mcp.Request) (*mcp.Result, error) {
-				// req.Bind requires fmt.SafeFields (ormc generated).
-				// For now, since we haven't generated them, we parse manually.
-				var args struct {
-					IdeName     string `json:"ide_name"`
-					ProjectPath string `json:"project_path"`
-				}
-				json.Unmarshal([]byte(req.Params.Arguments), &args)
+				argsBytes := []byte(req.Params.Arguments)
+				ideName := string(unquote(mcp.ExtractJSONValue(argsBytes, "ide_name")))
+				projectPath := string(unquote(mcp.ExtractJSONValue(argsBytes, "project_path")))
 
-				if args.ProjectPath == "" {
+				if projectPath == "" {
 					return nil, fmt.Errorf("project_path is required")
 				}
 
-				d.logger("Starting development environment for:", args.ProjectPath, "(requested by:", args.IdeName, ")")
-				d.startProject(args.ProjectPath)
+				d.logger("Starting development environment for:", projectPath, "(requested by:", ideName, ")")
+				d.startProject(projectPath)
 				return mcp.Text("Development environment starting..."), nil
 			},
 		},
 	}
+}
+
+func unquote(b []byte) []byte {
+	if len(b) < 2 || b[0] != '"' || b[len(b)-1] != '"' {
+		return b
+	}
+	// Single-pass unquoting to avoid sequential replacement bugs (e.g., \\n)
+	var res strings.Builder
+	res.Grow(len(b) - 2)
+	s := string(b[1 : len(b)-1])
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) {
+			switch s[i+1] {
+			case '\\':
+				res.WriteByte('\\')
+			case '"':
+				res.WriteByte('"')
+			case 'n':
+				res.WriteByte('\n')
+			case 'r':
+				res.WriteByte('\r')
+			case 't':
+				res.WriteByte('\t')
+			default:
+				res.WriteByte(s[i+1])
+			}
+			i++
+		} else {
+			res.WriteByte(s[i])
+		}
+	}
+	return []byte(res.String())
 }
 
 func (d *daemonToolProvider) stopProject() {
