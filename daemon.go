@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -9,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	twctx "github.com/tinywasm/context"
-	twfmt "github.com/tinywasm/fmt"
+	"github.com/tinywasm/context"
+	"github.com/tinywasm/fmt"
 	twjson "github.com/tinywasm/json"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
@@ -101,8 +100,8 @@ func runDaemon(cfg BootstrapConfig) {
 	mux.Handle("/logs", sseServer)
 
 	// Helper for common authorization and context creation
-	getAuthCtx := func(r *http.Request) (*twctx.Context, string) {
-		ctx := twctx.Background()
+	getAuthCtx := func(r *http.Request) (*context.Context, string) {
+		ctx := context.Background()
 		authHeader := r.Header.Get("Authorization")
 		token := authHeader
 		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
@@ -206,7 +205,7 @@ func runDaemon(cfg BootstrapConfig) {
 			resp := mcpServer.HandleMessage(ctx, msg)
 			w.Header().Set("Content-Type", "application/json")
 			var out []byte
-			if f, ok := resp.(twfmt.Fielder); ok {
+			if f, ok := resp.(fmt.Fielder); ok {
 				twjson.Encode(f, &out)
 			}
 			if len(out) == 0 {
@@ -338,13 +337,13 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 			}`,
 			Resource: "project",
 			Action:   'c',
-			Execute: func(ctx *twctx.Context, req mcp.Request) (*mcp.Result, error) {
+			Execute: func(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
 				argsBytes := []byte(req.Params.Arguments)
 				ideName := string(unquote(mcp.ExtractJSONValue(argsBytes, "ide_name")))
 				projectPath := string(unquote(mcp.ExtractJSONValue(argsBytes, "project_path")))
 
 				if projectPath == "" {
-					return nil, fmt.Errorf("project_path is required")
+					return nil, fmt.Errf("project_path is required")
 				}
 
 				d.logger("Starting development environment for:", projectPath, "(requested by:", ideName, ")")
@@ -446,7 +445,7 @@ portLoop:
 
 	d.logger("Project Restart logic: starting new project at", projectPath)
 
-	ctx := twctx.Background()
+	ctx := context.Background()
 	cancel := make(chan bool)
 	d.projectCancel = cancel
 	d.projectDone = make(chan struct{})
@@ -457,7 +456,7 @@ portLoop:
 	}()
 }
 
-func (d *daemonToolProvider) runProjectLoop(ctx *twctx.Context, projectPath string, cancel chan bool) {
+func (d *daemonToolProvider) runProjectLoop(ctx *context.Context, projectPath string, cancel chan bool) {
 	// Create a separate run channel for this project
 	runExitChan := make(chan bool)
 	headlessTui := NewHeadlessTUI(d.logger)

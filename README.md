@@ -283,7 +283,62 @@ Done. [10x faster, 5x fewer tokens]
 
 ## 📚 **Documentation**
 
-- [**Architecture & Developer Guide**](docs/ARCHITECTURE.md) - Comprehensive LLM-optimized guide covering project structure, execution modes, startup workflows, devwatch routing, MCP integration, and server decoupling.
+| Document | Description |
+|----------|-------------|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | What & Why — project structure, execution modes, startup flow, MCP integration |
+| [docs/PLAN.md](docs/PLAN.md) | Inconsistencias pendientes de corrección (bugs, naming, SRP) |
+| [docs/diagrams/mcp_daemon_flow.md](docs/diagrams/mcp_daemon_flow.md) | MCP daemon startup and request flow diagram |
+| [docs/diagrams/CLIENT_LIFECYCLE.md](docs/diagrams/CLIENT_LIFECYCLE.md) | TUI client lifecycle diagram |
+| [docs/diagrams/MCP_REFACTOR_FLOW.md](docs/diagrams/MCP_REFACTOR_FLOW.md) | MCP refactor flow diagram |
+
+## 🤖 **MCP Reference**
+
+### Iniciar
+
+```bash
+tinywasm -mcp     # daemon global (MCP + SSE en :3030)
+tinywasm          # TUI cliente (se conecta al daemon)
+```
+
+Puerto configurable: `TINYWASM_MCP_PORT=3030`
+
+### Endpoints HTTP
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/mcp` | JSON-RPC 2.0 — herramientas MCP estándar |
+| GET | `/logs` | SSE — stream de logs del proyecto activo |
+| GET | `/tinywasm/state` | Estado JSON del proyecto activo |
+| POST | `/tinywasm/action` | Dispatch de acciones: `{key, value}` |
+| GET | `/version` | Versión del daemon |
+
+### Herramientas disponibles
+
+| Tool | Cuándo | Descripción |
+|------|--------|-------------|
+| `start_development` | Siempre | Inicia/cambia proyecto activo (headless) |
+| `app_rebuild` | Con proyecto activo | Recompila WASM y recarga entorno |
+| Tools de WasmClient/Browser | Con proyecto activo | Según módulos del proyecto |
+
+### Configuración IDE (auto-gestionada al iniciar el daemon)
+
+| IDE | Archivo |
+|-----|---------|
+| VS Code | `~/.config/Code/User/mcp.json` |
+| Claude Code | `~/.claude.json` → `mcpServers.tinywasm.url` |
+| Antigravity | `~/.gemini/antigravity/mcp_config.json` |
+
+### Diagnóstico
+
+```bash
+# Verificar daemon
+curl http://localhost:3030/mcp -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","id":"1","params":{"protocolVersion":"2024-11-05","clientInfo":{"name":"test","version":"0"}}}'
+
+# Ver config Claude Code
+cat ~/.claude.json | grep -A5 mcpServers
+```
+
 ---
 
 ## 🤝 **Contributing**

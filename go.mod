@@ -50,7 +50,7 @@ require (
 	github.com/tinywasm/goflare v0.2.2 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
-	github.com/tinywasm/time v0.4.0 // indirect
+	github.com/tinywasm/time v0.5.0 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
