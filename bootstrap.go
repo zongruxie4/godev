@@ -124,4 +124,18 @@ func runClient(cfg BootstrapConfig) {
 		true,  // clientMode true! skips backend loop and connects SSE
 		nil,   // no onProjectReady callback in client mode
 	)
+
+	// Notify daemon to stop when the TUI client exits
+	quitBody, _ := json.Marshal(map[string]string{"key": "quit"})
+	req, err := http.NewRequest("POST", baseURL+"/tinywasm/action", bytes.NewReader(quitBody))
+	if err == nil {
+		req.Header.Set("Content-Type", "application/json")
+		if apiKey != "" {
+			req.Header.Set("Authorization", "Bearer " + apiKey)
+		}
+		resp, err := http.DefaultClient.Do(req) // best-effort, ignore error
+		if err == nil {
+			resp.Body.Close()
+		}
+	}
 }
