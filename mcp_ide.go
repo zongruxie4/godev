@@ -53,7 +53,7 @@ func ConfigureIDEs(appName, version, port, apiKey string) error {
 			ID:             "claude-code",
 			Name:           "Claude Code",
 			GetConfigDir:   getClaudeCodeConfigPath,
-			ConfigFileName: ".claude.json",
+			ConfigFileName: "settings.json",
 			ServersKey:     "mcpServers",
 			URLKey:         "url",
 			ExtraFields:    map[string]any{"type": "http"},
@@ -149,9 +149,13 @@ func getAntigravityConfigPath() (string, error) {
 	return filepath.Join(homeDir, ".gemini", "antigravity"), nil
 }
 
-// getClaudeCodeConfigPath returns the home directory (Claude Code config is ~/.claude.json).
+// getClaudeCodeConfigPath returns ~/.claude/ (Claude Code reads settings.json from there).
 func getClaudeCodeConfigPath() (string, error) {
-	return os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".claude"), nil
 }
 
 // FindMCPConfigPaths resolves all config file paths based on IDE profile structure.

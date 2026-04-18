@@ -209,7 +209,6 @@ func runDaemon(cfg BootstrapConfig) {
 				twjson.Encode(f, &out)
 			}
 			if len(out) == 0 {
-				// Fallback if not a Fielder or empty
 				w.Write([]byte(`{"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal Error"}}`))
 			} else {
 				w.Write(out)
