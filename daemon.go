@@ -32,6 +32,7 @@ func runDaemon(cfg BootstrapConfig) {
 
 	// Create an empty TUI stub for the daemon if not provided
 	var ui TuiInterface
+	var daemonOnce sync.Once
 	exitChan := make(chan bool)
 	if cfg.TuiFactory != nil {
 		ui = cfg.TuiFactory(exitChan, false, "", "") // daemon has no TUI client, no SSE needed
@@ -190,6 +191,10 @@ func runDaemon(cfg BootstrapConfig) {
 					dtp.stopProject()
 				case "restart":
 					dtp.restartCurrentProject()
+				case "quit":
+					logger("Quit command received from client — shutting down daemon")
+					dtp.stopProject()
+					daemonOnce.Do(func() { close(exitChan) })
 				default:
 					logger("Unknown UI action:", key)
 				}
@@ -252,6 +257,10 @@ func runDaemon(cfg BootstrapConfig) {
 			case "restart":
 				logger("Restart command received from UI")
 				dtp.restartCurrentProject()
+			case "quit":
+				logger("Quit command received from client — shutting down daemon")
+				dtp.stopProject()
+				daemonOnce.Do(func() { close(exitChan) })
 			default:
 				logger("Unknown UI action:", key)
 			}
@@ -498,7 +507,14 @@ func (d *daemonToolProvider) runProjectLoop(ctx *context.Context, projectPath st
 		onProjectReady := func(h *Handler) {
 			providers := buildProjectProviders(h)
 			d.toolProxy.SetActive(providers...)
-			d.logger("ProjectToolProxy upgraded:", len(providers), "providers (added app_rebuild)")
+			// Register tools into mcp.Server static map so tools/list returns them.
+			// AddTool is thread-safe and emits notifications/tools/list_changed via SSE.
+			for _, p := range providers {
+				for _, tool := range p.Tools() {
+					d.mcpServer.AddTool(tool)
+				}
+			}
+			d.logger("Project tools registered:", len(providers), "providers")
 			d.ssePub.PublishStateRefresh()
 		}
 
