@@ -54,7 +54,33 @@ The app operates in two primary modes based on the presence of user's `web/serve
 - URL: `http://localhost:3030/mcp`
 - Config: Automatically managed via `app.ConfigureIDEs` for Cursor and VSCode.
 
-## 5. Startup Flow (`start.go`)
+## 5. MCP Tool Availability Timeline
+
+Tools registered with MCP are **async and depend on runtime initialization**:
+
+```timeline
+t=0:     start_development RPC called
+         └─ daemon spawns runProjectLoop() goroutine
+            └─ Start() begins (async)
+  
+t=~0.5s: onProjectReady(h) callback fires
+         ├─ h.WasmClient ✓ (created in AddSectionBUILD)
+         ├─ h.Browser ✓ (created in Handler constructor)
+         ├─ ProjectToolProxy.SetActive(providers) called
+         │  └─ Tools registered: app_rebuild + 16 browser_* tools
+         └─ h.OnProjectReady(wg) enqueues background services
+  
+t=5-10s: Compilation complete, watcher running
+         └─ Full project ready, all tools functional
+```
+
+**Important**: Tools appear **~500ms after** `start_development` returns, not instantly.
+MCP clients (Claude Code, etc.) should:
+- Initially call `tools/list` and receive only `start_development`
+- Listen for `notifications/tools/list_changed` (SSE) OR poll `tools/list` after 1-2s
+- Expect 18 tools once the project is ready
+
+## 6. Startup Flow (`start.go`)
 1. Initialize KVDB -> Configure Modes (Local vs Server).
 2. Wire `ServerInterface`, `WasmClient`, `AssetMin`, `Goflare`.
 3. Configure IDEs for MCP (Port 3030).

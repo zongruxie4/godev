@@ -325,7 +325,7 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 	return []mcp.Tool{
 		{
 			Name:        "start_development",
-			Description: "Start a TinyWASM project environment (Server, WASM compiler, Assets, Browser) in the specified directory. Will stop any currently running project first.",
+			Description: "Start a TinyWASM project. Tools become available as the project boots (5-10s). Browser tools (browser_*) typically appear first, app tools (app_rebuild) after compilation starts.",
 			InputSchema: `{
 				"type": "object",
 				"properties": {
@@ -498,7 +498,7 @@ func (d *daemonToolProvider) runProjectLoop(ctx *context.Context, projectPath st
 		onProjectReady := func(h *Handler) {
 			providers := buildProjectProviders(h)
 			d.toolProxy.SetActive(providers...)
-			d.logger("ProjectToolProxy activated:", len(providers), "providers")
+			d.logger("ProjectToolProxy upgraded:", len(providers), "providers (added app_rebuild)")
 			d.ssePub.PublishStateRefresh()
 		}
 
