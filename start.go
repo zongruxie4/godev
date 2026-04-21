@@ -111,18 +111,21 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		}
 	}()
 
-	// Call onProjectReady callback (used by daemon to set up tool proxy)
-	if onProjectReady != nil {
-		onProjectReady(h)
-	}
-
 	if !h.IsPartOfProject() {
 		sectionWizard := h.AddSectionWIZARD(func() {
 			h.OnProjectReady(&wg)
+			// Call onProjectReady callback (used by daemon to set up tool proxy)
+			if onProjectReady != nil {
+				onProjectReady(h)
+			}
 		})
 		h.Tui.SetActiveTab(sectionWizard)
 	} else {
 		h.OnProjectReady(&wg)
+		// Call onProjectReady callback (used by daemon to set up tool proxy)
+		if onProjectReady != nil {
+			onProjectReady(h)
+		}
 	}
 
 	if !headless {

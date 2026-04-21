@@ -81,7 +81,7 @@ func main() {
 				Debug:      *debugFlag,
 				ClientMode: clientMode,
 				ClientURL:  clientURL,
-				// APIKey:     apiKey, // Commented out until devtui updated
+				APIKey:     apiKey,
 			})
         },
 
