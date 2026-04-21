@@ -11,7 +11,7 @@ require (
 	github.com/tinywasm/fmt v0.23.5
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
-	github.com/tinywasm/mcp v0.1.6
+	github.com/tinywasm/mcp v0.1.7
 	github.com/tinywasm/sse v0.0.13
 	github.com/tinywasm/wizard v0.0.23
 )

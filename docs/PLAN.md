@@ -11,15 +11,17 @@ resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"result":%q}`, id, string(stateJSO
 ```
 
 **Defecto 1 — `%q` no escapa caracteres especiales:**
-`stateJSON` es un array JSON que contiene comillas (`"`). El `%q` actual solo envuelve
-el string en comillas sin escapar su contenido interno → JSON inválido →
-`tinywasm/json.Decode` falla silenciosamente → `reconstructRemoteHandlers` nunca se llama
+`stateJSON` es un array JSON que contiene comillas (`"`). El `%q` producía JSON inválido
+→ `tinywasm/json.Decode` falla silenciosamente → `reconstructRemoteHandlers` nunca se llama
 → **footer TUI permanece vacío**.
-_(Raíz del bug rastreada en `tinywasm/fmt/docs/PLAN_FIX_Q_VERB_ESCAPE.md`)_
+_(Fix de `%q` ya aplicado en `tinywasm/fmt/docs/PLAN_FIX_Q_VERB_ESCAPE.md`)_
 
 **Defecto 2 — violación de política del ecosistema:**
 Todo JSON en tinywasm debe pasar por `tinywasm/json`. La interpolación manual de strings
 para construir JSON bypasea la cobertura de la librería.
+
+> El fix del lado cliente (`tinywasm/mcp`) está documentado en
+> `tinywasm/mcp/docs/PLAN.md` — ese plan es independiente y debe ejecutarse por separado.
 
 ---
 
@@ -37,10 +39,7 @@ sin doble encoding.
 | Archivo | Acción |
 |---|---|
 | `app/model.go` | **Crear** — struct `stateResponse` con `// ormc:formonly` |
-| `app/model_orm.go` | **Generar** con `ormc` (ejecutar en `tinywasm/app/`) |
-| `mcp/model.go` | Cambiar `rpcResponse.Result string` → `fmt.RawJSON` |
-| `mcp/model_orm.go` | **Regenerar** con `ormc` (ejecutar en `tinywasm/mcp/`) |
-| `mcp/client.go` | `envelope.Result == ""` → `len(envelope.Result) == 0` |
+| `app/model_orm.go` | **Generar** con `ormc` |
 | `app/daemon.go` | Reemplazar `fmt.Sprintf %q` con `twjson.Encode(&stateResponse{...})` |
 
 ---
@@ -68,10 +67,12 @@ type stateResponse struct {
   Con `FieldRaw` se emite verbatim, sin doble encoding.
 - `Result fmt.RawJSON` — `stateJSON` es el array JSON crudo de handlers. Se emite verbatim.
 
-## Paso 2 — Ejecutar `ormc` en `tinywasm/app/`
+## Paso 2 — Instalar `ormc` y generar `app/model_orm.go`
 
 ```bash
-cd /home/cesar/Dev/Project/tinywasm/app
+go install github.com/tinywasm/orm/cmd/ormc@latest
+
+cd tinywasm/app
 ormc
 ```
 
@@ -102,79 +103,7 @@ func (m *stateResponse) Pointers() []any {
 }
 ```
 
-## Paso 3 — Cambiar `mcp/model.go`: `Result string` → `fmt.RawJSON`
-
-El cliente MCP decodifica la respuesta en `rpcResponse`. Con `FieldRaw`, el decoder
-lee el valor JSON crudo (el array `[{...}]`) directo al campo `Result` como string,
-sin necesitar doble encoding de parte del daemon.
-
-```go
-// mcp/model.go — antes
-// ormc:formonly
-type rpcResponse struct {
-    JSONRPC string
-    ID      string
-    Result  string   // ← FieldText: espera JSON string "..." → lo decodifica
-    Error   string
-}
-
-// mcp/model.go — después
-// ormc:formonly
-type rpcResponse struct {
-    JSONRPC string
-    ID      string
-    Result  fmt.RawJSON  // ← FieldRaw: lee JSON crudo [{}] directo como string
-    Error   string
-}
-```
-
-> **Nota:** `fmt.RawJSON` es un alias de `string`. El campo en memoria es idéntico.
-> Solo cambia cómo `ormc` lo categoriza en `Schema()` y cómo `tinywasm/json` lo procesa.
-
-## Paso 4 — Ejecutar `ormc` en `tinywasm/mcp/`
-
-```bash
-cd /home/cesar/Dev/Project/tinywasm/mcp
-ormc
-```
-
-`ormc` regenera `mcp/model_orm.go`. El campo `result` de `_schemarpcResponse`
-cambia de `fmt.FieldText` a `fmt.FieldRaw`:
-
-```go
-// mcp/model_orm.go — después de ormc
-var _schemarpcResponse = []fmt.Field{
-    {Name: "jsonrpc", Type: fmt.FieldText, Widget: input.Text()},
-    {Name: "id",      Type: fmt.FieldText, Widget: input.Text()},
-    {Name: "result",  Type: fmt.FieldRaw},  // ← cambia de FieldText
-    {Name: "error",   Type: fmt.FieldText, Widget: input.Text()},
-}
-```
-
-## Paso 5 — Actualizar `mcp/client.go`
-
-`fmt.RawJSON = string`, por lo que el check de vacío cambia de comparación de string
-a comparación de longitud:
-
-```go
-// mcp/client.go — antes
-if envelope.Result == "" {
-    callback(nil, nil)
-    return
-}
-callback([]byte(envelope.Result), nil)
-
-// mcp/client.go — después
-if len(envelope.Result) == 0 {
-    callback(nil, nil)
-    return
-}
-callback([]byte(envelope.Result), nil)
-```
-
-`[]byte(envelope.Result)` funciona igual porque `RawJSON = string`.
-
-## Paso 6 — Actualizar `daemon.go`: reemplazar `fmt.Sprintf`
+## Paso 3 — Actualizar `daemon.go`: reemplazar `fmt.Sprintf`
 
 ```go
 // daemon.go — antes (~línea 144–155)
@@ -218,62 +147,24 @@ w.Write(respBytes)
 | | Antes | Después |
 |---|---|---|
 | Respuesta daemon | `{"result":"[{\"tab_title\":\"BUILD\"...}]"}` | `{"result":[{"tab_title":"BUILD"...}]}` |
-| `rpcResponse.Result` | string decodificado: `[{...}]` | string raw: `[{...}]` |
-| `callback(result, nil)` | `[]byte("[{...}]")` | `[]byte("[{...}]")` |
-| `json.Unmarshal` en cliente | igual | igual |
-
-El cliente (`devtui/sse_client.go`) no requiere ningún cambio: recibe los mismos bytes
-finales. La diferencia es solo en cómo daemon y mcp manejan el encoding intermedio.
 
 ---
 
 ## Pasos de ejecución (orden estricto)
 
+```bash
+go install github.com/tinywasm/orm/cmd/ormc@latest
+```
+
 1. Crear `app/model.go` con `stateResponse` (ver Paso 1)
-2. Ejecutar `ormc` en `tinywasm/app/` → genera `app/model_orm.go`
-3. Editar `mcp/model.go`: `Result string` → `Result fmt.RawJSON`
-4. Ejecutar `ormc` en `tinywasm/mcp/` → regenera `mcp/model_orm.go`
-5. Editar `mcp/client.go`: check de vacío (ver Paso 5)
-6. Editar `app/daemon.go`: reemplazar bloque `fmt.Sprintf` (ver Paso 6)
-7. `go build ./...` en `tinywasm/mcp` y `tinywasm/app`
-8. `go test ./...` en ambas librerías
+2. `cd tinywasm/app && ormc` → genera `app/model_orm.go`
+3. Editar `app/daemon.go`: reemplazar bloque `fmt.Sprintf` (ver Paso 3)
+4. `go build ./...`
+5. `go test ./...`
 
 ---
 
 ## Cobertura de tests requerida
-
-### `mcp/tests/` — verificar round-trip con `FieldRaw`
-
-Agregar en `mcp/tests/protocol_test.go`:
-
-```go
-func TestRpcResponse_DecodeRawResult(t *testing.T) {
-    // Respuesta que el daemon ahora produce: result es array JSON directo
-    raw := `{"jsonrpc":"2.0","id":"1","result":[{"tab_title":"BUILD","handler_type":1}]}`
-
-    var resp rpcResponse
-    if err := twjson.Decode([]byte(raw), &resp); err != nil {
-        t.Fatalf("Decode failed: %v", err)
-    }
-
-    // Result debe contener el array JSON como string (FieldRaw)
-    want := `[{"tab_title":"BUILD","handler_type":1}]`
-    if resp.Result != want {
-        t.Errorf("Result\n got:  %s\n want: %s", resp.Result, want)
-    }
-
-    // Verificar que ese string es parseable como []StateEntry
-    var entries []devtui.StateEntry
-    if err := stdjson.Unmarshal([]byte(resp.Result), &entries); err != nil {
-        t.Fatalf("StateEntry parse failed: %v", err)
-    }
-    if len(entries) != 1 || entries[0].TabTitle != "BUILD" {
-        t.Errorf("unexpected entries: %+v", entries)
-    }
-}
-```
-
-### `app/test/` — smoke test del endpoint state
 
 Agregar en `app/test/`:
 
@@ -308,5 +199,5 @@ func TestStateResponse_EncodesCorrectly(t *testing.T) {
 }
 ```
 
-> Los tests usan `encoding/json` solo para **validación** del output (confirmar que es
-> JSON parseable). El código de producción bajo test usa exclusivamente `tinywasm/json`.
+> El test usa `encoding/json` solo para **validación** del output. El código de producción
+> usa exclusivamente `tinywasm/json`.
