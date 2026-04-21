@@ -148,11 +148,15 @@ func runDaemon(cfg BootstrapConfig) {
 				stateJSON = ui.GetHandlerStates()
 			}
 
-			// result must be a JSON-encoded string (double-encoded) per mcp wire protocol
-			resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"result":%q}`,
-				id, string(stateJSON))
+			sr := stateResponse{
+				JSONRPC: "2.0",
+				ID:      fmt.RawJSON(id),
+				Result:  fmt.RawJSON(string(stateJSON)),
+			}
+			var respBytes []byte
+			twjson.Encode(&sr, &respBytes)
 			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(resp))
+			w.Write(respBytes)
 
 		case "tinywasm/action":
 			_, token := getAuthCtx(r)
