@@ -338,7 +338,7 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 	return []mcp.Tool{
 		{
 			Name:        "start_development",
-			Description: "Start a TinyWASM project. Tools become available as the project boots (5-10s). Browser tools (browser_*) typically appear first, app tools (app_rebuild) after compilation starts.",
+			Description: "Start a TinyWASM project. All tools (browser_*, app_*) are pre-registered and available immediately — they return an error if called before the project is ready.",
 			InputSchema: `{
 				"type": "object",
 				"properties": {
@@ -363,6 +363,108 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 				return mcp.Text("Development environment starting..."), nil
 			},
 		},
+		{
+			Name:        "app_get_logs",
+			Description: "Read the latest build and runtime logs from the active project. Use this to diagnose compilation errors, WASM panics, or server issues.",
+			InputSchema: `{"type":"object","properties":{"lines":{"type":"integer","description":"Number of log lines to return (default 50)"}}}`,
+			Resource:    "logs",
+			Action:      'r',
+			Execute:     d.executeGetLogs,
+		},
+		{
+			Name:        "browser_screenshot",
+			Description: "Capture screenshot of current browser viewport to verify visual rendering, layout correctness, or UI state. Returns PNG image. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"fullpage":{"type":"boolean","description":"Capture full page height instead of just the viewport"}}}`,
+			Resource:    "browser",
+			Action:      'r',
+			Execute:     d.executeBrowserTool("browser_screenshot"),
+		},
+		{
+			Name:        "browser_get_content",
+			Description: "Get a text-based representation of the page content, optimized for LLM reading. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"reserved":{"type":"integer"}}}`,
+			Resource:    "browser",
+			Action:      'r',
+			Execute:     d.executeBrowserTool("browser_get_content"),
+		},
+		{
+			Name:        "browser_get_console",
+			Description: "Get browser JavaScript console logs to debug WASM runtime errors, console.log outputs, or frontend issues. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"lines":{"type":"integer","description":"Number of lines to return"}}}`,
+			Resource:    "browser",
+			Action:      'r',
+			Execute:     d.executeBrowserTool("browser_get_console"),
+		},
+		{
+			Name:        "browser_get_errors",
+			Description: "Get JavaScript runtime errors and uncaught exceptions to identify crashes, bugs, or WASM panics. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"limit":{"type":"integer"}}}`,
+			Resource:    "browser",
+			Action:      'r',
+			Execute:     d.executeBrowserTool("browser_get_errors"),
+		},
+		{
+			Name:        "browser_navigate",
+			Description: "Navigate the browser to a specific URL. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"url":{"type":"string","description":"URL to navigate to"}},"required":["url"]}`,
+			Resource:    "browser",
+			Action:      'u',
+			Execute:     d.executeBrowserTool("browser_navigate"),
+		},
+		{
+			Name:        "browser_click_element",
+			Description: "Click a DOM element by CSS selector to test interactions. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"selector":{"type":"string"},"wait_after":{"type":"integer"},"timeout":{"type":"integer"}},"required":["selector"]}`,
+			Resource:    "browser",
+			Action:      'u',
+			Execute:     d.executeBrowserTool("browser_click_element"),
+		},
+		{
+			Name:        "browser_evaluate_js",
+			Description: "Execute JavaScript in browser context to inspect DOM, call WASM exports, or test functions. Requires an active project.",
+			InputSchema: `{"type":"object","properties":{"script":{"type":"string"},"await_promise":{"type":"boolean"}},"required":["script"]}`,
+			Resource:    "browser",
+			Action:      'c',
+			Execute:     d.executeBrowserTool("browser_evaluate_js"),
+		},
+	}
+}
+
+// executeGetLogs reads the latest log lines from the active project's logs.log file.
+func (d *daemonToolProvider) executeGetLogs(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
+	d.mu.Lock()
+	path := d.lastPath
+	d.mu.Unlock()
+
+	if path == "" {
+		return mcp.Text("No active project. Call start_development first."), nil
+	}
+
+	logPath := path + "/logs.log"
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		return mcp.Text("Log file not found or not yet created."), nil
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	limit := 50
+	if len(lines) > limit {
+		lines = lines[len(lines)-limit:]
+	}
+	return mcp.Text(strings.Join(lines, "\n")), nil
+}
+
+// executeBrowserTool returns an Execute func that delegates a tool call to the active project's
+// browser tool via the ProjectToolProxy. If no project is active, returns a clear error.
+func (d *daemonToolProvider) executeBrowserTool(toolName string) func(*context.Context, mcp.Request) (*mcp.Result, error) {
+	return func(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
+		tools := d.toolProxy.Tools()
+		for _, t := range tools {
+			if t.Name == toolName {
+				return t.Execute(ctx, req)
+			}
+		}
+		return mcp.Text("Tool '" + toolName + "' not available: no active project. Call start_development first."), nil
 	}
 }
 
@@ -507,18 +609,12 @@ func (d *daemonToolProvider) runProjectLoop(ctx *context.Context, projectPath st
 
 	// Let's start the app loop here
 	for {
-		// Callback to set up proxy after handler is initialized
+		// Callback to set up proxy after handler is initialized.
+		// Tools are pre-registered at daemon startup; proxy just routes calls to active providers.
 		onProjectReady := func(h *Handler) {
 			providers := buildProjectProviders(h)
 			d.toolProxy.SetActive(providers...)
-			// Register tools into mcp.Server static map so tools/list returns them.
-			// AddTool is thread-safe and emits notifications/tools/list_changed via SSE.
-			for _, p := range providers {
-				for _, tool := range p.Tools() {
-					d.mcpServer.AddTool(tool)
-				}
-			}
-			d.logger("Project tools registered:", len(providers), "providers")
+			d.logger("Project tools active:", len(providers), "providers")
 			d.ssePub.PublishStateRefresh()
 		}
 
