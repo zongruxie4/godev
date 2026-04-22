@@ -12,7 +12,7 @@ require (
 	github.com/tinywasm/form v0.2.1
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
-	github.com/tinywasm/mcp v0.1.7
+	github.com/tinywasm/mcp v0.1.8
 	github.com/tinywasm/sse v0.0.13
 	github.com/tinywasm/wizard v0.0.23
 )
