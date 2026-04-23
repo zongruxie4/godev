@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/tinywasm/assetmin"
+	"github.com/tinywasm/imagemin"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
@@ -29,6 +30,7 @@ type Handler struct {
 	serverFactory ServerFactory
 
 	AssetsHandler *assetmin.AssetMin
+	ImageHandler  *imagemin.Handler
 	GitHandler    devflow.GitClient
 	GoHandler     *devflow.Go
 	GoNew         *devflow.GoNew
@@ -52,6 +54,8 @@ type Handler struct {
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
 
+	// Optional listModules function (for tests)
+	ListModulesFn func(rootDir string) ([]string, error)
 }
 
 func (h *Handler) SetBrowser(b BrowserInterface) {

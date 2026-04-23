@@ -41,6 +41,10 @@ The app operates in two primary modes based on the presence of user's `web/serve
    - Restarts the external server process.
 3. **WASI Builder (Optional)**:
    - Watches `modules/*/wasm/`, compiles generic `.wasm` via `tinygo -target wasi`, hot-swaps payloads.
+4. **SSR Asset Extraction & Image Optimization (New)**:
+   - `app` orchestrates `tinywasm/assetmin` and `tinywasm/imagemin` to extract assets and optimize images from all modules (local and external).
+   - **Initial Load**: Discovery happens in background goroutines at startup via `LoadSSRModules()` and `LoadImages()`.
+   - **Hot Reload**: `GoModHandler` acts as a relay; when an `ssr.go` file changes, it triggers `OnSSRFileChange` which re-extracts assets and re-processes images without restarting the server.
 
 ## 4. MCP Daemon & TUI Client Architecture
 **CRITICAL**: Bubble Tea (DevTUI) and MCP both require `stdio`, causing lockups if shared.
@@ -82,6 +86,7 @@ MCP clients (Claude Code, etc.) should:
 
 ## 6. Startup Flow (`start.go`)
 1. Initialize KVDB -> Configure Modes (Local vs Server).
-2. Wire `ServerInterface`, `WasmClient`, `AssetMin`, `Goflare`.
+2. Wire `ServerInterface`, `WasmClient`, `AssetMin`, `ImageHandler`, `Goflare`.
 3. Configure IDEs for MCP (Port 3030).
 4. Concurrently run: HTTP Server (or External Process), DevWatcher, TUI, MCP.
+5. Background: Trigger `LoadSSRModules()` and `LoadImages()` to populate the asset cache.
