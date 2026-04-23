@@ -62,6 +62,8 @@ Switch modes on-the-fly via the TUI or let your LLM assistant choose based on co
 - **Backend**: Auto-compiles and restarts Go server on `.go` file changes
 - **Frontend**: Auto-compiles WASM and reloads browser on `.go`, `.html`, `.css`, `.js` changes
 - **Asset Pipeline**: Minifies CSS/JS automatically with cache busting
+- **SSR Extraction**: Automatically extracts CSS, JS, and HTML from `ssr.go` files in all local and external modules.
+- **Image Optimization**: Automatically processes and optimizes images (converting to WebP) from all project modules.
 - **Smart Detection**: Watches only relevant files, ignores build artifacts
 
 ### 🖥️ **TUI Development Environment**

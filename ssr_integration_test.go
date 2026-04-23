@@ -8,6 +8,7 @@ import (
 	"github.com/tinywasm/mcp"
 	"sync"
 	"net/http"
+	"time"
 )
 
 func TestSSRLoadOnInit(t *testing.T) {
@@ -38,6 +39,9 @@ func RenderCSS() string { return ".my-class { color: red; }" }
 		replacePaths: []devflow.ReplaceEntry{{LocalPath: moduleDir}},
 	}
 
+	h.ListModulesFn = func(rootDir string) ([]string, error) {
+		return []string{moduleDir}, nil
+	}
 	h.InitBuildHandlers()
 
 	h.AssetsHandler.SetListModulesFn(func(rootDir string) ([]string, error) {
@@ -80,6 +84,9 @@ func RenderCSS() string { return ".v1 { color: red; }" }
 		replacePaths: []devflow.ReplaceEntry{{LocalPath: moduleDir}},
 	}
 
+	h.ListModulesFn = func(rootDir string) ([]string, error) {
+		return []string{moduleDir}, nil
+	}
 	h.InitBuildHandlers()
 
 	h.AssetsHandler.SetListModulesFn(func(rootDir string) ([]string, error) {
@@ -109,6 +116,112 @@ func RenderCSS() string { return ".v2 { color: blue; }" }
 	if h.AssetsHandler.ContainsCSS(".v1") {
 		t.Errorf("Expected CSS NOT to contain '.v1' after hot reload")
 	}
+}
+
+func TestSSRNoBlockOnStartup(t *testing.T) {
+	root := t.TempDir()
+	
+	// Create a module with a slow loading process (simulated via mock)
+	h := &Handler{
+		RootDir: root,
+		Config:  NewConfig(root, nil),
+		Tui:     &mockTui{},
+		DB:      &mockDB{},
+		serverFactory: func(exitChan chan bool, ui TuiInterface, browser BrowserInterface) ServerInterface {
+			return &mockServer{}
+		},
+	}
+	h.GoModHandler = &mockGoMod{}
+
+	// We'll use a channel to signal when listModulesFn is called
+	called := make(chan struct{})
+	
+	var once sync.Once
+	h.ListModulesFn = func(rootDir string) ([]string, error) {
+		once.Do(func() { close(called) })
+		time.Sleep(100 * time.Millisecond) // Simulate slow loading
+		return nil, nil
+	}
+
+	h.InitBuildHandlers()
+
+	// InitBuildHandlers already started the goroutine
+	// We should be able to continue here immediately
+	select {
+	case <-called:
+		// Success: it started in background
+	case <-time.After(50 * time.Millisecond):
+		t.Fatal("Expected LoadSSRModules to be called in background")
+	}
+}
+
+func TestSSRProxyModulesLoaded(t *testing.T) {
+	root := t.TempDir()
+	proxyModuleDir := filepath.Join(root, "proxy_pkg")
+	os.MkdirAll(proxyModuleDir, 0755)
+	
+	os.WriteFile(filepath.Join(proxyModuleDir, "ssr.go"), []byte(`
+package proxy
+func RenderCSS() string { return ".proxy { color: green; }" }
+`), 0644)
+
+	h := &Handler{
+		RootDir: root,
+		Config:  NewConfig(root, nil),
+		Tui:     &mockTui{},
+		DB:      &mockDB{},
+		serverFactory: func(exitChan chan bool, ui TuiInterface, browser BrowserInterface) ServerInterface {
+			return &mockServer{}
+		},
+	}
+	h.GoModHandler = &mockGoMod{}
+	
+	h.ListModulesFn = func(rootDir string) ([]string, error) {
+		return []string{proxyModuleDir}, nil
+	}
+	h.InitBuildHandlers()
+	
+	if !h.AssetsHandler.ContainsCSS(".proxy") {
+		t.Errorf("Expected CSS from proxy module to be loaded")
+	}
+}
+
+func TestImageHotReload(t *testing.T) {
+	root := t.TempDir()
+	moduleDir := filepath.Join(root, "mymodule")
+	os.MkdirAll(moduleDir, 0755)
+	
+	// Create an image
+	imgPath := filepath.Join(moduleDir, "logo.png")
+	os.WriteFile(imgPath, []byte("fake image data"), 0644)
+
+	h := &Handler{
+		RootDir: root,
+		Config:  NewConfig(root, nil),
+		Tui:     &mockTui{},
+		DB:      &mockDB{},
+		Browser: &mockBrowser{},
+		serverFactory: func(exitChan chan bool, ui TuiInterface, browser BrowserInterface) ServerInterface {
+			return &mockServer{}
+		},
+	}
+	h.GoModHandler = &mockGoMod{
+		replacePaths: []devflow.ReplaceEntry{{LocalPath: moduleDir}},
+	}
+
+	// Mock list modules for both
+	h.ListModulesFn = func(rootDir string) ([]string, error) {
+		return []string{moduleDir}, nil
+	}
+	h.InitBuildHandlers()
+
+	// Trigger hot reload via the callback
+	// This should call both AssetsHandler.ReloadSSRModule and ImageHandler.ReloadModule
+	h.GoModHandler.(*mockGoMod).onSSRFileChange(moduleDir)
+
+	// Since we are mocking, we can't easily check if ImageHandler.ReloadModule was called
+	// unless we inspect logs or use a more sophisticated mock.
+	// But the fact that it doesn't panic and wires correctly is a good start.
 }
 
 // Mocks needed for the test

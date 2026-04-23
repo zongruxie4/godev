@@ -54,6 +54,8 @@ type Handler struct {
 	// GoMod Handler
 	GoModHandler devflow.GoModInterface
 
+	// Optional listModules function (for tests)
+	ListModulesFn func(rootDir string) ([]string, error)
 }
 
 func (h *Handler) SetBrowser(b BrowserInterface) {

@@ -49,6 +49,9 @@ func (h *Handler) InitBuildHandlers() {
 		AppName: h.FrameworkName,
 		DevMode: h.DevMode, // Pass DevMode explicitly to prevent caching in development
 	})
+	if h.ListModulesFn != nil {
+		h.AssetsHandler.SetListModulesFn(h.ListModulesFn)
+	}
 
 	// 3. SERVER
 	h.Server = h.serverFactory(h.ExitChan, h.Tui, h.Browser)
@@ -159,6 +162,9 @@ func (h *Handler) InitBuildHandlers() {
 		Quality:   82,
 	})
 	h.ImageHandler.SetLog(h.Watcher.Logger)
+	if h.ListModulesFn != nil {
+		h.ImageHandler.SetListModulesFn(h.ListModulesFn)
+	}
 
 	// Carga inicial de imágenes en goroutine
 	go func() {
