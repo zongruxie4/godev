@@ -148,13 +148,6 @@ func (h *Handler) InitBuildHandlers() {
 	h.GoModHandler.SetLog(h.Watcher.Logger)
 	h.GoModHandler.SetFolderWatcher(h.Watcher)
 
-	// SSR MODULE EXTRACTION — cargar assets de todos los módulos al arrancar
-	go func() {
-		if err := h.AssetsHandler.LoadSSRModules(); err != nil {
-			h.AssetsHandler.Logger("SSR load error:", err)
-		}
-	}()
-
 	// IMAGEMIN - inicializar DESPUÉS de crear h.Watcher
 	h.ImageHandler = imagemin.New(&imagemin.Config{
 		RootDir:   h.RootDir,
@@ -162,6 +155,23 @@ func (h *Handler) InitBuildHandlers() {
 		Quality:   82,
 	})
 	h.ImageHandler.SetLog(h.Watcher.Logger)
+
+	// 6. Register Handlers with TUI for logging
+	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Server, colorBlueMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.ImageHandler, colorTealMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Watcher, colorYellowMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)
+
+	// SSR MODULE EXTRACTION — cargar assets de todos los módulos al arrancar
+	go func() {
+		if err := h.AssetsHandler.LoadSSRModules(); err != nil {
+			h.AssetsHandler.Logger("SSR load error:", err)
+		}
+	}()
+
 	if h.ListModulesFn != nil {
 		h.ImageHandler.SetListModulesFn(h.ListModulesFn)
 	}
@@ -220,15 +230,6 @@ func (h *Handler) InitBuildHandlers() {
 	}
 
 	h.Watcher.SetShouldWatch(h.IsPartOfProject)
-
-	// 6. Register Handlers with TUI for logging
-	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Server, colorBlueMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.ImageHandler, colorTealMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Watcher, colorYellowMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
-	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)
 
 	// NOTE: GitHubAuth is registered in Start() BEFORE auth begins
 	// to ensure it uses the TUI logger instead of file logger

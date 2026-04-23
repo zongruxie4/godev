@@ -108,8 +108,8 @@ github.com/tinywasm/goflare v0.2.2 h1:UIednCBqYq7FqgA+0sHSJ32edg6nlvso8eYPTeYrJD
 github.com/tinywasm/goflare v0.2.2/go.mod h1:wDBTUAEK9Gn2ao18El4rwacCJGt3G3PshVb9IGsxTSY=
 github.com/tinywasm/gorun v0.0.23 h1:+2khVQCd1whCLYTP+AMC3lJVaKB6VOUYYXfj1Oj/tOY=
 github.com/tinywasm/gorun v0.0.23/go.mod h1:9pApF2ZoaH/km6kGBVxL5WlStOoLwEZiV1uG4R4qeKo=
-github.com/tinywasm/imagemin v0.0.4 h1:jq/xoxDPVwC6ZNs6polfgNliG39nvI7Rpw5kkiHugbs=
-github.com/tinywasm/imagemin v0.0.4/go.mod h1:x0KpPymw8XUzQdXrYXGmKlUUltzxh3Jmz6akz2i6BKM=
+github.com/tinywasm/imagemin v0.0.5 h1:PdTyse6bPK2m5qPns8yOcQjvMgxi9GdJYn+qICkAomM=
+github.com/tinywasm/imagemin v0.0.5/go.mod h1:x0KpPymw8XUzQdXrYXGmKlUUltzxh3Jmz6akz2i6BKM=
 github.com/tinywasm/json v0.5.2 h1:ykHdD2qz2k+6r+trffNIVHfvdS46Ib+/8tSUKXx+EdY=
 github.com/tinywasm/json v0.5.2/go.mod h1:uA5JXnQcz3T5XdKfwFKloZFvfP7TWgas41zmCM57UJU=
 github.com/tinywasm/kvdb v0.0.26 h1:Qg9n8PB18zC8mNB6YkYiP8Ie0tYHd3wUP1xKhz7dNRU=
