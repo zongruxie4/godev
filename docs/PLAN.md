@@ -56,8 +56,12 @@ Añadir en `InitBuildHandlers()` después de configurar `GoModHandler` (paso 6):
 h.GoModHandler.OnSSRFileChange = func(moduleDir string) {
     if err := h.AssetsHandler.ReloadSSRModule(moduleDir); err != nil {
         h.AssetsHandler.Logger("SSR hot reload error:", err)
+        return // no recargar browser si el módulo falló
     }
-    // ReloadSSRModule ya llama processAsset internamente — no llamar RefreshAsset aquí
+    // ReloadSSRModule actualiza slots en memoria; RefreshAsset regenera el cache HTTP
+    h.AssetsHandler.RefreshAsset(".css")
+    h.AssetsHandler.RefreshAsset(".js")
+    h.AssetsHandler.RefreshAsset(".html")
     if err := h.Browser.Reload(); err != nil {
         h.AssetsHandler.Logger("Browser reload error:", err)
     }
@@ -73,7 +77,7 @@ h.GoModHandler.OnSSRFileChange = func(moduleDir string) {
 - `WasmClient` y `Server` siguen recibiendo sus eventos `.go` sin interferencia
 - `assetmin` no intercepta eventos `.go` — su `SupportedExtensions` y `NewFileEvent` no cambian
 - El hot reload de `ssr.go` llega por el callback `GoModHandler.OnSSRFileChange`, no por devwatch→assetmin
-- Modo disco (`buildOnDisk=true`) respetado: `ReloadSSRModule` llama `processAsset` internamente
+- Modo disco (`buildOnDisk=true`) respetado: `RefreshAsset` llama `processAsset` que escribe al disco si aplica
 
 ## Tests requeridos en `tinywasm/app`
 
@@ -99,7 +103,32 @@ Añadir a `test/gomod_handler_test.go`:
 
 ## Cambio 4 — Integración de `imagemin` en `InitBuildHandlers()`
 
+### 4a — Añadir `ImageHandler` al struct `Handler` en `handler.go`
+
 ```go
+// Build dependencies
+AssetsHandler *assetmin.AssetMin
+ImageHandler  *imagemin.Handler   // NUEVO
+```
+
+### 4b — Añadir `Logger()` público a `imagemin.Handler`
+
+`imagemin.Handler` necesita el mismo patrón que `assetmin.AssetMin`: un método
+`Logger()` público que delegue al `log` interno. Sin esto el código de `app` no
+puede llamar `h.ImageHandler.Logger(...)`.
+
+```go
+func (h *Handler) Logger(messages ...any) {
+    h.log(messages...)
+}
+```
+
+### 4c — Crear el handler y conectarlo en `InitBuildHandlers()`
+
+Debe ejecutarse **después del paso 5** (Watcher ya creado) para que `h.Watcher.Logger` no sea nil.
+
+```go
+// Inicializar DESPUÉS de crear h.Watcher (paso 5)
 h.ImageHandler = imagemin.New(&imagemin.Config{
     RootDir:   h.RootDir,
     OutputDir: filepath.Join(h.RootDir, h.Config.WebPublicDir(), "img"),
@@ -114,30 +143,47 @@ go func() {
     }
 }()
 
-// Encadenar callback SSR — GoModHandler ya notifica a assetmin (Cambio 3)
-// imagemin se añade a la cadena sin sobreescribir el callback existente
+// Encadenar sobre el callback ya wired de assetmin (Cambio 3)
+// No sobreescribir: assetmin + imagemin deben ejecutarse ambos
 existingSSRCallback := h.GoModHandler.OnSSRFileChange
 h.GoModHandler.OnSSRFileChange = func(moduleDir string) {
     if existingSSRCallback != nil {
-        existingSSRCallback(moduleDir)
+        existingSSRCallback(moduleDir) // assetmin: reload SSR + RefreshAsset + Browser.Reload
     }
+    // imagemin: re-procesar imágenes del módulo; Browser.Reload ya fue llamado arriba
     if err := h.ImageHandler.ReloadModule(moduleDir); err != nil {
         h.ImageHandler.Logger("Image hot reload error:", err)
     }
 }
 ```
 
+### 4d — Excluir carpeta de salida de imágenes en devwatch
+
+En `section-build.go`, añadir dentro del closure `UnobservedFiles`:
+
+```go
+uf = append(uf, h.ImageHandler.UnobservedFiles()...)
+```
+
+Sin esto devwatch observa `/public/img` y dispara eventos espurios cada vez que
+imagemin escribe un `.webp`.
+
+### 4e — Añadir `imagemin` a `tinywasm/imagemin/imagemin.go`
+
+Añadir `Logger()` antes de publicar nueva versión de imagemin.
+
 ## Orden de implementación
 
 1. Implementar `tinywasm/assetmin` PLAN completo
-2. Implementar `tinywasm/imagemin` PLAN completo
+2. Añadir `Logger()` a `imagemin.Handler` + publicar nueva versión (Cambio 4b, 4e)
 3. Actualizar `go.mod` de `tinywasm/app` para las nuevas versiones
-4. Añadir `RootDir` en `section-build.go` al crear `AssetsHandler`
-5. Añadir `LoadSSRModules()` en goroutine (Cambio 2)
-6. Añadir wire del callback SSR para assetmin (Cambio 3)
-7. Añadir `ImageHandler` + encadenamiento de callback (Cambio 4)
-8. Correr tests de integración
-9. Verificar hot reload manualmente con `clinical_encounter/ssr.go`
+4. Añadir `ImageHandler *imagemin.Handler` al struct `Handler` (Cambio 4a)
+5. Añadir `RootDir` en `section-build.go` al crear `AssetsHandler` (Cambio 1)
+6. Añadir `LoadSSRModules()` en goroutine (Cambio 2)
+7. Añadir wire del callback SSR para assetmin (Cambio 3)
+8. Añadir `ImageHandler` + encadenamiento de callback + `UnobservedFiles` (Cambio 4c, 4d)
+9. Correr tests de integración
+10. Verificar hot reload manualmente con `clinical_encounter/ssr.go`
 
 ## Decisiones de diseño incorporadas
 
@@ -159,15 +205,29 @@ package mypkg
 func RenderCSS() string { return ".v1 { color: red; }" }
 `), 0644)
 
-    am := assetmin.NewAssetMin(&assetmin.Config{...})
+    am := assetmin.NewAssetMin(&assetmin.Config{OutputDir: t.TempDir()})
     am.SetListModulesFn(func(root string) ([]string, error) {
         return []string{moduleDir}, nil
     })
-    am.LoadSSRModules()
-    am.WaitForSSRLoad(2 * time.Second)
 
-    // Verificar CSS inicial
-    // Simular cambio en ssr.go y verificar que CSS se actualiza
+    // LoadSSRModules es síncrono en tests — WaitForSSRLoad es un no-op aquí.
+    // Solo usar WaitForSSRLoad cuando LoadSSRModules corre en goroutine (producción).
+    am.LoadSSRModules()
+
+    // Verificar CSS inicial presente en bundle
+    // css, _ := am.GetCSS(); assert contains ".v1"
+
+    // Simular hot reload: reescribir ssr.go + llamar ReloadSSRModule directamente
+    os.WriteFile(filepath.Join(moduleDir, "ssr.go"), []byte(`
+//go:build !wasm
+package mypkg
+func RenderCSS() string { return ".v2 { color: blue; }" }
+`), 0644)
+    am.ReloadSSRModule(moduleDir)
+    am.RefreshAsset(".css")
+
+    // Verificar CSS actualizado
+    // css, _ = am.GetCSS(); assert contains ".v2", not ".v1"
 }
 ```
 
