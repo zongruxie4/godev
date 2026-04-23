@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/tinywasm/assetmin"
+	"github.com/tinywasm/imagemin"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/devwatch"
 )
@@ -41,6 +42,7 @@ func (h *Handler) InitBuildHandlers() {
 	publicDir := filepath.Join(h.RootDir, h.Config.WebPublicDir())
 	h.AssetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: publicDir,
+		RootDir:   h.RootDir,
 		GetSSRClientInitJS: func() (string, error) {
 			return h.WasmClient.GetSSRClientInitJS()
 		},
@@ -129,6 +131,9 @@ func (h *Handler) InitBuildHandlers() {
 				"_test.go",
 			}
 			uf = append(uf, h.AssetsHandler.UnobservedFiles()...)
+			if h.ImageHandler != nil {
+				uf = append(uf, h.ImageHandler.UnobservedFiles()...)
+			}
 			uf = append(uf, h.WasmClient.UnobservedFiles()...)
 			uf = append(uf, h.Server.UnobservedFiles()...)
 			return uf
@@ -139,6 +144,56 @@ func (h *Handler) InitBuildHandlers() {
 	// Use injected handler
 	h.GoModHandler.SetLog(h.Watcher.Logger)
 	h.GoModHandler.SetFolderWatcher(h.Watcher)
+
+	// SSR MODULE EXTRACTION — cargar assets de todos los módulos al arrancar
+	go func() {
+		if err := h.AssetsHandler.LoadSSRModules(); err != nil {
+			h.AssetsHandler.Logger("SSR load error:", err)
+		}
+	}()
+
+	// IMAGEMIN - inicializar DESPUÉS de crear h.Watcher
+	h.ImageHandler = imagemin.New(&imagemin.Config{
+		RootDir:   h.RootDir,
+		OutputDir: filepath.Join(h.RootDir, h.Config.WebPublicDir(), "img"),
+		Quality:   82,
+	})
+	h.ImageHandler.SetLog(h.Watcher.Logger)
+
+	// Carga inicial de imágenes en goroutine
+	go func() {
+		if err := h.ImageHandler.LoadImages(); err != nil {
+			h.ImageHandler.Logger("Image load error:", err)
+		}
+	}()
+
+	// Wire SSR + Image hot reload: GoModHandler notifica cuando ssr.go cambia
+	type ssrRelay interface {
+		SetOnSSRFileChange(fn func(string))
+	}
+	if g, ok := h.GoModHandler.(ssrRelay); ok {
+		g.SetOnSSRFileChange(func(moduleDir string) {
+			// assetmin: reload SSR
+			if err := h.AssetsHandler.ReloadSSRModule(moduleDir); err != nil {
+				h.AssetsHandler.Logger("SSR hot reload error:", err)
+				return // no recargar browser si el módulo falló
+			}
+
+			// imagemin: re-procesar imágenes del módulo
+			if err := h.ImageHandler.ReloadModule(moduleDir); err != nil {
+				h.ImageHandler.Logger("Image hot reload error:", err)
+			}
+
+			// ReloadSSRModule actualiza slots en memoria; RefreshAsset regenera el cache HTTP
+			h.AssetsHandler.RefreshAsset(".css")
+			h.AssetsHandler.RefreshAsset(".js")
+			h.AssetsHandler.RefreshAsset(".html")
+
+			if err := h.Browser.Reload(); err != nil {
+				h.AssetsHandler.Logger("Browser reload error:", err)
+			}
+		})
+	}
 
 	// Add main project root to watcher
 	h.Watcher.AddDirectoriesToWatch(h.Config.RootDir)
@@ -164,6 +219,7 @@ func (h *Handler) InitBuildHandlers() {
 	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Server, colorBlueMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.ImageHandler, colorTealMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Watcher, colorYellowMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)

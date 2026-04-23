@@ -10,6 +10,7 @@ require (
 	github.com/tinywasm/devtui v0.3.2
 	github.com/tinywasm/fmt v0.23.5
 	github.com/tinywasm/form v0.2.1
+	github.com/tinywasm/imagemin v0.0.4
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
 	github.com/tinywasm/mcp v0.1.9
@@ -19,6 +20,7 @@ require (
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
+	github.com/HugoSmits86/nativewebp v1.2.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/bubbles v1.0.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.10 // indirect
@@ -30,6 +32,7 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
+	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -54,6 +57,7 @@ require (
 	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
+	golang.org/x/image v0.24.0 // indirect
 	golang.org/x/term v0.41.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
