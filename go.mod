@@ -9,7 +9,7 @@ require (
 	github.com/tinywasm/devflow v0.4.18
 	github.com/tinywasm/devtui v0.3.2
 	github.com/tinywasm/fmt v0.23.5
-	github.com/tinywasm/form v0.2.1
+	github.com/tinywasm/form v0.2.2
 	github.com/tinywasm/imagemin v0.0.5
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
