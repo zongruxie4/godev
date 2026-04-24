@@ -44,10 +44,6 @@ func RenderCSS() string { return ".my-class { color: red; }" }
 	}
 	h.InitBuildHandlers()
 
-	h.AssetsHandler.SetListModulesFn(func(rootDir string) ([]string, error) {
-		return []string{moduleDir}, nil
-	})
-
 	// Manual call to ensure it's loaded for test
 	err := h.AssetsHandler.LoadSSRModules()
 	if err != nil {
@@ -88,10 +84,6 @@ func RenderCSS() string { return ".v1 { color: red; }" }
 		return []string{moduleDir}, nil
 	}
 	h.InitBuildHandlers()
-
-	h.AssetsHandler.SetListModulesFn(func(rootDir string) ([]string, error) {
-		return []string{moduleDir}, nil
-	})
 
 	// Initial load
 	h.AssetsHandler.LoadSSRModules()
@@ -180,6 +172,7 @@ func RenderCSS() string { return ".proxy { color: green; }" }
 		return []string{proxyModuleDir}, nil
 	}
 	h.InitBuildHandlers()
+	h.AssetsHandler.WaitForSSRLoad(2 * time.Second)
 	
 	if !h.AssetsHandler.ContainsCSS(".proxy") {
 		t.Errorf("Expected CSS from proxy module to be loaded")

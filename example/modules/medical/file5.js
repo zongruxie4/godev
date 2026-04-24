@@ -1,1 +1,0 @@
-console.log("medical file 5");
