@@ -45,11 +45,7 @@ sequenceDiagram
     Headless->>Headless: DispatchAction("c","8080") → finds handler by key
     Headless->>App: go action("8080") → handler.Change("8080")
 
-    Note over Dev,App: Phase 4b — Bootstrap Fallback (unregistered key)
-    Dev->>DevTUI: presses 'q'
-    DevTUI->>MCP: POST /action?key=q&value=
-    MCP->>Headless: OnUIAction("q", "")
-    Headless-->>MCP: DispatchAction returns false
-    MCP->>App: stopProject()
-    DevTUI-->>Dev: exits to shell
+    Note over Dev,App: Phase 4b — Exit (standard terminal behavior)
+    Dev->>DevTUI: presses Ctrl+C
+    DevTUI-->>Dev: exits to shell (standard SIGINT termination)
 ```

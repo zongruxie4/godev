@@ -3,12 +3,12 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.6.0
+	github.com/tinywasm/client v0.6.1
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/deploy v0.2.0
-	github.com/tinywasm/devflow v0.4.18
+	github.com/tinywasm/devflow v0.4.19
 	github.com/tinywasm/devtui v0.3.2
-	github.com/tinywasm/fmt v0.23.5
+	github.com/tinywasm/fmt v0.23.6
 	github.com/tinywasm/form v0.2.2
 	github.com/tinywasm/imagemin v0.0.5
 	github.com/tinywasm/json v0.5.2
@@ -54,6 +54,7 @@ require (
 	github.com/tinywasm/gorun v0.0.23 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
+	github.com/tinywasm/tinygo v0.0.7 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
@@ -67,7 +68,7 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.12 // indirect
-	github.com/tinywasm/assetmin v0.2.2
+	github.com/tinywasm/assetmin v0.2.3
 	github.com/tinywasm/devbrowser v0.3.22
 	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/server v0.2.15

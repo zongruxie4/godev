@@ -103,7 +103,7 @@ func TestWizardFullIntegration(t *testing.T) {
 		c.SetAppRootDir(ctx.Value("project_dir"))
 		// In prod, this is set by h.app.CanGenerateDefaultWasmClient, which we just fixed to return true
 		c.SetShouldGenerateDefaultFile(func() bool { return true })
-		c.CreateDefaultWasmFileClientIfNotExist()
+		c.CreateDefaultWasmFileClientIfNotExist(false)
 
 	}, GoNew)
 

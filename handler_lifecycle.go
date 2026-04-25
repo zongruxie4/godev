@@ -18,7 +18,7 @@ func (h *Handler) OnProjectReady(wg *sync.WaitGroup) {
 	h.WasmClient.SetAppRootDir(h.Config.RootDir)
 	h.WasmClient.SetShouldCreateIDEConfig(h.IsInitializedProject)
 	h.WasmClient.SetShouldGenerateDefaultFile(h.CanGenerateDefaultWasmClient)
-	h.WasmClient.CreateDefaultWasmFileClientIfNotExist()
+	h.WasmClient.CreateDefaultWasmFileClientIfNotExist(false)
 
 	// Ensure compilation happens (force recompile to load into memory)
 	// This prevents 503 errors on subsequent runs where generation is skipped
