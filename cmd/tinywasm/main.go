@@ -37,7 +37,8 @@ func main() {
 	// Initialize Git Handler
 	gitHandler, err := devflow.NewGit()
 	if err != nil {
-		logger.Logger("Error initializing Git handler:", err)
+		log.Println("Error initializing Git handler:", err)
+		logger.InternalError("Error initializing Git handler:", err)
 	}
 
 	if projectRoot, err := devflow.FindProjectRoot(startDir); err == nil {
@@ -49,13 +50,15 @@ func main() {
 		goModHandler.SetRootDir(startDir)
 		logger.SetRootDir(startDir)
 	}
+	logger.SetDebug(*debugFlag)
 
 	goModHandler.SetLog(logger.Logger)
 
 	// Initialize DB
 	db, err := kvdb.New(filepath.Join(startDir, ".env"), logger.Logger, &app.FileStore{})
 	if err != nil {
-		logger.Logger("Failed to initialize database:", err)
+		log.Println("Failed to initialize database:", err)
+		logger.InternalError("Failed to initialize database:", err)
 		return
 	}
 
@@ -65,7 +68,7 @@ func main() {
         McpMode: *mcpFlag,
         Debug: *debugFlag,
         Version: Version,
-        Logger: logger.Logger,
+        Logger: logger,
         DB: db,
         GitHandler: gitHandler,
         GoModHandler: goModHandler,
@@ -75,7 +78,6 @@ func main() {
             return devtui.NewTUI(&devtui.TuiConfig{
 				AppName:    "TINYWASM",
 				AppVersion: Version,
-				ExitChan:   exitChan,
 				Color:      devtui.DefaultPalette(),
 				Logger:     func(messages ...any) { logger.Logger(messages...) },
 				Debug:      *debugFlag,

@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -24,11 +25,45 @@ type LogEntry struct {
 }
 
 // SSEPublisher wraps an ssePublisher hub with tinywasm-specific publishing logic.
-type SSEPublisher struct{ hub ssePublisher }
+type SSEPublisher struct {
+	hub   ssePublisher
+	mu    sync.Mutex
+	ring  [100]string
+	head  int
+	count int
+}
 
 func NewSSEPublisher(hub ssePublisher) *SSEPublisher { return &SSEPublisher{hub: hub} }
 
+func (p *SSEPublisher) addToRing(msg string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.ring[p.head] = msg
+	p.head = (p.head + 1) % 100
+	if p.count < 100 {
+		p.count++
+	}
+}
+
+// RecentLogs returns up to 100 of the latest log entries in chronological order.
+func (p *SSEPublisher) RecentLogs() []string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	res := make([]string, 0, p.count)
+	if p.count < 100 {
+		for i := 0; i < p.count; i++ {
+			res = append(res, p.ring[i])
+		}
+	} else {
+		for i := 0; i < 100; i++ {
+			res = append(res, p.ring[(p.head+i)%100])
+		}
+	}
+	return res
+}
+
 func (p *SSEPublisher) PublishTabLog(tabTitle, handlerName, handlerColor, msg string) {
+	p.addToRing(msg)
 	if p.hub == nil {
 		return
 	}

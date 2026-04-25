@@ -5,7 +5,7 @@
 | Stage | File | Status | Dependency |
 |-------|------|--------|------------|
 | 1 | [PLAN_stage1_webclient.md](PLAN_stage1_webclient.md) | pending | tinywasm/client Stage 3 |
-| 2 | [PLAN_stage2_logs.md](PLAN_stage2_logs.md) | pending | none |
+| 2 | [PLAN_stage2_logs.md](PLAN_stage2_logs.md) | completed | none |
 | 3 | [PLAN_stage3_env.md](PLAN_stage3_env.md) | pending | Stage 2, tinywasm/fmt PLAN |
 | 4 | [PLAN_stage4_shutdown.md](PLAN_stage4_shutdown.md) | pending | Stage 2, devtui PLAN_clean_shutdown |
 

@@ -18,7 +18,13 @@ import (
 
 // runDaemon starts the global MCP daemon on port 3030
 func runDaemon(cfg BootstrapConfig) {
-	logger := cfg.Logger
+	var logger func(messages ...any)
+	if l, ok := cfg.Logger.(func(...any)); ok {
+		logger = l
+	} else if l, ok := cfg.Logger.(*Logger); ok {
+		logger = l.Logger
+	}
+
 	if logger == nil {
 		logger = func(messages ...any) {}
 	}
@@ -74,7 +80,7 @@ func runDaemon(cfg BootstrapConfig) {
 	proxy := NewProjectToolProxy()
 
 	// Define the daemon tool provider that controls the project lifecycles
-	dtp := newDaemonToolProvider(cfg, logger)
+	dtp := NewDaemonToolProvider(cfg, logger)
 
 	toolProviders := append(cfg.McpToolHandlers, dtp, proxy)
 	mcpServer, err := mcp.NewServer(mcpConfig, toolProviders)
@@ -89,6 +95,13 @@ func runDaemon(cfg BootstrapConfig) {
 	}
 
 	ssePub := NewSSEPublisher(sseServer)
+
+	// Wire Logger redirection to SSE
+	if l, ok := cfg.Logger.(*Logger); ok {
+		l.Redir = func(messages ...any) {
+			ssePub.PublishLog(l.sprint(messages...))
+		}
+	}
 
 	// Update dtp to store proxy, mcpServer and ssePub
 	dtp.toolProxy = proxy
@@ -327,11 +340,23 @@ type daemonToolProvider struct {
 	lastPath      string // Keep track of the last path for remote restarts
 }
 
-func newDaemonToolProvider(cfg BootstrapConfig, logger func(messages ...any)) *daemonToolProvider {
+func NewDaemonToolProvider(cfg BootstrapConfig, logger func(messages ...any)) *daemonToolProvider {
 	return &daemonToolProvider{
 		cfg:    cfg,
 		logger: logger,
 	}
+}
+
+func (d *daemonToolProvider) SetSSEPub(ssePub *SSEPublisher) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.ssePub = ssePub
+}
+
+func (d *daemonToolProvider) SetLastPath(path string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.lastPath = path
 }
 
 func (d *daemonToolProvider) Tools() []mcp.Tool {
@@ -369,7 +394,7 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 			InputSchema: `{"type":"object","properties":{"lines":{"type":"integer","description":"Number of log lines to return (default 50)"}}}`,
 			Resource:    "logs",
 			Action:      'r',
-			Execute:     d.executeGetLogs,
+			Execute:     d.ExecuteGetLogs,
 		},
 		{
 			Name:        "browser_screenshot",
@@ -430,8 +455,8 @@ func (d *daemonToolProvider) Tools() []mcp.Tool {
 	}
 }
 
-// executeGetLogs reads the latest log lines from the active project's logs.log file.
-func (d *daemonToolProvider) executeGetLogs(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
+// ExecuteGetLogs reads the latest log lines from the active project from the SSE ring buffer.
+func (d *daemonToolProvider) ExecuteGetLogs(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
 	d.mu.Lock()
 	path := d.lastPath
 	d.mu.Unlock()
@@ -440,14 +465,27 @@ func (d *daemonToolProvider) executeGetLogs(ctx *context.Context, req mcp.Reques
 		return mcp.Text("No active project. Call start_development first."), nil
 	}
 
-	logPath := path + "/logs.log"
-	data, err := os.ReadFile(logPath)
-	if err != nil {
-		return mcp.Text("Log file not found or not yet created."), nil
+	if d.ssePub == nil {
+		return mcp.Text("Log system not initialized."), nil
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	lines := d.ssePub.RecentLogs()
+	if len(lines) == 0 {
+		return mcp.Text("No logs available yet."), nil
+	}
+
 	limit := 50
+	// Allow overriding limit from params
+	argsBytes := []byte(req.Params.Arguments)
+	if limitVal := string(mcp.ExtractJSONValue(argsBytes, "lines")); limitVal != "" {
+		// Quick parse if it's a simple number
+		var l int
+		fmt.Sscanf(limitVal, "%d", &l)
+		if l > 0 {
+			limit = l
+		}
+	}
+
 	if len(lines) > limit {
 		lines = lines[len(lines)-limit:]
 	}
