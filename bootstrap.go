@@ -19,7 +19,7 @@ type BootstrapConfig struct {
 	Version         string // Binary version, used to detect and replace stale daemons
 	AppName         string // e.g. "tinywasm" — used in HTTP server version endpoint
 	APIKeyPath      string // path to persist API key; empty = no auth (open mode)
-	Logger          func(messages ...any)
+	Logger          any    // can be func(...any) or *Logger
 	DB              DB
 	GitHandler      devflow.GitClient
 	GoModHandler    devflow.GoModInterface
@@ -32,6 +32,16 @@ type BootstrapConfig struct {
 
 // Bootstrap is the main entry point for the application logic
 func Bootstrap(cfg BootstrapConfig) {
+	var loggerFunc func(messages ...any)
+	if l, ok := cfg.Logger.(func(...any)); ok {
+		loggerFunc = l
+	} else if l, ok := cfg.Logger.(*Logger); ok {
+		loggerFunc = l.Logger
+	}
+	if loggerFunc == nil {
+		loggerFunc = func(messages ...any) {}
+	}
+
 	// 1. Check if we should run as Daemon (headless) or Client (TUI)
 
 	if cfg.McpMode {
@@ -48,7 +58,7 @@ func Bootstrap(cfg BootstrapConfig) {
 			killDaemon()
 			waitForPortFree("3030")
 
-			if err := startDaemonProcess(cfg.StartDir, cfg.Logger); err != nil {
+			if err := startDaemonProcess(cfg.StartDir, loggerFunc); err != nil {
 				fmt.Printf("Failed to restart daemon: %v\n", err)
 				os.Exit(1)
 			}
@@ -57,7 +67,7 @@ func Bootstrap(cfg BootstrapConfig) {
 		runClient(cfg)
 	} else {
 		// Port free -> Start Daemon in background, then run Client
-		if err := startDaemonProcess(cfg.StartDir, cfg.Logger); err != nil {
+		if err := startDaemonProcess(cfg.StartDir, loggerFunc); err != nil {
 			fmt.Printf("Failed to start daemon: %v\n", err)
 			os.Exit(1)
 		}
@@ -67,6 +77,16 @@ func Bootstrap(cfg BootstrapConfig) {
 }
 
 func runClient(cfg BootstrapConfig) {
+	var loggerFunc func(messages ...any)
+	if l, ok := cfg.Logger.(func(...any)); ok {
+		loggerFunc = l
+	} else if l, ok := cfg.Logger.(*Logger); ok {
+		loggerFunc = l.Logger
+	}
+	if loggerFunc == nil {
+		loggerFunc = func(messages ...any) {}
+	}
+
 	// Client mode
 	// Use real TUI with SSE client enabled to receive logs from the daemon
 	exitChan := make(chan bool)
@@ -88,11 +108,11 @@ func runClient(cfg BootstrapConfig) {
 	if cfg.StartDir != "" {
 		body, err := json.Marshal(map[string]string{"key": "start", "value": cfg.StartDir})
 		if err != nil {
-			cfg.Logger("Error marshaling action body:", err)
+			loggerFunc("Error marshaling action body:", err)
 		} else {
 			req, err := http.NewRequest("POST", baseURL+"/tinywasm/action", bytes.NewReader(body))
 			if err != nil {
-				cfg.Logger("Error creating request:", err)
+				loggerFunc("Error creating request:", err)
 			} else {
 				req.Header.Set("Content-Type", "application/json")
 				if apiKey != "" {
@@ -100,7 +120,7 @@ func runClient(cfg BootstrapConfig) {
 				}
 				resp, err := http.DefaultClient.Do(req)
 				if err != nil {
-					cfg.Logger("Error sending start action to daemon:", err)
+					loggerFunc("Error sending start action to daemon:", err)
 				} else {
 					resp.Body.Close()
 				}

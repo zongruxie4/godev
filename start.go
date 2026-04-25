@@ -21,7 +21,14 @@ var TestMode bool
 // CRITICAL: UI, Browser and DB instances created in main.go, passed here as interfaces
 // mcpToolHandlers: optional external Handlers that implement Tools() for MCP tool discovery
 // onProjectReady: optional callback called after handler initialization (for daemon mode to set up proxy)
-func Start(startDir string, logger func(messages ...any), ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, onProjectReady func(*Handler), mcpToolHandlers ...mcp.ToolProvider) bool {
+func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterface, db DB, ExitChan chan bool, serverFactory ServerFactory, githubAuth any, gitHandler devflow.GitClient, goModHandler devflow.GoModInterface, headless bool, clientMode bool, onProjectReady func(*Handler), mcpToolHandlers ...mcp.ToolProvider) bool {
+
+	var loggerFunc func(messages ...any)
+	if l, ok := logger.(func(...any)); ok {
+		loggerFunc = l
+	} else if l, ok := logger.(*Logger); ok {
+		loggerFunc = l.Logger
+	}
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
@@ -32,7 +39,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		RootDir:       startDir,
 		Tui:           ui, // UI passed from main.go
 		ExitChan:      ExitChan,
-		Logger:        logger,
+		Logger:        loggerFunc,
 
 		DB:            db,
 		serverFactory: serverFactory,
@@ -44,7 +51,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	}
 
 	// Noop initial logger to avoid nil check issues
-	h.Logger = logger
+	h.Logger = loggerFunc
 
 	// Check if we are in dev mode
 	h.CheckDevMode()
@@ -57,7 +64,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	// Validate directory
 	homeDir, _ := os.UserHomeDir()
 	if startDir == homeDir || startDir == "/" {
-		logger("Cannot run tinywasm in user root directory. Please run in a Go project directory")
+		loggerFunc("Cannot run tinywasm in user root directory. Please run in a Go project directory")
 		return false
 	}
 
@@ -68,6 +75,7 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	// CRITICAL: Initialize sections BEFORE starting lifecycle
 	h.SectionBuild = h.AddSectionBUILD()
 	h.AddSectionDEPLOY()
+	h.SectionMCP = h.AddSectionMCP()
 
 	// Register GitHubAuth in TUI FIRST (so it gets the TUI logger)
 	// This must happen BEFORE starting the auth Future
@@ -90,15 +98,15 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 	githubFuture := devflow.NewFuture(func() (any, error) {
 		if githubAuth != nil {
 			if auth, ok := githubAuth.(devflow.GitHubAuthenticator); ok {
-				return devflow.NewGitHub(logger, auth)
+				return devflow.NewGitHub(loggerFunc, auth)
 			}
 		}
-		return devflow.NewGitHub(logger)
+		return devflow.NewGitHub(loggerFunc)
 	})
 
 	// Initialize GoNew orchestrator with the future
 	GoNew := devflow.NewGoNew(gitHandler, githubFuture, GoHandler)
-	GoNew.SetLog(logger)
+	GoNew.SetLog(loggerFunc)
 	h.GoNew = GoNew
 	// Prevents goroutine leak: drain future when app exits so the
 	// internal goroutine can proceed to close(f.done) and exit.
@@ -147,9 +155,22 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		})
 
 		ssePub := NewSSEPublisher(sseServer)
+
+		// Wire Logger redirection to SSE
+		if l, ok := logger.(*Logger); ok {
+			l.Redir = func(messages ...any) {
+				ssePub.PublishLog(l.sprint(messages...))
+			}
+		}
+
 		h.Logger = func(messages ...any) {
-			logger(messages...)
-			ssePub.PublishLog(fmt.Sprint(messages...))
+			loggerFunc(messages...)
+			if l, ok := logger.(*Logger); ok {
+				ssePub.PublishLog(l.sprint(messages...))
+			} else {
+				// Fallback if not using our Logger struct
+				ssePub.PublishLog(fmt.Sprint(messages...))
+			}
 		}
 
 		appVersion := "1.0.0"
@@ -172,16 +193,16 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 		var err error
 		h.MCP, err = mcp.NewServer(mcpConfig, toolHandlers)
 		if err != nil {
-			logger("Failed to initialize MCP Server:", err)
+			loggerFunc("Failed to initialize MCP Server:", err)
 			return false
 		}
 
 		// Configure IDEs (standalone mode)
 		if err := ConfigureIDEs("tinywasm", appVersion, mcpPort, ""); err != nil {
-			logger("Warning: Failed to configure IDEs:", err)
+			loggerFunc("Warning: Failed to configure IDEs:", err)
 		}
 
-		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionBuild)
+		h.Tui.AddHandler(h.MCP, colorOrangeLight, h.SectionMCP)
 		SetActiveHandler(h)
 
 		mux := http.NewServeMux()
@@ -217,9 +238,9 @@ func Start(startDir string, logger func(messages ...any), ui TuiInterface, brows
 				<-ExitChan
 				server.Close()
 			}()
-			logger("Standalone listener on", server.Addr)
+			loggerFunc("Standalone listener on", server.Addr)
 			if err := server.ListenAndServe(); err != http.ErrServerClosed {
-				logger("Standalone server error:", err)
+				loggerFunc("Standalone server error:", err)
 			}
 		}()
 

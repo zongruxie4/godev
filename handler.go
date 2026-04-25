@@ -46,6 +46,7 @@ type Handler struct {
 	startOnce        sync.Once
 	SectionBuild     any // Store reference to build tab
 	SectionDeploy    any // Store reference to deploy tab
+	SectionMCP       any // Store reference to mcp tab
 	RestartRequested bool
 
 	// MCP Server for LLM integration (owns /mcp, /logs, /action, /state, /version routes)
