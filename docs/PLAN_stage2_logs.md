@@ -133,28 +133,34 @@ Add `SectionMCP any` field to `Handler` struct in `handler.go`.
 
 ---
 
+## Test location
+
+All new tests go in `test/` (e.g. `test/logs_test.go`, `test/sse_publisher_test.go`).
+Do NOT place `_test.go` files in the package root. The `test/` directory is the project
+convention — the root-level `daemon_test.go` is legacy; do not add more there.
+
 ## Tests
 
-### Test 1 — `Logger` never writes file (logs_test.go)
+### Test 1 — `Logger` never writes file (`test/logs_test.go`)
 ```
 - Create Logger with tmpDir
 - Call Logger.Logger("anything")
 - Assert logs.log does NOT exist in tmpDir
 ```
 
-### Test 2 — `InternalError` writes file only when debug=true (logs_test.go)
+### Test 2 — `InternalError` writes file only when debug=true (`test/logs_test.go`)
 ```
 - debug=false: call InternalError → file must NOT exist
 - debug=true:  call InternalError → file must exist and contain the message
 ```
 
-### Test 3 — `SSEPublisher.RecentLogs` ring buffer (sse_publisher_test.go)
+### Test 3 — `SSEPublisher.RecentLogs` ring buffer (`test/sse_publisher_test.go`)
 ```
 - Publish 150 entries
 - RecentLogs() must return exactly 100, in order, last 100 entries
 ```
 
-### Test 4 — `app_get_logs` returns ring content, not file (daemon_test.go or inline)
+### Test 4 — `app_get_logs` returns ring content, not file (`test/daemon_test.go`)
 ```
 - Call PublishTabLog 5 times via ssePub
 - Call executeGetLogs
@@ -170,7 +176,7 @@ Add `SectionMCP any` field to `Handler` struct in `handler.go`.
 - [ ] `section-mcp.go`: create new file
 - [ ] `handler.go`: add `SectionMCP any`
 - [ ] `start.go`: wire `AddSectionMCP()` and move MCP `AddHandler`
-- [ ] Write tests 1–4
+- [ ] Write tests 1–4 in `test/`
 - [ ] Run `gotest` — all must pass
 - [ ] Verify `logs.log` is NOT created in a clean project run (smoke test)
 - [ ] Verify LLM `app_get_logs` tool returns recent log lines without any file on disk

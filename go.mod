@@ -7,7 +7,7 @@ require (
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/deploy v0.2.0
 	github.com/tinywasm/devflow v0.4.19
-	github.com/tinywasm/devtui v0.3.2
+	github.com/tinywasm/devtui v0.3.3
 	github.com/tinywasm/fmt v0.23.6
 	github.com/tinywasm/form v0.2.2
 	github.com/tinywasm/imagemin v0.0.5
