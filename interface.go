@@ -31,6 +31,8 @@ type TuiInterface interface {
 	// HeadlessTUI: iterates handlers slice built in AddHandler, matches by shortcut key.
 	// DevTUI: always returns false (actions are sent to daemon, not dispatched locally).
 	DispatchAction(key, value string) bool
+
+	Shutdown() // signals graceful stop; no-op on HeadlessTUI
 }
 
 // BrowserInterface defines the browser operations needed by the app.

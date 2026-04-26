@@ -10,6 +10,7 @@ import (
 
 	twctx "github.com/tinywasm/context"
 	"github.com/tinywasm/devflow"
+	twfmt "github.com/tinywasm/fmt"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
 )
@@ -33,6 +34,7 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
 	GoHandler.SetRootDir(startDir)
+	goModHandler.SetRootDir(startDir)
 
 	h := &Handler{
 		FrameworkName: "TINYWASM",
@@ -57,7 +59,7 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 	h.CheckDevMode()
 
 	// Wire gitignore notification
-	if !TestMode {
+	if !TestMode && gitHandler != nil {
 		gitHandler.SetShouldWrite(h.IsInitializedProject)
 	}
 
@@ -65,6 +67,12 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 	homeDir, _ := os.UserHomeDir()
 	if startDir == homeDir || startDir == "/" {
 		loggerFunc("Cannot run tinywasm in user root directory. Please run in a Go project directory")
+		return false
+	}
+
+	// Secondary guard: reject if startDir is inside a project but not its root
+	if root, err := devflow.FindProjectRoot(startDir); err == nil && root != startDir {
+		loggerFunc(twfmt.Translate("Directory", "Not", "Initialized").String())
 		return false
 	}
 

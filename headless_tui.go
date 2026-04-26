@@ -77,11 +77,10 @@ func (t *HeadlessTUI) AddHandler(handler any, color string, tabSection any) {
 	if s, ok := handler.(logSetter); ok {
 		s.SetLog(func(messages ...any) {
 			msg := fmt.Sprint(messages...)
-			if t.logger != nil {
-				t.logger(msg)
-			}
 			if t.RelayLog != nil {
 				t.RelayLog(tabTitle, handlerName, color, msg)
+			} else if t.logger != nil {
+				t.logger(msg)
 			}
 		})
 	}
@@ -249,3 +248,5 @@ func (t *HeadlessTUI) ReturnFocus() error {
 
 // SetActiveTab does nothing
 func (t *HeadlessTUI) SetActiveTab(section any) {}
+
+func (t *HeadlessTUI) Shutdown() {}

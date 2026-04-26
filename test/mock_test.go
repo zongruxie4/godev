@@ -85,6 +85,8 @@ func (m *mockTUI) DispatchAction(key, value string) bool {
 	return false
 }
 
+func (m *mockTUI) Shutdown() {}
+
 type MockBrowser struct {
 	reloadCalls   int
 	openCalls     int    // Track actual browser open attempts

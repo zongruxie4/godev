@@ -158,6 +158,7 @@ func (h *Handler) InitBuildHandlers() {
 
 	// 6. Register Handlers with TUI for logging
 	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.WasmClient.WebClientGenerator(), colorPurpleMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Server, colorBlueMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.ImageHandler, colorTealMedium, h.SectionBuild)
@@ -165,12 +166,8 @@ func (h *Handler) InitBuildHandlers() {
 	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)
 
-	// SSR MODULE EXTRACTION — cargar assets de todos los módulos al arrancar
-	go func() {
-		if err := h.AssetsHandler.LoadSSRModules(); err != nil {
-			h.AssetsHandler.Logger("SSR load error:", err)
-		}
-	}()
+	// SSR MODULE EXTRACTION — LoadSSRModules lanza su propio goroutine internamente
+	h.AssetsHandler.LoadSSRModules()
 
 	if h.ListModulesFn != nil {
 		h.ImageHandler.SetListModulesFn(h.ListModulesFn)

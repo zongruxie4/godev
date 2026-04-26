@@ -81,7 +81,7 @@ func (p *SSEPublisher) PublishTabLog(tabTitle, handlerName, handlerColor, msg st
 }
 
 func (p *SSEPublisher) PublishLog(msg string) {
-	p.PublishTabLog("BUILD", "MCP", "#f97316", msg)
+	p.PublishTabLog("MCP", "MCP", colorOrangeLight, msg)
 }
 
 // PublishStateRefresh sends a lightweight signal to connected devtui clients
