@@ -1,86 +1,116 @@
-# PLAN: tinywasm/app — Correcciones de Tests Fallidos
+# PLAN: tinywasm/app — Fix tests greet (tracker frágil de logs)
 
-## Resumen
+## Problema
 
-Seis bugs identificados. Tres ya aplicados en este módulo (2, 3, 4). Tres pendientes
-de dependencias externas o corrección de tests (1, 5, 6).
+`TestGreetFileEventTriggersWasmCompilation` y `TestGreetFileRepeatedEdits`
+fallan reportando 0 compilaciones WASM.
+
+La compilación SÍ ocurre (`[CLIENT]  [mem|1.8 MB]` aparece en los logs).
+El tracker de los tests busca strings de log que no coinciden con el output
+real de `WasmClient.LogSuccessState()`.
+
+## Solución: usar `WasmClient.SetOnCompile` (disponible desde client v0.6.2)
 
 ---
 
-## Bug 1 — Tests SSR en `ssr_integration_test.go` (tests mal escritos) — Pendiente
+## Cambio 1 — `test/greet_file_event_test.go`
 
-### Síntomas
-```
-TestSSRLoadOnInit:         Expected CSS to contain '.my-class'
-TestSSRHotReload:          Expected CSS to contain '.v1'
-TestSSRProxyModulesLoaded: Expected CSS from proxy module to be loaded
-```
+**Eliminar** el tracker basado en logs y la variable `browserReloads` que
+dependía de él. Reemplazar por `SetOnCompile` después de `startTestApp`.
 
-### Causa
-
-Los tests crean módulos con `ssr.go` pero no crean archivos `.go` en `RootDir` que los
-importen. `ScanProjectImports` devuelve vacío → el CSS nunca se inyecta. No es un bug
-de assetmin; es el comportamiento documentado.
-
-### Corrección (en `ssr_integration_test.go`)
-
-En cada test que cree un módulo externo con `ssr.go`, añadir:
-
+Eliminar estas líneas (aprox. 104-126):
 ```go
-os.WriteFile(filepath.Join(root, "go.mod"), []byte("module testapp\ngo 1.21\n"), 0644)
-os.WriteFile(filepath.Join(root, "main.go"), []byte(
-    "package main\nimport _ \"testapp/mymodule\"\nfunc main() {}",
-), 0644)
-h.ListModulesFn = func(rootDir string) ([]string, error) {
-    return []string{moduleDir}, nil
+// Track what happens
+var wasmCompilations int32
+var browserReloads int32
+
+tracker := func(messages ...any) {
+    msg := strings.Join(func() []string {
+        s := make([]string, len(messages))
+        for i, m := range messages {
+            s[i] = fmt.Sprint(m)
+        }
+        return s
+    }(), " ")
+
+    lowerMsg := strings.ToLower(msg)
+    if (strings.Contains(msg, "WASM") && strings.Contains(lowerMsg, "compil")) || strings.Contains(msg, "WASM In-Memory") {
+        atomic.AddInt32(&wasmCompilations, 1)
+    }
+    if strings.Contains(lowerMsg, "reload") {
+        atomic.AddInt32(&browserReloads, 1)
+    }
 }
+
+ctx := startTestApp(t, tmp, tracker)
 ```
 
-**Alternativa**: usar `h.AssetsHandler.UpdateSSRModule(name, css, js, html, icons)` para
-inyectar assets directamente en memoria y testear solo el wiring de `InitBuildHandlers`.
-
----
-
-## Bug 2 — `GoModHandler` no recibe `SetRootDir` ✅ Aplicado
-
-`start.go`: añadida línea `goModHandler.SetRootDir(startDir)`.
-
----
-
-## Bug 3 — Editar `greet.go` no dispara compilación WASM ✅ Resuelto (depfind publicado)
-
-Fallback en `ThisFileIsMine` cuando `go list` falla implementado y publicado en
-`tinywasm/depfind`. Actualizar la dependencia en este módulo para cerrar.
-
----
-
-## Bug 4 — Logs del daemon van a pestaña BUILD en lugar de MCP ✅ Aplicado
-
-`sse_publisher.go`: `PublishLog` apunta a tab `"MCP"` con `colorOrangeLight`.
-
----
-
-## Bug 5 — Terminal no se limpia al cerrar en modo standalone — Pendiente (requiere devtui)
-
-`devtui.Start()` debe aceptar `chan bool` y cerrarlo al terminar. Ver
-`tinywasm/devtui/docs/PLAN.md`.
-
-En `app/start.go` (bloque standalone), una vez devtui publicado:
+Reemplazar por:
 ```go
-go h.Tui.Start(&wg, ExitChan)
+var wasmCompilations int32
+
+ctx := startTestApp(t, tmp)
 ```
 
-Verificación:
-```bash
-tinywasm  # Ctrl+C → terminal limpio, sin proceso zombie
+Después del bloque de espera `"Listening for File Changes"`, añadir:
+```go
+h := app.GetActiveHandler()
+if h == nil || h.WasmClient == nil {
+    t.Fatal("WasmClient not initialized")
+}
+h.WasmClient.SetOnCompile(func(err error) {
+    atomic.AddInt32(&wasmCompilations, 1)
+})
 ```
+
+Eliminar también las referencias a `browserReloads` e `initialReloads` del
+resto del test, y la variable `initialReloads` basada en `ctx.Browser`.
 
 ---
 
-## Bug 6 — Data race `WaitForSSRLoad` / `LoadSSRModules` ✅ Aplicado
+## Cambio 2 — `test/greet_repeated_edits_test.go`
 
-`section-build.go`: eliminado `go func(){}` wrapper de `LoadSSRModules()` (assetmin ya
-lanza su propio goroutine internamente). Corrección de assetmin publicada.
+Eliminar estas líneas (aprox. 96-113):
+```go
+// Track compilations
+var compilationCount int32
+tracker := func(messages ...any) {
+    msg := strings.Join(func() []string {
+        s := make([]string, len(messages))
+        for i, m := range messages {
+            s[i] = fmt.Sprint(m)
+        }
+        return s
+    }(), " ")
+
+    if strings.Contains(msg, "Compiling WASM") || strings.Contains(msg, "WASM In-Memory") {
+        atomic.AddInt32(&compilationCount, 1)
+    }
+}
+
+ctx := startTestApp(t, tmp, tracker)
+```
+
+Reemplazar por:
+```go
+var compilationCount int32
+
+ctx := startTestApp(t, tmp)
+```
+
+Después de `app.WaitWatcherReady`, añadir:
+```go
+h := app.GetActiveHandler()
+if h == nil || h.WasmClient == nil {
+    t.Fatal("WasmClient not initialized")
+}
+h.WasmClient.SetOnCompile(func(err error) {
+    atomic.AddInt32(&compilationCount, 1)
+})
+```
+
+Eliminar también los imports `fmt` y `strings` si quedan sin uso tras los
+cambios anteriores.
 
 ---
 
@@ -88,9 +118,9 @@ lanza su propio goroutine internamente). Corrección de assetmin publicada.
 
 | # | Tarea | Archivo | Estado |
 |---|-------|---------|--------|
-| 1 | Corregir tests SSR: crear estructura de proyecto válida | `ssr_integration_test.go` | Pendiente |
-| 2 | `goModHandler.SetRootDir(startDir)` | `start.go` | ✅ Aplicado |
-| 3 | Actualizar dependencia depfind (fallback ya publicado) | `go.mod` | Pendiente |
-| 4 | `PublishLog` apunta a tab `"MCP"` con `colorOrangeLight` | `sse_publisher.go` | ✅ Aplicado |
-| 5 | Pasar `ExitChan` a `h.Tui.Start()` en bloque standalone | `start.go` | Pendiente (requiere devtui) |
-| 6 | Quitar `go func(){}` de `LoadSSRModules` en `section-build.go` | `section-build.go` | ✅ Aplicado |
+| 1 | `OnCompile` + `SetOnCompile` en `client` | `client/` | ✅ Publicado v0.6.2 |
+| 2 | `go.mod` apunta a client v0.6.2 | `app/go.mod` | ✅ Actualizado por codejob |
+| 3 | Reemplazar tracker en `greet_file_event_test.go` | `app/test/` | Pendiente |
+| 4 | Reemplazar tracker en `greet_repeated_edits_test.go` | `app/test/` | Pendiente |
+| 5 | Verificar `TestGreetFileEventTriggersWasmCompilation` pasa | — | Pendiente |
+| 6 | Verificar `TestGreetFileRepeatedEdits` pasa | — | Pendiente |
