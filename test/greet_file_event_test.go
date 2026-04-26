@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -103,27 +102,8 @@ func main() {
 
 	// Track what happens
 	var wasmCompilations int32
-	var browserReloads int32
 
-	tracker := func(messages ...any) {
-		msg := strings.Join(func() []string {
-			s := make([]string, len(messages))
-			for i, m := range messages {
-				s[i] = fmt.Sprint(m)
-			}
-			return s
-		}(), " ")
-
-		lowerMsg := strings.ToLower(msg)
-		if (strings.Contains(msg, "WASM") && strings.Contains(lowerMsg, "compil")) || strings.Contains(msg, "WASM In-Memory") {
-			atomic.AddInt32(&wasmCompilations, 1)
-		}
-		if strings.Contains(lowerMsg, "reload") {
-			atomic.AddInt32(&browserReloads, 1)
-		}
-	}
-
-	ctx := startTestApp(t, tmp, tracker)
+	ctx := startTestApp(t, tmp)
 	defer ctx.Cleanup()
 
 	// Wait for initialization
@@ -135,10 +115,17 @@ func main() {
 		time.Sleep(50 * time.Millisecond)
 	}
 
+	h := app.GetActiveHandler()
+	if h == nil || h.WasmClient == nil {
+		t.Fatal("WasmClient not initialized")
+	}
+	h.WasmClient.SetOnCompile(func(err error) {
+		atomic.AddInt32(&wasmCompilations, 1)
+	})
+
 	t.Log("=== Initial state ready ===")
 	initialCompilations := atomic.LoadInt32(&wasmCompilations)
-	initialReloads := int32(ctx.Browser.GetReloadCalls())
-	t.Logf("Initial compilations: %d, reloads: %d", initialCompilations, initialReloads)
+	t.Logf("Initial compilations: %d", initialCompilations)
 
 	// Clear logs for cleaner output
 	ctx.Logs.Clear()
@@ -169,14 +156,11 @@ func Greet(target string) string {
 
 	// Check results
 	finalCompilations := atomic.LoadInt32(&wasmCompilations)
-	finalReloads := int32(ctx.Browser.GetReloadCalls())
 
 	compilationsDelta := finalCompilations - initialCompilations
-	reloadsDelta := finalReloads - initialReloads
 
 	t.Log("\n=== Results ===")
 	t.Logf("WASM compilations triggered: %d", compilationsDelta)
-	t.Logf("Browser reloads triggered: %d", reloadsDelta)
 
 	// Print relevant logs
 	logOutput := ctx.Logs.String()
@@ -202,11 +186,6 @@ func Greet(target string) string {
 		t.Logf("✅ CORRECT: greet.go edit triggered %d WASM compilation(s)", compilationsDelta)
 	}
 
-	if reloadsDelta == 0 {
-		t.Log("⚠️ No Browser reload happened (likely due to checking compilation failures in this test setup)")
-	} else {
-		t.Logf("✅ Browser reload happened (%d time(s))", reloadsDelta)
-	}
 
 	// Cleanup
 	time.Sleep(200 * time.Millisecond)

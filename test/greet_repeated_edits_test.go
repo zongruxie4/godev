@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -95,21 +94,8 @@ func main() {
 
 	// Track compilations
 	var compilationCount int32
-	tracker := func(messages ...any) {
-		msg := strings.Join(func() []string {
-			s := make([]string, len(messages))
-			for i, m := range messages {
-				s[i] = fmt.Sprint(m)
-			}
-			return s
-		}(), " ")
 
-		if strings.Contains(msg, "Compiling WASM") || strings.Contains(msg, "WASM In-Memory") {
-			atomic.AddInt32(&compilationCount, 1)
-		}
-	}
-
-	ctx := startTestApp(t, tmp, tracker)
+	ctx := startTestApp(t, tmp)
 	defer ctx.Cleanup()
 
 	// Wait for initialization
@@ -117,6 +103,14 @@ func main() {
 	if Watcher == nil {
 		t.Fatal("Watcher is nil")
 	}
+
+	h := app.GetActiveHandler()
+	if h == nil || h.WasmClient == nil {
+		t.Fatal("WasmClient not initialized")
+	}
+	h.WasmClient.SetOnCompile(func(err error) {
+		atomic.AddInt32(&compilationCount, 1)
+	})
 
 	// Perform 5 edits with realistic timing
 	editMessages := []string{
