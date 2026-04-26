@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sync"
 
 	twctx "github.com/tinywasm/context"
@@ -36,8 +37,13 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 	if GoHandler != nil {
 		GoHandler.SetRootDir(startDir)
 	}
+	// goModHandler needs the module root (where go.mod lives), not the subpackage dir
+	moduleRoot := startDir
+	if root, err := devflow.FindProjectRoot(startDir); err == nil {
+		moduleRoot = root
+	}
 	if goModHandler != nil {
-		goModHandler.SetRootDir(startDir)
+		goModHandler.SetRootDir(moduleRoot)
 	}
 
 	h := &Handler{
@@ -74,8 +80,8 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 		return false
 	}
 
-	// Secondary guard: reject if startDir is inside a project but not its root
-	if root, err := devflow.FindProjectRoot(startDir); err == nil && root != startDir {
+	// Secondary guard: reject if startDir is not the module root and not a direct subpackage (1 level deep)
+	if moduleRoot != startDir && filepath.Dir(startDir) != moduleRoot {
 		loggerFunc(twfmt.Translate("Directory", "Not", "Initialized").String())
 		return false
 	}

@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/tinywasm/app"
-	"github.com/tinywasm/devflow"
-	"github.com/tinywasm/kvdb"
 )
 
 // TestBrowserAutoStartCalledOnce verifies that when starting the app in an
@@ -84,34 +82,31 @@ func TestBrowserAutoStartNotCalledInWizard(t *testing.T) {
 }
 
 // TestBrowserAutoStartInSubdirectory verifies that starting the app in a
-// SUBDIRECTORY of an initialized project is now REJECTED.
+// direct subpackage (1 level under go.mod) is allowed — it must NOT produce
+// a "Directory Not Initialized" rejection.
+// Note: rejection of deep directories (2+ levels) is handled by main.go before
+// Start() is called, so it is not tested here.
 func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 	tmp := t.TempDir()
 
-	// 1. Create root project with go.mod
+	// Create root project with go.mod
 	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte("module testproject\n\ngo 1.25\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	// 2. Create the subdirectory
-	subDir := filepath.Join(tmp, "emptyfolder")
+	// Direct subpackage (1 level) — must be allowed
+	subDir := filepath.Join(tmp, "mycomponent")
 	if err := os.MkdirAll(subDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	// 3. Start app pointing to the SUBDIRECTORY - should return false/fail
-	ExitChan := make(chan bool)
-	logs := &SafeBuffer{}
-	ui := newUiMockTest(logs.Log)
-	db, _ := kvdb.New(filepath.Join(subDir, ".env"), logs.Log, app.NewMemoryStore())
+	ctx := startTestApp(t, subDir)
+	defer ctx.Cleanup()
 
-	result := app.Start(subDir, logs.Log, ui, &MockBrowser{}, db, ExitChan, nil, nil, &MockGitClient{}, devflow.NewGoModHandler(), false, false, nil)
+	time.Sleep(300 * time.Millisecond)
 
-	if result != false {
-		t.Errorf("Expected Start to return false for subdirectory execution, got true")
-	}
-
-	if !strings.Contains(logs.String(), "Directorio No Inicializado") && !strings.Contains(logs.String(), "Directory Not Initialized") {
-		t.Errorf("Expected error message about uninitialized directory, got: %s", logs.String())
+	if strings.Contains(ctx.Logs.String(), "Directory Not Initialized") ||
+		strings.Contains(ctx.Logs.String(), "Directorio No Inicializado") {
+		t.Errorf("direct subpackage should be allowed, got rejection: %s", ctx.Logs.String())
 	}
 }

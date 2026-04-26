@@ -3,9 +3,8 @@ package test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
-
-	"github.com/tinywasm/app"
 )
 
 func TestStart_SubdirectoryGuard(t *testing.T) {
@@ -14,30 +13,14 @@ func TestStart_SubdirectoryGuard(t *testing.T) {
 	subDir := filepath.Join(projectRoot, "sub")
 
 	os.MkdirAll(subDir, 0755)
-	os.WriteFile(filepath.Join(projectRoot, "go.mod"), []byte("module test"), 0644)
+	os.WriteFile(filepath.Join(projectRoot, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644)
 
-	// Mock dependencies
-	logger := app.NewLogger()
-	ui := app.NewHeadlessTUI(logger.Logger)
+	// Direct subpackage (1 level under go.mod) must now be ALLOWED
+	ctx := startTestApp(t, subDir)
+	defer ctx.Cleanup()
 
-	// Call Start from subdirectory
-	result := app.Start(
-		subDir,
-		logger,
-		ui,
-		nil, // browser
-		nil, // db
-		make(chan bool), // exitChan
-		nil, // serverFactory
-		nil, // githubAuth
-		nil, // gitHandler
-		nil, // goModHandler
-		true, // headless
-		false, // clientMode
-		nil, // onProjectReady
-	)
-
-	if result != false {
-		t.Error("Start should return false when run from a subdirectory of a project")
+	if strings.Contains(ctx.Logs.String(), "Directory Not Initialized") ||
+		strings.Contains(ctx.Logs.String(), "Directorio No Inicializado") {
+		t.Errorf("direct subpackage should be allowed, got: %s", ctx.Logs.String())
 	}
 }

@@ -101,7 +101,8 @@ func TestIsDirectoryEmpty(t *testing.T) {
 }
 
 func TestCanGenerateDefaultWasmClient(t *testing.T) {
-	t.Run("ReturnsFalseIfNotEmpty", func(t *testing.T) {
+	t.Run("ReturnsTrueEvenIfNotEmpty", func(t *testing.T) {
+		// Non-empty subpackages are now allowed — IsPartOfProject is the only requirement
 		parent := t.TempDir()
 		os.WriteFile(filepath.Join(parent, "go.mod"), []byte("module test"), 0644)
 		current := filepath.Join(parent, "current")
@@ -110,8 +111,8 @@ func TestCanGenerateDefaultWasmClient(t *testing.T) {
 
 		h := NewTestHandler(current)
 
-		if h.CanGenerateDefaultWasmClient() {
-			t.Error("expected false because dir is not empty")
+		if !h.CanGenerateDefaultWasmClient() {
+			t.Error("expected true: subpackage with parent go.mod should be allowed regardless of content")
 		}
 	})
 
