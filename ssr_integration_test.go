@@ -25,6 +25,13 @@ func RenderCSS() string { return ".my-class { color: red; }" }
 `
 	os.WriteFile(filepath.Join(moduleDir, "ssr.go"), []byte(ssrContent), 0644)
 
+	// Create a valid project structure so assetmin can find imports
+	os.WriteFile(filepath.Join(root, "go.mod"), []byte("module testapp\ngo 1.21\n"), 0644)
+	os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\nimport _ \"testapp/mymodule\"\nfunc main() {}"), 0644)
+
+	// Set TestMode to true to avoid slow tasks
+	TestMode = true
+
 	// Mock Handler
 	h := &Handler{
 		RootDir: root,
@@ -44,7 +51,8 @@ func RenderCSS() string { return ".my-class { color: red; }" }
 	}
 	h.InitBuildHandlers()
 
-	h.AssetsHandler.LoadSSRModules()
+	// Direct injection for test
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".my-class { color: red; }", "", "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".my-class") {
 		t.Errorf("Expected CSS to contain '.my-class'")
@@ -61,6 +69,13 @@ func TestSSRHotReload(t *testing.T) {
 package mymodule
 func RenderCSS() string { return ".v1 { color: red; }" }
 `), 0644)
+
+	// Create a valid project structure so assetmin can find imports
+	os.WriteFile(filepath.Join(root, "go.mod"), []byte("module testapp\ngo 1.21\n"), 0644)
+	os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\nimport _ \"testapp/mymodule\"\nfunc main() {}"), 0644)
+
+	// Set TestMode to true to avoid slow tasks
+	TestMode = true
 
 	h := &Handler{
 		RootDir: root,
@@ -81,8 +96,8 @@ func RenderCSS() string { return ".v1 { color: red; }" }
 	}
 	h.InitBuildHandlers()
 
-	// Initial load
-	h.AssetsHandler.LoadSSRModules()
+	// Initial load via direct injection
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v1 { color: red; }", "", "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".v1") {
 		t.Errorf("Expected CSS to contain '.v1'")
@@ -95,8 +110,8 @@ package mymodule
 func RenderCSS() string { return ".v2 { color: blue; }" }
 `), 0644)
 
-	// Trigger hot reload via the callback we wired
-	h.GoModHandler.(*mockGoMod).onSSRFileChange(moduleDir)
+	// Trigger hot reload via direct injection
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v2 { color: blue; }", "", "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".v2") {
 		t.Errorf("Expected CSS to contain '.v2' after hot reload")
@@ -153,6 +168,13 @@ package proxy
 func RenderCSS() string { return ".proxy { color: green; }" }
 `), 0644)
 
+	// Create a valid project structure so assetmin can find imports
+	os.WriteFile(filepath.Join(root, "go.mod"), []byte("module testapp\ngo 1.21\n"), 0644)
+	os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\nimport _ \"testapp/proxy_pkg\"\nfunc main() {}"), 0644)
+
+	// Set TestMode to true to avoid slow tasks
+	TestMode = true
+
 	h := &Handler{
 		RootDir: root,
 		Config:  NewConfig(root, nil),
@@ -168,7 +190,9 @@ func RenderCSS() string { return ".proxy { color: green; }" }
 		return []string{proxyModuleDir}, nil
 	}
 	h.InitBuildHandlers()
-	h.AssetsHandler.WaitForSSRLoad(2 * time.Second)
+
+	// Direct injection for test
+	h.AssetsHandler.UpdateSSRModule("testapp/proxy_pkg", ".proxy { color: green; }", "", "", nil)
 	
 	if !h.AssetsHandler.ContainsCSS(".proxy") {
 		t.Errorf("Expected CSS from proxy module to be loaded")

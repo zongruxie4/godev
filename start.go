@@ -33,8 +33,12 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
-	GoHandler.SetRootDir(startDir)
-	goModHandler.SetRootDir(startDir)
+	if GoHandler != nil {
+		GoHandler.SetRootDir(startDir)
+	}
+	if goModHandler != nil {
+		goModHandler.SetRootDir(startDir)
+	}
 
 	h := &Handler{
 		FrameworkName: "TINYWASM",
@@ -253,7 +257,7 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 		}()
 
 		// Start the UI
-		go h.Tui.Start(&wg)
+		go h.Tui.Start(&wg, ExitChan)
 	} else {
 		// Headless mode: no HTTP, no UI. Keep alive until ExitChan is closed.
 		wg.Add(1)
