@@ -3,7 +3,7 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.6.2
+	github.com/tinywasm/client v0.6.3
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/deploy v0.2.0
 	github.com/tinywasm/devflow v0.4.19
