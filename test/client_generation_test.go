@@ -1,15 +1,18 @@
 package test
 
 import (
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
+
+	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 func TestClientGenerationInEmptyFolder(t *testing.T) {
+	// Subdirectory execution is now rejected.
 	// 1. Create a temporary directory structure:
 	// /start (with go.mod) -> /start/subdir (empty, where we run app)
 	tmpRoot := t.TempDir()
@@ -25,58 +28,19 @@ func TestClientGenerationInEmptyFolder(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// 2. Start the app in this empty subdirectory
-	// startTestApp will set up the environment and start the app
-	ctx := startTestApp(t, tmpDir)
-	defer ctx.Cleanup()
+	// 2. Start the app in this empty subdirectory - should return false/fail
+	ExitChan := make(chan bool)
+	logs := &SafeBuffer{}
+	ui := newUiMockTest(logs.Log)
+	db, _ := kvdb.New(filepath.Join(tmpDir, ".env"), logs.Log, app.NewMemoryStore())
 
-	// 3. Wait a moment for startup (OnProjectReady to fire + Server Start + Port Probe)
-	time.Sleep(500 * time.Millisecond)
+	result := app.Start(tmpDir, logs.Log, ui, &MockBrowser{}, db, ExitChan, nil, nil, &MockGitClient{}, devflow.NewGoModHandler(), false, false, nil)
 
-	// 4. Check if web/client.go was created
-	clientPath := filepath.Join(tmpDir, "web", "client.go")
-	if _, err := os.Stat(clientPath); os.IsNotExist(err) {
-		entries, _ := os.ReadDir(tmpDir)
-		var names []string
-		for _, e := range entries {
-			names = append(names, e.Name())
-		}
-		t.Fatalf("Expected web/client.go to be created in empty folder, but it was not found.\nDir contents: %v\nLogs:\n%s", names, ctx.Logs.String())
+	if result != false {
+		t.Errorf("Expected Start to return false for subdirectory execution, got true")
 	}
 
-	// 5. Verify the logs indicate generation
-	logs := ctx.Logs.String()
-	if !strings.Contains(logs, "Generated WASM source file") {
-		t.Errorf("Expected logs to mention WASM file generation. Logs:\n%s", logs)
-	}
-
-	// 6. Verify that the browser was opened (or attempted to open)
-	// In-Memory mode should still trigger browser open once the server is ready
-	if ctx.Browser.GetOpenCalls() == 0 {
-		t.Errorf("Expected browser to be opened, but GetOpenCalls() is 0. Logs:\n%s", logs)
-	}
-
-	// 7. Verify that client.wasm is served (compilation happened)
-	// We need the port that the server started on.
-	// In the mock context, we don't strictly have the real server object to ask, but we scan logs or use fixed port if mock was set setup that way?
-	// startTestApp sets port via env var usually.
-
-	// Wait a bit for server to be fully ready and compile to finish (it happens in goroutine potentially?)
-	// Actually generator calls Compile synchronously, but server start is async.
-	time.Sleep(100 * time.Millisecond)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "6060" // Fallback if env not set correctly?
-	}
-
-	resp, err := http.Get("http://localhost:" + port + "/client.wasm")
-	if err != nil {
-		t.Fatalf("Failed to request client.wasm: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Expected 200 OK for client.wasm, got %d", resp.StatusCode)
+	if !strings.Contains(logs.String(), "Directorio No Inicializado") && !strings.Contains(logs.String(), "Directory Not Initialized") {
+		t.Errorf("Expected error message about uninitialized directory, got: %s", logs.String())
 	}
 }

@@ -227,6 +227,7 @@ func (m *mockTui) ReturnFocus() error { return nil }
 func (m *mockTui) SetActiveTab(section any) {}
 func (m *mockTui) GetHandlerStates() []byte { return nil }
 func (m *mockTui) DispatchAction(key, value string) bool { return false }
+func (m *mockTui) Shutdown() {}
 
 type mockDB struct{}
 func (m *mockDB) Get(key string) (string, error) { return "", nil }

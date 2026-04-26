@@ -249,3 +249,5 @@ func (t *HeadlessTUI) ReturnFocus() error {
 
 // SetActiveTab does nothing
 func (t *HeadlessTUI) SetActiveTab(section any) {}
+
+func (t *HeadlessTUI) Shutdown() {}

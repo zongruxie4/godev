@@ -13,7 +13,9 @@ import (
 	twjson "github.com/tinywasm/json"
 	"github.com/tinywasm/mcp"
 	"github.com/tinywasm/sse"
+	"os/signal"
 	"strings"
+	"syscall"
 )
 
 // runDaemon starts the global MCP daemon on port 3030
@@ -41,7 +43,7 @@ func runDaemon(cfg BootstrapConfig) {
 	var daemonOnce sync.Once
 	exitChan := make(chan bool)
 	if cfg.TuiFactory != nil {
-		ui = cfg.TuiFactory(exitChan, false, "", "") // daemon has no TUI client, no SSE needed
+		ui = cfg.TuiFactory(false, "", "") // daemon has no TUI client, no SSE needed
 	} else {
 		ui = NewHeadlessTUI(logger)
 	}
@@ -81,6 +83,16 @@ func runDaemon(cfg BootstrapConfig) {
 
 	// Define the daemon tool provider that controls the project lifecycles
 	dtp := NewDaemonToolProvider(cfg, logger)
+
+	// Wire OS signals for clean daemon shutdown
+	go func() {
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		<-sigCh
+		logger("Signal received — shutting down daemon")
+		dtp.stopProject()
+		daemonOnce.Do(func() { close(exitChan) })
+	}()
 
 	toolProviders := append(cfg.McpToolHandlers, dtp, proxy)
 	mcpServer, err := mcp.NewServer(mcpConfig, toolProviders)

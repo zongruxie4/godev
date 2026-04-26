@@ -158,6 +158,7 @@ func (h *Handler) InitBuildHandlers() {
 
 	// 6. Register Handlers with TUI for logging
 	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
+	h.Tui.AddHandler(h.WasmClient.WebClientGenerator(), colorPurpleMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Server, colorBlueMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.AssetsHandler, colorGreenMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.ImageHandler, colorTealMedium, h.SectionBuild)

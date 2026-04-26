@@ -3,10 +3,13 @@ package test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/tinywasm/app"
+	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/kvdb"
 )
 
 // TestBrowserAutoStartCalledOnce verifies that when starting the app in an
@@ -80,9 +83,8 @@ func TestBrowserAutoStartNotCalledInWizard(t *testing.T) {
 	}
 }
 
-// TestBrowserAutoStartInSubdirectory verifies that when starting the app in a
-// SUBDIRECTORY of an initialized project (e.g. 'emptyfolder' inside a project),
-// Browser.AutoStart() is called exactly once.
+// TestBrowserAutoStartInSubdirectory verifies that starting the app in a
+// SUBDIRECTORY of an initialized project is now REJECTED.
 func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 	tmp := t.TempDir()
 
@@ -91,36 +93,25 @@ func TestBrowserAutoStartInSubdirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// 2. Create the subdirectory (reproduction of 'emptyfolder')
+	// 2. Create the subdirectory
 	subDir := filepath.Join(tmp, "emptyfolder")
 	if err := os.MkdirAll(subDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	// 3. Create web directory in root (because IsPartOfProject checks root)
-	if err := os.MkdirAll(filepath.Join(tmp, "web"), 0755); err != nil {
-		t.Fatal(err)
+	// 3. Start app pointing to the SUBDIRECTORY - should return false/fail
+	ExitChan := make(chan bool)
+	logs := &SafeBuffer{}
+	ui := newUiMockTest(logs.Log)
+	db, _ := kvdb.New(filepath.Join(subDir, ".env"), logs.Log, app.NewMemoryStore())
+
+	result := app.Start(subDir, logs.Log, ui, &MockBrowser{}, db, ExitChan, nil, nil, &MockGitClient{}, devflow.NewGoModHandler(), false, false, nil)
+
+	if result != false {
+		t.Errorf("Expected Start to return false for subdirectory execution, got true")
 	}
 
-	// Temporarily disable TestMode to allow AutoStart
-	originalTestMode := app.TestMode
-	app.TestMode = false
-	defer func() { app.TestMode = originalTestMode }()
-
-	// 4. Start app pointing to the SUBDIRECTORY
-	ctx := startTestApp(t, subDir)
-	defer ctx.Cleanup()
-
-	// Wait strictly enough for AutoStart
-	time.Sleep(1000 * time.Millisecond) // generous time
-
-	// Check calls
-	autoStartCalls := ctx.Browser.GetOpenCalls()
-
-	if autoStartCalls != 1 {
-		t.Errorf("In Subdirectory, Browser.OpenBrowser() was called %d times, expected exactly 1", autoStartCalls)
-		t.Logf("Logs:\n%s", ctx.Logs.String())
-	} else {
-		t.Logf("✅ In Subdirectory, Browser.OpenBrowser() called exactly once")
+	if !strings.Contains(logs.String(), "Directorio No Inicializado") && !strings.Contains(logs.String(), "Directory Not Initialized") {
+		t.Errorf("Expected error message about uninitialized directory, got: %s", logs.String())
 	}
 }

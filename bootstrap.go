@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/mcp"
@@ -24,7 +27,7 @@ type BootstrapConfig struct {
 	GitHandler      devflow.GitClient
 	GoModHandler    devflow.GoModInterface
 	ServerFactory   ServerFactory
-	TuiFactory      func(exitChan chan bool, clientMode bool, clientURL, apiKey string) TuiInterface
+	TuiFactory      func(clientMode bool, clientURL, apiKey string) TuiInterface
 	BrowserFactory  func(ui TuiInterface, exitChan chan bool) BrowserInterface
 	GitHubAuth      any
 	McpToolHandlers []mcp.ToolProvider
@@ -101,7 +104,16 @@ func runClient(cfg BootstrapConfig) {
 	apiKey := readAPIKey(cfg.APIKeyPath)
 
 	// TuiFactory now receives apiKey so devtui can attach auth to /logs SSE
-	ui := cfg.TuiFactory(exitChan, true, clientURL, apiKey)
+	ui := cfg.TuiFactory(true, clientURL, apiKey)
+
+	// Wire OS signals so VSCode terminal close and `kill` trigger clean exit.
+	// Ctrl+C is already handled by bubbletea inside devtui; this covers SIGTERM.
+	go func() {
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		<-sigCh
+		ui.Shutdown()
+	}()
 
 	// Tell the daemon to start (or restart) the project in the current directory.
 	// This ensures every `tinywasm` invocation activates the project for its working dir.
@@ -144,16 +156,20 @@ func runClient(cfg BootstrapConfig) {
 		true,  // clientMode true! skips backend loop and connects SSE
 		nil,   // no onProjectReady callback in client mode
 	)
+	// Start() returns here only after devtui has fully restored the terminal.
+	// NOW it is safe to close exitChan — no goroutine will write to stdout after this.
+	close(exitChan)
 
-	// Notify daemon to stop when the TUI client exits
+	// Notify daemon to stop when the TUI client exits — best-effort, 500ms timeout
 	quitBody, _ := json.Marshal(map[string]string{"key": "quit"})
 	req, err := http.NewRequest("POST", baseURL+"/tinywasm/action", bytes.NewReader(quitBody))
 	if err == nil {
 		req.Header.Set("Content-Type", "application/json")
 		if apiKey != "" {
-			req.Header.Set("Authorization", "Bearer " + apiKey)
+			req.Header.Set("Authorization", "Bearer "+apiKey)
 		}
-		resp, err := http.DefaultClient.Do(req) // best-effort, ignore error
+		httpClient := &http.Client{Timeout: 500 * time.Millisecond}
+		resp, err := httpClient.Do(req)
 		if err == nil {
 			resp.Body.Close()
 		}

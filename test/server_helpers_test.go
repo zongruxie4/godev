@@ -196,7 +196,7 @@ func startTestApp(t *testing.T, RootDir string, opts ...any) *TestContext {
 	factory := func(exitChan chan bool, ui app.TuiInterface, browser app.BrowserInterface) app.ServerInterface {
 		return server.New().
 			SetLogger(logger).
-			SetExitChan(exitChan).
+			SetExitChan(ExitChan).
 			SetStore(ctx.DB).
 			SetUI(ui).
 			SetOpenBrowser(browser.OpenBrowser).
