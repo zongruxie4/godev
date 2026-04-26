@@ -34,6 +34,7 @@ func Start(startDir string, logger any, ui TuiInterface, browser BrowserInterfac
 	// Initialize Go Handler
 	GoHandler, _ := devflow.NewGo(gitHandler)
 	GoHandler.SetRootDir(startDir)
+	goModHandler.SetRootDir(startDir)
 
 	h := &Handler{
 		FrameworkName: "TINYWASM",

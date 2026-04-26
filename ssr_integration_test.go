@@ -44,11 +44,7 @@ func RenderCSS() string { return ".my-class { color: red; }" }
 	}
 	h.InitBuildHandlers()
 
-	// Manual call to ensure it's loaded for test
-	err := h.AssetsHandler.LoadSSRModules()
-	if err != nil {
-		t.Fatalf("LoadSSRModules failed: %v", err)
-	}
+	h.AssetsHandler.LoadSSRModules()
 
 	if !h.AssetsHandler.ContainsCSS(".my-class") {
 		t.Errorf("Expected CSS to contain '.my-class'")
