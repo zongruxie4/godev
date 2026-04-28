@@ -85,8 +85,8 @@ github.com/tinywasm/deploy v0.2.0 h1:FQbNnKAKw29PM62YKqDm5Px/WM8HswR/i1S988NpOkc
 github.com/tinywasm/deploy v0.2.0/go.mod h1:Q3A3+SEBXRMy3a6PZBcpu7JssCyXR2V+e/6FZYmJyIA=
 github.com/tinywasm/devbrowser v0.3.22 h1:8xAxhI6sUfFm5/RUjlwttHBe/7EDMiysh3bZfEhVWcA=
 github.com/tinywasm/devbrowser v0.3.22/go.mod h1:ki5xMasGOhN9rzvx5rWsJLfQDhTcLeZMPieBLYp2yHs=
-github.com/tinywasm/devflow v0.4.19 h1:9PVnY+uAYeOnm3day2UA5L601CoTGnlImyTsuDwvmlQ=
-github.com/tinywasm/devflow v0.4.19/go.mod h1:omADHyGOHJIfMx2Sntxt2lWCjiAtvzpdExpUTUQhnXQ=
+github.com/tinywasm/devflow v0.4.21 h1:g7MSA6bfgZM7e8MkUmzWQ7131BDf51dJL7G94jvXkCQ=
+github.com/tinywasm/devflow v0.4.21/go.mod h1:wf78Kk9cM/iBbwBkrYa6UBZqw56xzH5Wzs2U6gL0lm4=
 github.com/tinywasm/devtui v0.3.4 h1:1qZsjkrF5MMM+x2Ed/JWBnZh4fqbJ0zW3YJvKAC77qE=
 github.com/tinywasm/devtui v0.3.4/go.mod h1:Wys1dbqiMfMzOu19oQDIakX+KCaBU4wJMe8KK+7rkDw=
 github.com/tinywasm/devwatch v0.0.57 h1:yMZ9IH9aUrQhwSvflaIA9r4bXfDhUa0BTn2a5fz8/Q0=
