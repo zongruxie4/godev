@@ -1,14 +1,16 @@
 package app
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
+	"time"
+
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/mcp"
-	"sync"
-	"net/http"
-	"time"
 )
 
 func TestSSRLoadOnInit(t *testing.T) {
@@ -235,6 +237,39 @@ func TestImageHotReload(t *testing.T) {
 	// Since we are mocking, we can't easily check if ImageHandler.ReloadModule was called
 	// unless we inspect logs or use a more sophisticated mock.
 	// But the fact that it doesn't panic and wires correctly is a good start.
+}
+
+func TestSSRIconInjection(t *testing.T) {
+	root := t.TempDir()
+	TestMode = true
+
+	h := &Handler{
+		RootDir: root,
+		Config:  NewConfig(root, nil),
+		Tui:     &mockTui{},
+		DB:      &mockDB{},
+		serverFactory: func(exitChan chan bool, ui TuiInterface, browser BrowserInterface) ServerInterface {
+			return &mockServer{}
+		},
+	}
+	h.GoModHandler = &mockGoMod{}
+	h.InitBuildHandlers()
+
+	h.AssetsHandler.UpdateSSRModule("testapp/iconmod", "", "", "", map[string]string{
+		"test-icon": `<path fill="currentColor" d="M1 2h3"/>`,
+	})
+
+	if !h.AssetsHandler.HasIcon("test-icon") {
+		t.Error("icon should be registered in sprite")
+	}
+
+	if err := h.AssetsHandler.RegenerateHTMLCache(); err != nil {
+		t.Fatalf("RegenerateHTMLCache error: %v", err)
+	}
+	html := h.AssetsHandler.GetCachedHTML()
+	if !strings.Contains(string(html), `id="test-icon"`) {
+		t.Error("HTML should contain sprite symbol inline")
+	}
 }
 
 // Mocks needed for the test

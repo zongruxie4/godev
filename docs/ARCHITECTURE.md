@@ -16,6 +16,20 @@ projectName/
     └── ui/           # Visual components
 ```
 
+### Invocation from any directory
+
+`tinywasm` can be invoked from **any initialized Go project directory**:
+
+| CWD | Behavior |
+|-----|----------|
+| Project root (has `go.mod`) | Full project mode. All config files (`.env`, `.vscode`, etc.) generated here. |
+| Subdirectory 1 level deep (e.g. `selectsearch/`) | **Component dev mode**: config files are created at the parent (module root). If `web/client.go` does not exist, it is auto-generated from the template. Useful for developing individual web components without a full project. |
+| Uninitialized directory | Wizard mode: prompts to create a new project. |
+
+**Config file invariant**: `.env`, `.gitignore`, `.vscode/`, and IDE configs are **always** created at the `go.mod` root, never in subdirectories. This prevents config file sprawl when running from component subdirectories.
+
+**Component dev mode detail**: when CWD is a subdirectory (e.g. `components/selectsearch/`), `web/client.go` is generated inside that subdirectory's `web/` folder so it can import the component under development directly (see `tinywasm/client/templates/basic_wasm_client.md`).
+
 ## 2. Execution Modes & Server Decoupling
 The app operates in two primary modes based on the presence of user's `web/server.go`:
 
@@ -41,10 +55,17 @@ The app operates in two primary modes based on the presence of user's `web/serve
    - Restarts the external server process.
 3. **WASI Builder (Optional)**:
    - Watches `modules/*/wasm/`, compiles generic `.wasm` via `tinygo -target wasi`, hot-swaps payloads.
-4. **SSR Asset Extraction & Image Optimization (New)**:
-   - `app` orchestrates `tinywasm/assetmin` and `tinywasm/imagemin` to extract assets and optimize images from all modules (local and external).
-   - **Initial Load**: Discovery happens in background goroutines at startup via `LoadSSRModules()` and `LoadImages()`.
-   - **Hot Reload**: `GoModHandler` acts as a relay; when an `ssr.go` file changes, it triggers `OnSSRFileChange` which re-extracts assets and re-processes images without restarting the server.
+4. **SSR Asset Extraction & Image Optimization**:
+   - `app` orchestrates `tinywasm/assetmin` and `tinywasm/imagemin` to extract assets from `ssr.go` files across all modules (local and external).
+   - **CSS**: extracted and served via HTTP (`/style.css`).
+   - **SVG icons**: extracted and injected **inline en el HTML** (sprite `<svg>` con `<symbol>` elements). No ruta HTTP separada.
+   - **`ssr.go` soporta funciones libres y métodos con receiver**: `func RenderCSS()` y `func (c *T) RenderCSS()` son equivalentes para el extractor AST.
+   - **Initial Load** (`InitBuildHandlers`):
+     1. `ReloadSSRModule(h.RootDir)` — extrae e inyecta el módulo raíz **sincrónicamente**.
+     2. `LoadSSRModules()` — lanza goroutine background para el resto de módulos.
+     3. `WaitForSSRLoad(5s)` en `DevMode` — bloquea hasta que el goroutine termina.
+     4. El servidor HTTP arranca **después** de estos pasos (en `StartBackgroundServices`). El browser nunca llega antes de que el sprite esté poblado.
+   - **Hot Reload**: `GoModHandler` detecta cambios en `ssr.go` → `ReloadSSRModule(moduleDir)` + `RefreshAsset(".html")` → browser reload.
 
 ## 4. MCP Daemon & TUI Client Architecture
 **CRITICAL**: Bubble Tea (DevTUI) and MCP both require `stdio`, causing lockups if shared.

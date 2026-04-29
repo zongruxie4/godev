@@ -2,6 +2,7 @@ package app
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/imagemin"
@@ -166,8 +167,14 @@ func (h *Handler) InitBuildHandlers() {
 	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)
 
-	// SSR MODULE EXTRACTION — LoadSSRModules lanza su propio goroutine internamente
+	// SSR MODULE EXTRACTION — inyectar módulo raíz sincrónicamente antes del background scan
+	if err := h.AssetsHandler.ReloadSSRModule(h.RootDir); err != nil {
+		h.AssetsHandler.Logger("Initial SSR load error:", err)
+	}
 	h.AssetsHandler.LoadSSRModules()
+	if h.DevMode {
+		h.AssetsHandler.WaitForSSRLoad(5 * time.Second)
+	}
 
 	if h.ListModulesFn != nil {
 		h.ImageHandler.SetListModulesFn(h.ListModulesFn)
