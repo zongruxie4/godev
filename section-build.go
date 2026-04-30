@@ -54,6 +54,10 @@ func (h *Handler) InitBuildHandlers() {
 		h.AssetsHandler.SetListModulesFn(h.ListModulesFn)
 	}
 
+	// Activate SSR hot-reload path from startup so CSS changes update the correct
+	// module-name keyed slot instead of appending a duplicate full-path entry.
+	h.AssetsHandler.SetExternalSSRCompiler(func() error { return nil }, false)
+
 	// 3. SERVER
 	h.Server = h.serverFactory(h.ExitChan, h.Tui, h.Browser)
 
@@ -204,11 +208,7 @@ func (h *Handler) InitBuildHandlers() {
 				h.ImageHandler.Logger("Image hot reload error:", err)
 			}
 
-			// ReloadSSRModule actualiza slots en memoria; RefreshAsset regenera el cache HTTP
-			h.AssetsHandler.RefreshAsset(".css")
-			h.AssetsHandler.RefreshAsset(".js")
-			h.AssetsHandler.RefreshAsset(".html")
-
+			// ReloadSSRModule actualiza slots en memoria
 			if err := h.Browser.Reload(); err != nil {
 				h.AssetsHandler.Logger("Browser reload error:", err)
 			}
@@ -240,8 +240,7 @@ func (h *Handler) InitBuildHandlers() {
 
 	// 7. Wire up TinyWasm to AssetMin
 	h.WasmClient.OnWasmExecChange = func() {
-		h.AssetsHandler.RefreshAsset(".js")
-		h.AssetsHandler.RefreshAsset(".html")
+		h.AssetsHandler.RefreshJSAssets()
 
 		// Restart server to pick up new mode arguments
 		if err := h.Server.RestartServer(); err != nil {
