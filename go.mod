@@ -45,8 +45,9 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
+	github.com/tinywasm/css v0.0.3 // indirect
 	github.com/tinywasm/depfind v0.0.24 // indirect
-	github.com/tinywasm/dom v0.9.1 // indirect
+	github.com/tinywasm/dom v0.9.2 // indirect
 	github.com/tinywasm/fetch v0.1.23 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
 	github.com/tinywasm/goflare v0.2.4 // indirect
