@@ -45,6 +45,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
+	github.com/tinywasm/css v0.1.0 // indirect
 	github.com/tinywasm/depfind v0.0.24 // indirect
 	github.com/tinywasm/dom v0.9.3 // indirect
 	github.com/tinywasm/fetch v0.1.23 // indirect
@@ -67,7 +68,7 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.13 // indirect
-	github.com/tinywasm/assetmin v0.2.9
+	github.com/tinywasm/assetmin v0.3.0
 	github.com/tinywasm/devbrowser v0.3.22
 	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/server v0.2.15
