@@ -6,7 +6,7 @@
 ⚠️ **Warning: Active Development**
 This project is under active development, especially the TUI interface and MCP integration. Features may be unstable.
 
-![TinyWasm TUI Preview](docs/tui.JPG)
+![TinyWasm TUI Preview](docs/tui.png)
 
 ---
 
