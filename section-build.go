@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/assetmin"
 	"github.com/tinywasm/imagemin"
 	"github.com/tinywasm/client"
@@ -217,6 +218,16 @@ func (h *Handler) InitBuildHandlers() {
 
 	// Add main project root to watcher
 	h.Watcher.AddDirectoriesToWatch(h.Config.RootDir)
+
+	// Also watch the Go module root so sibling subpackages of startDir
+	// (e.g. layout/platformd/ when startDir is layout/platformd/web/)
+	// produce FS events. Without this, ssr.go changes outside startDir
+	// never reach GoModHandler.NewFileEvent.
+	if moduleRoot, err := devflow.FindProjectRoot(h.Config.RootDir); err == nil &&
+		moduleRoot != "" && moduleRoot != h.Config.RootDir {
+		h.Watcher.Logger("WATCH", "Watching Go module root:", moduleRoot)
+		h.Watcher.AddDirectoriesToWatch(moduleRoot)
+	}
 
 	// Add local replace modules to watcher automatically
 	replaceEntries, err := h.GoModHandler.GetReplacePaths()
