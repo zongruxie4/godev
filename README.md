@@ -6,6 +6,11 @@
 ⚠️ **Warning: Active Development**
 This project is under active development, especially the TUI interface and MCP integration. Features may be unstable.
 
+> 📐 **Honest perspective**: a non-marketing assessment of what this tool actually
+> contributes to the industry — and what it does not — lives in
+> [docs/PERSPECTIVE.md](docs/PERSPECTIVE.md). Read it before deciding whether
+> TinyWasm is right for your project.
+
 ![TinyWasm TUI Preview](docs/tui.png)
 
 ---
