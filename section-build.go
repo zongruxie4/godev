@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/tinywasm/imagemin"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/devwatch"
+	"github.com/tinywasm/server"
 )
 
 func (h *Handler) AddSectionBUILD() any {
@@ -57,7 +59,7 @@ func (h *Handler) InitBuildHandlers() {
 
 	// Activate SSR hot-reload path from startup so CSS changes update the correct
 	// module-name keyed slot instead of appending a duplicate full-path entry.
-	h.AssetsHandler.SetExternalSSRCompiler(func() error { return nil }, false)
+	h.AssetsHandler.EnableSSRMode()
 
 	// 3. SERVER
 	h.Server = h.serverFactory(h.ExitChan, h.Tui, h.Browser)
@@ -68,17 +70,25 @@ func (h *Handler) InitBuildHandlers() {
 
 	// Wire server-specific callbacks via type assertion
 	type externalModeSupport interface {
-		SetOnExternalModeExecution(fn func(bool))
+		SetBeforeExternalServerStart(fn func() error) *server.ServerHandler
 	}
 	if srv, ok := h.Server.(externalModeSupport); ok {
-		srv.SetOnExternalModeExecution(func(isExternal bool) {
-			// Orchestrate client and assetmin to disk mode when using external server
-			if h.WasmClient != nil {
-				h.WasmClient.SetBuildOnDisk(isExternal, true)
+		srv.SetBeforeExternalServerStart(func() error {
+			// 1. Client: switch to disk storage, then compile synchronously.
+			//    Must happen BEFORE assetmin flushes because assetmin embeds the
+			//    wasm filename (which depends on client mode) into main.js /
+			//    index.html via GetSSRClientInitJS(). Dependency is on client
+			//    *state*, not disk I/O.
+			h.WasmClient.UseDiskStorage()
+			if err := h.WasmClient.Compile(); err != nil {
+				return fmt.Errorf("wasm compile failed: %w", err)
 			}
-			if h.AssetsHandler != nil {
-				h.AssetsHandler.SetExternalSSRCompiler(func() error { return nil }, isExternal)
+
+			// 2. AssetMin: flush ALL in-memory assets to web/public/ (overwrite).
+			if err := h.AssetsHandler.FlushToDisk(); err != nil {
+				return fmt.Errorf("assetmin flush failed: %w", err)
 			}
+			return nil
 		})
 	}
 
