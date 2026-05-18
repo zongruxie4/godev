@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -108,7 +107,7 @@ func TestExternalMode_FlushesAllAssetsBeforeStart(t *testing.T) {
 
 // B2 — Strict synchronous order: client → assetmin → strategy.Start.
 func TestExternalMode_StartOrderIsSynchronous(t *testing.T) {
-	h, tmpDir := setupHandler(t)
+	_, tmpDir := setupHandler(t)
 	defer os.RemoveAll(tmpDir)
 
 	// Since we are using the production hook wired in section-build.go,
