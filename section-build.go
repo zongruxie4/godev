@@ -112,17 +112,8 @@ func (h *Handler) InitBuildHandlers() {
 		srv.SetPort(h.Config.ServerPort())
 		srv.SetDisableGlobalCleanup(TestMode)
 		srv.SetCompileArgs(func() []string { return []string{"-p", "1"} })
-		// External server contract: must accept -public-dir, -port, and -dev flags.
-		// The default template (server/templates/server_basic.md) fulfils this contract.
 		srv.SetRunArgs(func() []string {
-			args := []string{
-				"-public-dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
-				"-port=" + h.Config.ServerPort(),
-			}
-			if h.DevMode {
-				args = append(args, "-dev")
-			}
-			return append(args, h.WasmClient.ArgumentsForServer()...)
+			return []string{"-server_port=" + h.Config.ServerPort()}
 		})
 	}
 

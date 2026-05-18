@@ -48,24 +48,38 @@ func main() {}
 	serverCode := `package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 )
 
+func lookupArg(key string) string {
+	prefix := "-" + key + "="
+	args := os.Args[1:]
+	for i, arg := range args {
+		if strings.HasPrefix(arg, prefix) {
+			return strings.TrimPrefix(arg, prefix)
+		}
+		if arg == "-"+key && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	return ""
+}
+
 func main() {
-	port := flag.String("port", "6060", "server port")
-	publicDir := flag.String("public-dir", ".", "public directory")
-	_ = flag.String("wasmsize_mode", "", "wasm size mode") // Updated flag
-	_ = flag.Bool("dev", false, "dev mode")
-	flag.Parse()
+	port := lookupArg("server_port")
+	if port == "" {
+		port = "6060"
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "OK from external server")
 	})
 
-	fmt.Printf("External server starting on port %s, public=%s\n", *port, *publicDir)
-	http.ListenAndServe(":"+*port, nil)
+	fmt.Printf("External server starting on port %s\n", port)
+	http.ListenAndServe(":"+port, nil)
 }
 `
 	// Create the server file in the location that triggers external mode
