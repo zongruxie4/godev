@@ -113,7 +113,10 @@ func (h *Handler) InitBuildHandlers() {
 		srv.SetDisableGlobalCleanup(TestMode)
 		srv.SetCompileArgs(func() []string { return []string{"-p", "1"} })
 		srv.SetRunArgs(func() []string {
-			return []string{"-server_port=" + h.Config.ServerPort()}
+			return []string{
+				"-server_port=" + h.Config.ServerPort(),
+				"-server_public_dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
+			}
 		})
 	}
 
