@@ -8,7 +8,7 @@ require (
 	github.com/tinywasm/deploy v0.2.1
 	github.com/tinywasm/devflow v0.4.21
 	github.com/tinywasm/devtui v0.3.4
-	github.com/tinywasm/fmt v0.23.8
+	github.com/tinywasm/fmt v0.23.9
 	github.com/tinywasm/form v0.2.3
 	github.com/tinywasm/imagemin v0.0.5
 	github.com/tinywasm/json v0.5.2
