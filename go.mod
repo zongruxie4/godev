@@ -47,7 +47,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/tinywasm/css v0.1.0 // indirect
 	github.com/tinywasm/depfind v0.0.24 // indirect
-	github.com/tinywasm/dom v0.9.3 // indirect
+	github.com/tinywasm/dom v0.9.4 // indirect
 	github.com/tinywasm/fetch v0.1.23 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
 	github.com/tinywasm/goflare v0.2.9 // indirect
