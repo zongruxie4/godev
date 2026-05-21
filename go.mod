@@ -3,13 +3,13 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.6.8
+	github.com/tinywasm/client v0.6.10
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/deploy v0.2.1
 	github.com/tinywasm/devflow v0.4.22
 	github.com/tinywasm/devtui v0.3.4
 	github.com/tinywasm/fmt v0.23.9
-	github.com/tinywasm/form v0.2.4
+	github.com/tinywasm/form v0.2.5
 	github.com/tinywasm/imagemin v0.0.5
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
@@ -45,13 +45,14 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
-	github.com/tinywasm/css v0.1.0 // indirect
+	github.com/tinywasm/css v0.1.2 // indirect
 	github.com/tinywasm/depfind v0.0.24 // indirect
 	github.com/tinywasm/dom v0.9.4 // indirect
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
 	github.com/tinywasm/goflare v0.2.9 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
+	github.com/tinywasm/js v0.0.3 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
 	github.com/tinywasm/tinygo v0.0.10 // indirect
@@ -68,7 +69,7 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.13 // indirect
-	github.com/tinywasm/assetmin v0.3.4
+	github.com/tinywasm/assetmin v0.3.5
 	github.com/tinywasm/devbrowser v0.3.22
 	github.com/tinywasm/devwatch v0.0.57
 	github.com/tinywasm/server v0.2.19
