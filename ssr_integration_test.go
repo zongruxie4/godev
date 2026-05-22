@@ -54,7 +54,7 @@ func RenderCSS() string { return ".my-class { color: red; }" }
 	h.InitBuildHandlers()
 
 	// Direct injection for test
-	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".my-class { color: red; }", "", "", nil)
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".my-class { color: red; }", nil, "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".my-class") {
 		t.Errorf("Expected CSS to contain '.my-class'")
@@ -99,7 +99,7 @@ func RenderCSS() string { return ".v1 { color: red; }" }
 	h.InitBuildHandlers()
 
 	// Initial load via direct injection
-	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v1 { color: red; }", "", "", nil)
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v1 { color: red; }", nil, "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".v1") {
 		t.Errorf("Expected CSS to contain '.v1'")
@@ -113,7 +113,7 @@ func RenderCSS() string { return ".v2 { color: blue; }" }
 `), 0644)
 
 	// Trigger hot reload via direct injection
-	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v2 { color: blue; }", "", "", nil)
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v2 { color: blue; }", nil, "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".v2") {
 		t.Errorf("Expected CSS to contain '.v2' after hot reload")
@@ -194,7 +194,7 @@ func RenderCSS() string { return ".proxy { color: green; }" }
 	h.InitBuildHandlers()
 
 	// Direct injection for test
-	h.AssetsHandler.UpdateSSRModule("testapp/proxy_pkg", ".proxy { color: green; }", "", "", nil)
+	h.AssetsHandler.UpdateSSRModule("testapp/proxy_pkg", ".proxy { color: green; }", nil, "", nil)
 	
 	if !h.AssetsHandler.ContainsCSS(".proxy") {
 		t.Errorf("Expected CSS from proxy module to be loaded")
@@ -255,7 +255,7 @@ func TestSSRIconInjection(t *testing.T) {
 	h.GoModHandler = &mockGoMod{}
 	h.InitBuildHandlers()
 
-	h.AssetsHandler.UpdateSSRModule("testapp/iconmod", "", "", "", map[string]string{
+	h.AssetsHandler.UpdateSSRModule("testapp/iconmod", "", nil, "", map[string]string{
 		"test-icon": `<path fill="currentColor" d="M1 2h3"/>`,
 	})
 

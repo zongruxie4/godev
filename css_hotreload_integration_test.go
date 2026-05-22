@@ -40,14 +40,14 @@ func RenderCSS() string { return ".v1 { color: red; }" }
 	h.InitBuildHandlers()
 
 	// Initial load
-	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v1 { color: red; }", "", "", nil)
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v1 { color: red; }", nil, "", nil)
 
 	if !h.AssetsHandler.ContainsCSS(".v1") {
 		t.Errorf("Expected CSS to contain '.v1'")
 	}
 
 	// Update module - Simulate hot reload
-	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v2 { color: blue; }", "", "", nil)
+	h.AssetsHandler.UpdateSSRModule("testapp/mymodule", ".v2 { color: blue; }", nil, "", nil)
 
 	// Verify update
 	if !h.AssetsHandler.ContainsCSS(".v2") {
