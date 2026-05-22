@@ -10,8 +10,18 @@ import (
 	"github.com/tinywasm/imagemin"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/devwatch"
+	"github.com/tinywasm/js"
 	"github.com/tinywasm/server"
 )
+
+// syncJSRuntime synchronizes the global JS runtime state with the WASM client's configuration.
+func syncJSRuntime(c *client.WasmClient) {
+	if c.TinyGoCompilerFlag {
+		js.SetRuntime(js.RuntimeTinyGo)
+	} else {
+		js.SetRuntime(js.RuntimeGo)
+	}
+}
 
 func (h *Handler) AddSectionBUILD() any {
 	SectionBuild := h.Tui.NewTabSection("BUILD", "Building and Compiling")
@@ -47,11 +57,8 @@ func (h *Handler) InitBuildHandlers() {
 	h.AssetsHandler = assetmin.NewAssetMin(&assetmin.Config{
 		OutputDir: publicDir,
 		RootDir:   h.RootDir,
-		GetSSRClientInitJS: func() (string, error) {
-			return h.WasmClient.GetSSRClientInitJS()
-		},
-		AppName: h.FrameworkName,
-		DevMode: h.DevMode, // Pass DevMode explicitly to prevent caching in development
+		AppName:   h.FrameworkName,
+		DevMode:   h.DevMode, // Pass DevMode explicitly to prevent caching in development
 	})
 	if h.ListModulesFn != nil {
 		h.AssetsHandler.SetListModulesFn(h.ListModulesFn)
@@ -60,6 +67,10 @@ func (h *Handler) InitBuildHandlers() {
 	// Activate SSR hot-reload path from startup so CSS changes update the correct
 	// module-name keyed slot instead of appending a duplicate full-path entry.
 	h.AssetsHandler.EnableSSRMode()
+
+	// 2. Synchronize JS Runtime and Register Bootstrap Script
+	syncJSRuntime(h.WasmClient)
+	h.AssetsHandler.UpdateSSRModule("bootstrap", "", []*js.Script{js.PageBootstrap()}, "", nil)
 
 	// 3. SERVER
 	h.Server = h.serverFactory(h.ExitChan, h.Tui, h.Browser)
@@ -77,8 +88,7 @@ func (h *Handler) InitBuildHandlers() {
 			// 1. Client: switch to disk storage, then compile synchronously.
 			//    Must happen BEFORE assetmin flushes because assetmin embeds the
 			//    wasm filename (which depends on client mode) into main.js /
-			//    index.html via GetSSRClientInitJS(). Dependency is on client
-			//    *state*, not disk I/O.
+			//    index.html. Dependency is on client *state*, not disk I/O.
 			h.WasmClient.UseDiskStorage()
 			if err := h.WasmClient.Compile(); err != nil {
 				return fmt.Errorf("wasm compile failed: %w", err)
@@ -113,10 +123,7 @@ func (h *Handler) InitBuildHandlers() {
 		srv.SetDisableGlobalCleanup(TestMode)
 		srv.SetCompileArgs(func() []string { return []string{"-p", "1"} })
 		srv.SetRunArgs(func() []string {
-			return []string{
-				"-server_port=" + h.Config.ServerPort(),
-				"-server_public_dir=" + filepath.Join(h.RootDir, h.Config.WebPublicDir()),
-			}
+			return []string{"-server_port=" + h.Config.ServerPort()}
 		})
 	}
 
@@ -256,6 +263,8 @@ func (h *Handler) InitBuildHandlers() {
 
 	// 7. Wire up TinyWasm to AssetMin
 	h.WasmClient.OnWasmExecChange = func() {
+		syncJSRuntime(h.WasmClient)
+		h.AssetsHandler.UpdateSSRModule("bootstrap", "", []*js.Script{js.PageBootstrap()}, "", nil)
 		h.AssetsHandler.RefreshJSAssets()
 
 		// Restart server to pick up new mode arguments
