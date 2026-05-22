@@ -16,7 +16,7 @@ import (
 
 // syncJSRuntime synchronizes the global JS runtime state with the WASM client's configuration.
 func syncJSRuntime(c *client.WasmClient) {
-	if c.TinyGoCompilerFlag {
+	if c.RequiresTinyGo(c.CurrentSizeMode) {
 		js.SetRuntime(js.RuntimeTinyGo)
 	} else {
 		js.SetRuntime(js.RuntimeGo)
