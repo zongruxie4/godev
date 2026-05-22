@@ -635,7 +635,9 @@ func (d *daemonToolProvider) runProjectLoop(ctx *context.Context, projectPath st
 	d.mu.Unlock()
 	defer func() {
 		d.mu.Lock()
-		d.projectTui = nil
+		if d.projectTui == headlessTui { // only clear if we're still the owner
+			d.projectTui = nil
+		}
 		d.mu.Unlock()
 	}()
 	browser := d.cfg.BrowserFactory(headlessTui, runExitChan)
@@ -651,10 +653,14 @@ func (d *daemonToolProvider) runProjectLoop(ctx *context.Context, projectPath st
 		}
 	}()
 
-	// defer cleanup: clear proxy
+	// defer cleanup: clear proxy (only if we're still the owner)
 	defer func() {
-		d.toolProxy.SetActive()
-		d.logger("Project loop cleanup: proxy cleared")
+		d.mu.Lock()
+		if d.projectTui == headlessTui { // only clear proxy if we're still the owner
+			d.toolProxy.SetActive()
+			d.logger("Project loop cleanup: proxy cleared")
+		}
+		d.mu.Unlock()
 	}()
 
 	// Let's start the app loop here

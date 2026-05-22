@@ -7,10 +7,11 @@ require (
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/deploy v0.2.2
 	github.com/tinywasm/devflow v0.4.22
-	github.com/tinywasm/devtui v0.3.4
+	github.com/tinywasm/devtui v0.3.5
 	github.com/tinywasm/fmt v0.23.9
 	github.com/tinywasm/form v0.2.5
 	github.com/tinywasm/imagemin v0.0.5
+	github.com/tinywasm/js v0.0.3
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
 	github.com/tinywasm/mcp v0.1.9
@@ -52,7 +53,6 @@ require (
 	github.com/tinywasm/gobuild v0.0.25 // indirect
 	github.com/tinywasm/goflare v0.2.10 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
-	github.com/tinywasm/js v0.0.3 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
 	github.com/tinywasm/tinygo v0.0.10 // indirect
