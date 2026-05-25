@@ -51,7 +51,7 @@ require (
 	github.com/tinywasm/dom v0.9.4 // indirect
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
-	github.com/tinywasm/goflare v0.2.11 // indirect
+	github.com/tinywasm/goflare v0.2.12 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
