@@ -9,7 +9,7 @@ require (
 	github.com/tinywasm/devflow v0.4.28
 	github.com/tinywasm/devtui v0.3.5
 	github.com/tinywasm/fmt v0.23.10
-	github.com/tinywasm/form v0.2.5
+	github.com/tinywasm/form v0.2.6
 	github.com/tinywasm/imagemin v0.0.5
 	github.com/tinywasm/js v0.0.3
 	github.com/tinywasm/json v0.5.2
@@ -48,11 +48,12 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/tinywasm/css v0.1.2 // indirect
 	github.com/tinywasm/depfind v0.0.24 // indirect
-	github.com/tinywasm/dom v0.9.6 // indirect
+	github.com/tinywasm/dom v0.10.1 // indirect
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
 	github.com/tinywasm/goflare v0.2.26 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
+	github.com/tinywasm/html v0.0.2 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
 	github.com/tinywasm/tinygo v0.0.11 // indirect
