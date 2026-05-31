@@ -3,12 +3,12 @@ module github.com/tinywasm/app
 go 1.25.2
 
 require (
-	github.com/tinywasm/client v0.6.11-0.20260521203018-6ea8ddbd4e26
+	github.com/tinywasm/client v0.6.13
 	github.com/tinywasm/context v0.0.18
-	github.com/tinywasm/deploy v0.2.2
-	github.com/tinywasm/devflow v0.4.25
+	github.com/tinywasm/deploy v0.2.3
+	github.com/tinywasm/devflow v0.4.28
 	github.com/tinywasm/devtui v0.3.5
-	github.com/tinywasm/fmt v0.23.9
+	github.com/tinywasm/fmt v0.23.10
 	github.com/tinywasm/form v0.2.5
 	github.com/tinywasm/imagemin v0.0.5
 	github.com/tinywasm/js v0.0.3
@@ -48,14 +48,14 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/tinywasm/css v0.1.2 // indirect
 	github.com/tinywasm/depfind v0.0.24 // indirect
-	github.com/tinywasm/dom v0.9.4 // indirect
+	github.com/tinywasm/dom v0.9.6 // indirect
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gobuild v0.0.25 // indirect
-	github.com/tinywasm/goflare v0.2.12 // indirect
+	github.com/tinywasm/goflare v0.2.26 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
 	github.com/tinywasm/screenshot v0.0.1 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
-	github.com/tinywasm/tinygo v0.0.10 // indirect
+	github.com/tinywasm/tinygo v0.0.11 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
