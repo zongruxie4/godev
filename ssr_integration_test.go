@@ -247,7 +247,7 @@ func TestSSRIconInjection(t *testing.T) {
 	h.GoModHandler = &mockGoMod{}
 	h.InitBuildHandlers()
 
-	icons := svg.New().Add("test-icon", `<path fill="currentColor" d="M1 2h3"/>`)
+	icons := svg.NewSprite(svg.Define("test-icon", "0 0 16 16", svg.Raw(`<path fill="currentColor" d="M1 2h3"/>`)))
 	h.AssetsHandler.UpdateSSRModule("testapp/iconmod", "", nil, "", icons)
 
 	if !h.AssetsHandler.HasIcon("test-icon") {
