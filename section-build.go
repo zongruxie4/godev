@@ -7,7 +7,8 @@ import (
 
 	"github.com/tinywasm/devflow"
 	"github.com/tinywasm/assetmin"
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image/min"
+	"github.com/tinywasm/ssr"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/devwatch"
 	"github.com/tinywasm/js"
@@ -60,10 +61,6 @@ func (h *Handler) InitBuildHandlers() {
 		AppName:   h.FrameworkName,
 		DevMode:   h.DevMode, // Pass DevMode explicitly to prevent caching in development
 	})
-	if h.ListModulesFn != nil {
-		h.AssetsHandler.SetListModulesFn(h.ListModulesFn)
-	}
-
 	// Activate SSR hot-reload path from startup so CSS changes update the correct
 	// module-name keyed slot instead of appending a duplicate full-path entry.
 	h.AssetsHandler.EnableSSRMode()
@@ -155,9 +152,6 @@ func (h *Handler) InitBuildHandlers() {
 				"_test.go",
 			}
 			uf = append(uf, h.AssetsHandler.UnobservedFiles()...)
-			if h.ImageHandler != nil {
-				uf = append(uf, h.ImageHandler.UnobservedFiles()...)
-			}
 			uf = append(uf, h.WasmClient.UnobservedFiles()...)
 			uf = append(uf, h.Server.UnobservedFiles()...)
 			return uf
@@ -169,13 +163,19 @@ func (h *Handler) InitBuildHandlers() {
 	h.GoModHandler.SetLog(h.Watcher.Logger)
 	h.GoModHandler.SetFolderWatcher(h.Watcher)
 
-	// IMAGEMIN - inicializar DESPUÉS de crear h.Watcher
-	h.ImageHandler = imagemin.New(&imagemin.Config{
+	// IMAGE — inicializar DESPUÉS de crear h.Watcher
+	h.ImageHandler = min.New(&min.Config{
 		RootDir:   h.RootDir,
 		OutputDir: filepath.Join(h.RootDir, h.Config.WebPublicDir(), "img"),
 		Quality:   82,
 	})
 	h.ImageHandler.SetLog(h.Watcher.Logger)
+	if h.ListModulesFn != nil {
+		h.ImageHandler.SetListModulesFn(h.ListModulesFn)
+	} else {
+		h.ImageHandler.InitDefaultLoader()
+	}
+	h.AssetsHandler.SetImageProcessor(h.ImageHandler)
 
 	// 6. Register Handlers with TUI for logging
 	h.Tui.AddHandler(h.WasmClient, colorPurpleMedium, h.SectionBuild)
@@ -187,6 +187,14 @@ func (h *Handler) InitBuildHandlers() {
 	h.Tui.AddHandler(h.Config, colorTealMedium, h.SectionBuild)
 	h.Tui.AddHandler(h.Browser, colorPinkMedium, h.SectionBuild)
 
+	// SSR extractor — construir e inyectar ANTES de ReloadSSRModule/LoadSSRModules
+	ssrExtractor := ssr.New(h.RootDir)
+	ssrExtractor.SetLog(h.Watcher.Logger)
+	if h.ListModulesFn != nil {
+		ssrExtractor.SetListModulesFn(h.ListModulesFn)
+	}
+	h.AssetsHandler.SetSSRExtractor(ssrExtractor)
+
 	// SSR MODULE EXTRACTION — inyectar módulo raíz sincrónicamente antes del background scan
 	if err := h.AssetsHandler.ReloadSSRModule(h.RootDir); err != nil {
 		h.AssetsHandler.Logger("Initial SSR load error:", err)
@@ -196,40 +204,11 @@ func (h *Handler) InitBuildHandlers() {
 		h.AssetsHandler.WaitForSSRLoad(5 * time.Second)
 	}
 
-	if h.ListModulesFn != nil {
-		h.ImageHandler.SetListModulesFn(h.ListModulesFn)
-	}
-
-	// Carga inicial de imágenes en goroutine
-	go func() {
-		if err := h.ImageHandler.LoadImages(); err != nil {
-			h.ImageHandler.Logger("Image load error:", err)
-		}
-	}()
-
-	// Wire SSR + Image hot reload: GoModHandler notifica cuando ssr.go cambia
-	type ssrRelay interface {
-		SetOnSSRFileChange(fn func(string))
-	}
-	if g, ok := h.GoModHandler.(ssrRelay); ok {
-		g.SetOnSSRFileChange(func(moduleDir string) {
-			// assetmin: reload SSR
-			if err := h.AssetsHandler.ReloadSSRModule(moduleDir); err != nil {
-				h.AssetsHandler.Logger("SSR hot reload error:", err)
-				return // no recargar browser si el módulo falló
-			}
-
-			// imagemin: re-procesar imágenes del módulo
-			if err := h.ImageHandler.ReloadModule(moduleDir); err != nil {
-				h.ImageHandler.Logger("Image hot reload error:", err)
-			}
-
-			// ReloadSSRModule actualiza slots en memoria
-			if err := h.Browser.Reload(); err != nil {
-				h.AssetsHandler.Logger("Browser reload error:", err)
-			}
-		})
-	}
+	// SSRFileWatcher — assetmin enruta .go internamente (css/svg/html/image)
+	ssrWatcher := h.AssetsHandler.NewSSRFileWatcher(func() error {
+		return h.Browser.Reload()
+	})
+	h.Watcher.AddFilesEventHandlers(ssrWatcher)
 
 	// Add main project root to watcher
 	h.Watcher.AddDirectoriesToWatch(h.Config.RootDir)

@@ -22,6 +22,9 @@ func NewTestHandler(RootDir string) *app.Handler {
 	h := &app.Handler{
 		Config:    app.NewConfig(RootDir, func(...any) {}),
 		GoHandler: gh,
+		// Fast no-op module discovery so SSR background load doesn't hold the
+		// AssetMin mutex during a real filesystem scan in tests.
+		ListModulesFn: func(string) ([]string, error) { return nil, nil },
 	}
 
 	h.SetServerFactory(func(exitChan chan bool, ui app.TuiInterface, browser app.BrowserInterface) app.ServerInterface {

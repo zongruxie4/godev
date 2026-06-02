@@ -10,12 +10,14 @@ require (
 	github.com/tinywasm/devtui v0.3.5
 	github.com/tinywasm/fmt v0.23.10
 	github.com/tinywasm/form v0.2.6
-	github.com/tinywasm/imagemin v0.0.5
+	github.com/tinywasm/image v0.0.5
 	github.com/tinywasm/js v0.0.4
 	github.com/tinywasm/json v0.5.2
 	github.com/tinywasm/kvdb v0.0.26
 	github.com/tinywasm/mcp v0.1.9
 	github.com/tinywasm/sse v0.0.13
+	github.com/tinywasm/ssr v0.0.2
+	github.com/tinywasm/svg v0.0.3
 	github.com/tinywasm/wizard v0.0.23
 )
 
@@ -70,9 +72,9 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/tdewolff/minify/v2 v2.24.13 // indirect
-	github.com/tinywasm/assetmin v0.3.5
+	github.com/tinywasm/assetmin v0.4.0
 	github.com/tinywasm/devbrowser v0.3.22
-	github.com/tinywasm/devwatch v0.0.57
+	github.com/tinywasm/devwatch v0.0.59
 	github.com/tinywasm/server v0.2.19
 	golang.org/x/sys v0.43.0 // indirect
 )

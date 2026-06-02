@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/tinywasm/assetmin"
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image/min"
 	"github.com/tinywasm/client"
 	"github.com/tinywasm/deploy"
 	"github.com/tinywasm/devflow"
@@ -30,7 +30,7 @@ type Handler struct {
 	serverFactory ServerFactory
 
 	AssetsHandler *assetmin.AssetMin
-	ImageHandler  *imagemin.Handler
+	ImageHandler  *min.Handler
 	GitHandler    devflow.GitClient
 	GoHandler     *devflow.Go
 	GoNew         *devflow.GoNew
